@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "constants.h"
 #include "features.h"
@@ -11,6 +12,11 @@ int main(void) {
     if (!setup_mouse()) {
         return 0;
     }
+
+    // uinput mouse has to be destroyed on some signals
+    signal(SIGTERM, terminate_mouse);
+    signal(SIGSEGV, terminate_mouse);
+    signal(SIGINT, terminate_mouse);
 
     const i64 pid = get_pid(PROCESS_NAME);
     if (!pid) {

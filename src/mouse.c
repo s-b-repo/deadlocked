@@ -47,9 +47,16 @@ bool setup_mouse(void) {
 }
 
 void close_mouse(void) {
-    ioctl(mouse, UI_DEV_DESTROY);
-    close(mouse);
+    if (mouse > 0) {
+        ioctl(mouse, UI_DEV_DESTROY);
+        close(mouse);
+    }
 }
+
+void terminate_mouse(int _) {
+    close_mouse();
+}
+
 void move_mouse(i32 x, i32 y) {
     struct input_event ev = {0};
 
