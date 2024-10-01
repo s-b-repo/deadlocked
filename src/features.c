@@ -12,13 +12,10 @@ bool find_offsets(ProcessHandle *process, Offsets *offsets) {
     }
     offsets->library.client = client_library;
 
-    const u64 entity_list = 
+    //const u64 entity_list =
 
     return true;
 }
 
 void run(ProcessHandle *process) {
-    if (!ENABLE_CHEAT) {
-        return;
-    }
 }
