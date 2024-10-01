@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "config.h"
 #include "constants.h"
 
 i64 get_pid(const char *process_name) {
@@ -190,6 +191,9 @@ u8 *dump_library(const ProcessHandle *process, const u64 address) {
 
     // allocate module size, plus 8 bytes for length
     u8 *buffer = malloc(module_size + sizeof(u64)) + sizeof(u64);
+    if (!buffer) {
+        return NULL;
+    }
     // set length as the first 8 bytes, but set pointer at elf start
     *((u64 *)buffer - 1) = module_size;
 
@@ -214,7 +218,7 @@ u64 scan_pattern(const ProcessHandle *process, const u64 address,
                  const u8 *pattern, const u8 *mask, u64 length) {
     const u8 *dump = dump_library(process, address);
 
-    for (u64 i = 0; i < (u64)(dump - sizeof(u64)); i++) {
+    for (u64 i = 0; i < (u64)(dump - sizeof(u64)) - length; i++) {
         bool found = true;
         for (u64 j = 0; j < length; j++) {
             if (mask[j] == 'x' && dump[i + j] != pattern[j]) {
@@ -305,6 +309,25 @@ u64 get_library_export(const ProcessHandle *process, const u64 address,
     }
 
     return 0;
+}
+
+u64 get_library_export_windows(const ProcessHandle *process, const u64 address,
+                               const char *export_name) {
+    // 0x3C is nt header offset in dos header
+    const u64 nt_header = address + read_u16(process, address + 0x3C);
+    if (nt_header == address) {
+        return 0;
+    }
+
+    const u64 export_directory = address + read_u32(process, nt_header + 0x88);
+
+    u32 num_exports = read_u32(process, export_directory + 0x18);
+    const u32 idk = read_u32(process, export_directory + 0x18 + 0x08);
+
+    while (num_exports--) {
+        const u64 function_name_pointer =
+            read_u32(process, address + idk + num_exports * 4);
+    }
 }
 
 // done: fix

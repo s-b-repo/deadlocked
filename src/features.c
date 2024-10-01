@@ -12,10 +12,11 @@ bool find_offsets(ProcessHandle *process, Offsets *offsets) {
     }
     offsets->library.client = client_library;
 
-    //const u64 entity_list =
+    const u64 entity_list = scan_pattern(
+        process, offsets->library.client,
+        "\x48\x8B\x0D\x00\x00\x00\x00\x8B\xC5\x48\xC1\xE8", "xxx????xxxxx", 12);
 
     return true;
 }
 
-void run(ProcessHandle *process) {
-}
+void run(ProcessHandle *process) {}

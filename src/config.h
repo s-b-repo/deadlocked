@@ -1,7 +1,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-// in format /dev/{PORT}, with a usb cable this should be /dev/ttyUSB{NUMBER}
-#define ARDUINO_PORT "/dev/ttyUSB0"
+#define LINUX_NATIVE false
+
+#define AIMBOT_FOV 5.0
+#define AIMBOT_SMOOTH 5.0
 
 #endif
