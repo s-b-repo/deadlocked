@@ -11,15 +11,23 @@
 int mouse = 0;
 struct termios tty = {0};
 
-void setup_serial(void) {
+bool setup_serial(void) {
+    if (access(ARDUINO_PORT, F_OK) != 0) {
+        printf("port %s does not exist or could not be opened", ARDUINO_PORT);
+        printf("check that the arduino is plugged in, and that the correct port is written in config.h");
+        return false;
+    }
+
     mouse = open(ARDUINO_PORT, O_WRONLY);
 
     if (mouse < 0) {
         printf("error while opening serial connection\n");
+        return false;
     }
 
     if (tcgetattr(mouse, &tty) != 0) {
         printf("error while reading existing serial settings\n");
+        return false;
     }
 
     // set flags
@@ -47,6 +55,7 @@ void setup_serial(void) {
     // Save tty settings, also checking for error
     if (tcsetattr(mouse, TCSANOW, &tty) != 0) {
         printf("error while setting serial settings\n");
+        return false;
     }
 }
 
@@ -55,4 +64,5 @@ void close_serial(void) { close(mouse); }
 void move_mouse(i32 x, i32 y) {
     char buffer[128] = {0};
     snprintf(buffer, sizeof(buffer), "%d;%y", x, y);
+    write(mouse, buffer, sizeof(buffer));
 }

@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-void setup_serial(void);
+bool setup_serial(void);
 void close_serial(void);
 void move_mouse(i32 x, i32 y);
 

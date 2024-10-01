@@ -11,7 +11,9 @@
 #include "serial.h"
 
 int main(void) {
-    setup_serial();
+    if (!setup_serial()) {
+        return 0;
+    }
     move_mouse(100, 0);
     close_serial();
 
