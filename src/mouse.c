@@ -1,15 +1,16 @@
 #include "mouse.h"
+
 #include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
 #include <linux/uinput.h>
+#include <stdio.h>
+#include <unistd.h>
 
 int mouse = 0;
 
 bool setup_mouse(void) {
     mouse = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
     if (mouse < 0) {
-        printf("could not open uinput");
+        printf("could not open uinput\n");
         return false;
     }
 
@@ -20,26 +21,27 @@ bool setup_mouse(void) {
     ioctl(mouse, UI_SET_RELBIT, REL_Y);
 
     struct uinput_user_dev uidev = {0};
-    snprintf(uidev.name, UINPUT_MAX_NAME_SIZE, "Logitech, Inc. M105 Optical Mouse");
+    snprintf(uidev.name, UINPUT_MAX_NAME_SIZE,
+             "Logitech, Inc. M105 Optical Mouse");
     uidev.id.bustype = BUS_USB;
-    uidev.id.vendor  = 0x046D;
+    uidev.id.vendor = 0x046D;
     uidev.id.product = 0xC077;
     uidev.id.version = 1;
 
     // Write device description
     if (write(mouse, &uidev, sizeof(uidev)) < 0) {
-        perror("error while writing device description");
+        perror("error while writing device description\n");
         close(mouse);
         return false;
     }
 
     // Create the input device
     if (ioctl(mouse, UI_DEV_CREATE) < 0) {
-        perror("error creating mouse device");
+        perror("error creating mouse device\n");
         close(mouse);
         return false;
     }
-    printf("created mouse device");
+    printf("created mouse device\n");
 
     return true;
 }
@@ -49,7 +51,6 @@ void close_mouse(void) {
     close(mouse);
 }
 void move_mouse(i32 x, i32 y) {
-    printf("move mouse %d/%d", x, y);
     struct input_event ev = {0};
 
     // Move along X-axis
@@ -57,7 +58,7 @@ void move_mouse(i32 x, i32 y) {
     ev.code = REL_X;
     ev.value = x;
     if (write(mouse, &ev, sizeof(struct input_event)) < 0) {
-        perror("Error: writing X movement");
+        perror("error writing x movement\n");
         return;
     }
 
@@ -66,7 +67,7 @@ void move_mouse(i32 x, i32 y) {
     ev.code = REL_Y;
     ev.value = y;
     if (write(mouse, &ev, sizeof(struct input_event)) < 0) {
-        perror("Error: writing Y movement");
+        perror("error writing y movement\n");
         return;
     }
 
@@ -75,7 +76,7 @@ void move_mouse(i32 x, i32 y) {
     ev.code = SYN_REPORT;
     ev.value = 0;
     if (write(mouse, &ev, sizeof(struct input_event)) < 0) {
-        perror("Error: writing SYN event");
+        perror("error writing syn event\n");
         return;
     }
 }
