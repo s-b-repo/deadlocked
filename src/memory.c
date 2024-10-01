@@ -197,7 +197,7 @@ u8 *dump_library(const ProcessHandle *process, const u64 address) {
     return buffer;
 }
 
-void free_dump(const u8 *dump) { free((dump - sizeof(u64))); }
+void free_dump(const u8 *dump) { free((void *)(dump - sizeof(u64))); }
 
 bool check_elf_header(const u8 *data) {
     return data[0] == 0x7f && data[1] == 'E' && data[2] == 'L' &&

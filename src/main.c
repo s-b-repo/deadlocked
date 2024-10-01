@@ -1,21 +1,16 @@
-#include <fcntl.h>
-#include <linux/input.h>
-#include <linux/uinput.h>
 #include <stdio.h>
 #include <unistd.h>
 
 #include "constants.h"
 #include "features.h"
 #include "memory.h"
+#include "mouse.h"
 #include "offsets.h"
-#include "serial.h"
 
 int main(void) {
-    if (!setup_serial()) {
+    if (!setup_mouse()) {
         return 0;
     }
-    move_mouse(100, 0);
-    close_serial();
 
     const i64 pid = get_pid(PROCESS_NAME);
     if (!pid) {
@@ -39,5 +34,6 @@ int main(void) {
         run(&process);
     }
 
+    close_mouse();
     return 0;
 }
