@@ -1,9 +1,10 @@
+#include <signal.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <signal.h>
 
 #include "constants.h"
 #include "features.h"
+#include "game.h"
 #include "memory.h"
 #include "mouse.h"
 #include "offsets.h"
