@@ -17,6 +17,8 @@ i64 get_pid(const char *process_name) {
     }
     struct dirent *entry;
 
+    size_t name_length = strlen(process_name);
+
     while ((entry = readdir(dir)) != NULL) {
         // . and .. are not valid directories
         if (strcmp(entry->d_name, ".") == 0 ||
@@ -26,26 +28,25 @@ i64 get_pid(const char *process_name) {
 
         // if this is not null-initialized, it will keep the data from last loop
         char exe_path[1024] = "/proc/";
-        snprintf(exe_path, sizeof(exe_path), "/proc/%s/cmdline", entry->d_name);
+        snprintf(exe_path, sizeof(exe_path), "/proc/%s/exe", entry->d_name);
 
         if (access(exe_path, F_OK) != 0) {
             continue;
         }
 
-        // reads from /proc/{pid}/cmdline, because wine has it as a command line
-        // argument
+        // exe is a symlink
         char exe_name[1024] = {0};
-        FILE *cmdline = fopen(exe_path, "r");
-        fgets(exe_name, sizeof(exe_name), cmdline);
-        fclose(cmdline);
+        if (readlink(exe_path, exe_name, sizeof(exe_name)) == -1) {
+            continue;
+        }
 
         // this has to be backslash, because wine and windows shit idk
-        char *last_slash = strrchr(exe_name, '\\');
+        char *last_slash = strrchr(exe_name, '/');
         if (last_slash == NULL) {
             continue;
         }
         last_slash += 1;
-        if (strcmp(last_slash, process_name) == 0) {
+        if (strncmp(last_slash, process_name, name_length) == 0) {
             return strtoll(entry->d_name, NULL, 10);
         }
     }
@@ -209,7 +210,7 @@ bool check_elf_header(const u8 *data) {
 }
 
 u64 get_relative_address(const ProcessHandle *process, u64 instruction,
-                         const u64 instruction_size, const u64 offset) {
+                         const u64 offset, const u64 instruction_size) {
     const i32 rip_address = read_i32(process, instruction + offset);
     return (u64)(instruction + instruction_size + rip_address);
 }
@@ -380,4 +381,10 @@ u64 get_convar(const ProcessHandle *process, u64 convar_offset,
     }
 
     return 0;
+}
+
+u64 get_interface_function(ProcessHandle *process, u64 interface_address,
+                           u64 index) {
+    return read_u64(process,
+                    read_u64(process, interface_address) + (index * 8));
 }

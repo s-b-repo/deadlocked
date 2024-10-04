@@ -47,4 +47,7 @@ u64 get_interface(const ProcessHandle *process, const u64 address,
 u64 get_convar(const ProcessHandle *process, u64 convar_offset,
                const char *convar_name);
 
+u64 get_interface_function(ProcessHandle *process, u64 interface_address,
+                           u64 index);
+
 #endif

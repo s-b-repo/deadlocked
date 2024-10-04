@@ -1,9 +1,13 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-#define PROCESS_NAME "project8.exe"
+#define PROCESS_NAME "cs2"
 
-#define CLIENT_LIB "client.dll"
+#define CLIENT_LIB "libclient.so"
+#define ENGINE_LIB "libengine2.so"
+#define TIER0_LIB "libtier0.so"
+#define INPUT_LIB "libinputsystem.so"
+#define SDL_LIB "libSDL3.so.0"
 
 // elf program header offsets
 #define ELF_PH_OFFSET 0x20

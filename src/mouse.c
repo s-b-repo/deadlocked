@@ -50,6 +50,7 @@ void close_mouse(void) {
     if (mouse > 0) {
         ioctl(mouse, UI_DEV_DESTROY);
         close(mouse);
+        printf("destroyed mouse device");
     }
 }
 
