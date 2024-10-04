@@ -70,4 +70,6 @@ typedef struct Offsets {
     GameSceneNodeOffsets game_scene_node;
 } Offsets;
 
+bool all_offsets_found(Offsets *offsets);
+
 #endif

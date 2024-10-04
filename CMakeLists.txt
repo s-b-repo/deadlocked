@@ -10,6 +10,7 @@ add_executable(deadlock src/main.c
         src/memory.h
         src/memory.c
         src/offsets.h
+        src/offsets.c
         src/features.h
         src/features.c
         src/mouse.h

@@ -337,7 +337,7 @@ u64 get_interface(const ProcessHandle *process, const u64 address,
     const u64 interface_export =
         get_library_export(process, address, "CreateInterface");
     const u64 export_address =
-        get_relative_address(process, interface_export, 0x05, 0x01) + 0x10;
+        get_relative_address(process, interface_export, 0x01, 0x05) + 0x10;
     u64 interface_entry =
         read_u64(process, export_address + 0x07 +
                               read_u32(process, export_address + 0x03));
