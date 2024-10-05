@@ -11,11 +11,6 @@ typedef struct LibraryOffsets {
     u64 sdl;
 } LibraryOffsets;
 
-typedef struct GeneralOffsets {
-    u64 entity_list;
-    u64 sdl_window;
-} GeneralOffsets;
-
 typedef struct InterfaceOffsets {
     u64 convar;
     u64 resource;
@@ -60,7 +55,6 @@ typedef struct GameSceneNodeOffsets {
 
 typedef struct Offsets {
     LibraryOffsets library;
-    GeneralOffsets general;
     InterfaceOffsets interface;
     DirectOffsets direct;
     ConvarOffsets convars;

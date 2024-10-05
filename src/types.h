@@ -29,4 +29,8 @@ typedef struct Matrix4 {
     f32 matrix[4][4];
 } Matrix4;
 
+typedef struct WindowSize {
+    f32 x, y, w, h;
+} WindowSize;
+
 #endif

@@ -1,8 +1,10 @@
 #include "game.h"
 
+#include <string.h>
+
 #include "constants.h"
 
-bool find_offsets(ProcessHandle *process, Offsets *offsets) {
+bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
     const u64 client_library = get_library_base_offset(process, CLIENT_LIB);
     const u64 engine_library = get_library_base_offset(process, ENGINE_LIB);
     const u64 tier0_library = get_library_base_offset(process, TIER0_LIB);
@@ -179,4 +181,83 @@ bool find_offsets(ProcessHandle *process, Offsets *offsets) {
     }
 
     return true;
+}
+
+Matrix4 *get_view_matrix(const ProcessHandle *process, const Offsets *offsets) {
+    const u8 *buffer =
+        read_bytes(process, offsets->direct.view_matrix, sizeof(Matrix4));
+    return (Matrix4 *)buffer;
+}
+
+u64 get_local_controller(const ProcessHandle *process, const Offsets *offsets) {
+    return read_u64(process, offsets->direct.local_controller);
+}
+
+u64 get_client_entity(const ProcessHandle *process, const Offsets *offsets,
+                      const u64 index) {
+    // what the fuck?
+    const u64 v2 =
+        read_u64(process, offsets->interface.entity + 8 * (index >> 9) + 16);
+    if (v2 == 0) return 0;
+
+    return read_u64(process, (u64)(120 * (index & 0x1FF) + v2));
+}
+
+u64 get_pawn(const ProcessHandle *process, const Offsets *offsets,
+             const u64 controller) {
+    const u64 v1 = read_u32(process, controller + offsets->controller.pawn);
+    if (v1 == -1) {
+        return 0;
+    }
+
+    // wtf is this?
+    const u64 v2 =
+        read_u64(process, offsets->interface.player + 8 * ((v1 & 0x7FFF) >> 9));
+    if (v2 == 0) {
+        return 0;
+    }
+    return read_u64(process, v2 + 120 * (v1 & 0x1FF));
+}
+
+f32 get_sensitivity(const ProcessHandle *process, const Offsets *offsets) {
+    return read_f32(process, offsets->convars.sensitivity + 0x40);
+}
+
+bool is_ffa(const ProcessHandle *process, const Offsets *offsets) {
+    return read_u32(process, offsets->convars.ffa + 0x40) == 1;
+}
+
+bool is_button_down(const ProcessHandle *process, const Offsets *offsets,
+                    const u64 button) {
+    // what the actual fuck is happening here?
+    const u64 value = read_u32(
+        process, (offsets->interface.input +
+                  (((button >> 5) * 4) + offsets->direct.button_state)));
+    return (value >> (button & 31)) & 1;
+}
+
+i32 get_health(const ProcessHandle *process, const Offsets *offsets,
+               const u64 pawn) {
+    return read_i32(process, pawn + offsets->pawn.health);
+}
+
+u8 get_team(const ProcessHandle *process, const Offsets *offsets,
+            const u64 pawn) {
+    return read_u8(process, pawn + offsets->pawn.team);
+}
+
+u8 get_life_state(const ProcessHandle *process, const Offsets *offsets,
+                  const u64 pawn) {
+    return read_u8(process, pawn + offsets->pawn.life_state);
+}
+
+u64 get_gs_node(const ProcessHandle *process, const Offsets *offsets,
+                const u64 pawn) {
+    return read_u64(process, pawn + offsets->pawn.game_scene_node);
+}
+
+u64 get_position(const ProcessHandle *process, const Offsets *offsets,
+                 const u64 pawn) {
+    const game_scene_node = get_gs_node(process, offsets, pawn);
+    // todo
 }
