@@ -300,8 +300,10 @@ u64 get_library_export(const ProcessHandle *process, const u64 address,
 
         if (strcmp(name, export_name) == 0) {
             // st_value is 8 bytes from struct start
+            free(name);
             return read_u64(process, symbol_table + 8) + address;
         }
+        free(name);
 
         symbol_table += add;
     }
@@ -346,10 +348,12 @@ u64 get_interface(const ProcessHandle *process, const u64 address,
         const char *name = read_string(process, interface_name_address);
 
         if (strncmp(name, interface_name, interface_name_length) == 0) {
+            free(name);
             const u64 vfunc_address = read_u64(process, interface_entry);
             return read_u32(process, vfunc_address + 0x03) + vfunc_address +
                    0x07;
         }
+        free(name);
 
         interface_entry = read_u64(process, interface_entry + 0x10);
         if (interface_entry == 0) {
@@ -373,8 +377,10 @@ u64 get_convar(const ProcessHandle *process, u64 convar_offset,
         const char *name = read_string(process, read_u64(process, object));
 
         if (strcmp(convar_name, name) == 0) {
+            free(name);
             return object;
         }
+        free(name);
     }
 
     return 0;

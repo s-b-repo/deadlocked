@@ -345,6 +345,7 @@ Vec2 get_aim_punch(const ProcessHandle *process, const Offsets *offsets,
     return angle;
 }
 
+// has to be freed!
 char *get_weapon(ProcessHandle *process, const Offsets *offsets, u64 pawn) {
     const u64 weapon_entity_instance =
         read_u64(process, pawn + offsets->pawn.weapon);
