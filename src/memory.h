@@ -26,8 +26,8 @@ u64 read_u64(const ProcessHandle *process, const u64 address);
 f32 read_f32(const ProcessHandle *process, const u64 address);
 f64 read_f64(const ProcessHandle *process, const u64 address);
 
-u8 *read_bytes(const ProcessHandle *process, const u64 address,
-               const u64 count);
+void read_bytes(const ProcessHandle *process, const u64 address, void *data,
+                const u64 count);
 char *read_string(const ProcessHandle *process, const u64 address);
 
 u64 get_library_base_offset(const ProcessHandle *process,

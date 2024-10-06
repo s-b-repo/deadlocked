@@ -189,13 +189,17 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
 }
 
 Matrix4 get_view_matrix(const ProcessHandle *process, const Offsets *offsets) {
-    return *(Matrix4 *)read_bytes(process, offsets->direct.view_matrix, sizeof(Matrix4));
+    Matrix4 matrix = {0};
+    read_bytes(process, offsets->direct.view_matrix, &matrix, sizeof(Matrix4));
+    return matrix;
 }
 
 Vec2 get_view_angles(const ProcessHandle *process, const Offsets *offsets,
                      const u64 pawn) {
-    return *(Vec2 *)read_bytes(process, pawn + offsets->pawn.view_angles,
-                               sizeof(Vec2));
+    Vec2 angles = {0};
+    read_bytes(process, pawn + offsets->pawn.view_angles, &angles,
+               sizeof(Vec2));
+    return angles;
 }
 
 u64 get_local_controller(const ProcessHandle *process, const Offsets *offsets) {
@@ -279,17 +283,18 @@ Vec3 get_position(const ProcessHandle *process, const Offsets *offsets,
                   const u64 pawn) {
     const u64 game_scene_node = get_gs_node(process, offsets, pawn);
     // todo: does this work?
-    const Vec3 position = *(Vec3 *)read_bytes(
-        process, game_scene_node + offsets->game_scene_node.origin,
-        sizeof(Vec3));
+    const Vec3 position = {0};
+    read_bytes(process, game_scene_node + offsets->game_scene_node.origin,
+               &position, sizeof(Vec3));
     return position;
 }
 
 Vec3 get_eye_position(const ProcessHandle *process, const Offsets *offsets,
                       const u64 pawn) {
     Vec3 position = get_position(process, offsets, pawn);
-    const Vec3 eye_offset = *(Vec3 *)read_bytes(
-        process, pawn + offsets->pawn.eye_offset, sizeof(Vec3));
+    const Vec3 eye_offset = {0};
+    read_bytes(process, pawn + offsets->pawn.eye_offset, &eye_offset,
+               sizeof(Vec3));
 
     position.x += eye_offset.x;
     position.y += eye_offset.y;
@@ -309,8 +314,7 @@ Vec3 get_bone_position(const ProcessHandle *process, const Offsets *offsets,
         return position;
     }
 
-    position = *(Vec3 *)read_bytes(process, bone_data + (bone_index * 32),
-                                   sizeof(Vec3));
+    read_bytes(process, bone_data + (bone_index * 32), &position, sizeof(Vec3));
     return position;
 }
 
@@ -335,8 +339,8 @@ Vec2 get_aim_punch(const ProcessHandle *process, const Offsets *offsets,
 
     const u64 data_address =
         read_u64(process, pawn + offsets->pawn.aim_punch_cache + sizeof(u64));
-    angle = *(Vec2 *)read_bytes(process, data_address + (length - 1) * 12,
-                                sizeof(Vec2));
+
+    read_bytes(process, data_address + (length - 1) * 12, &angle, sizeof(Vec2));
 
     return angle;
 }

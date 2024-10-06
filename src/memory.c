@@ -133,11 +133,9 @@ f64 read_f64(const ProcessHandle *process, const u64 address) {
     return value;
 }
 
-u8 *read_bytes(const ProcessHandle *process, const u64 address,
-               const u64 count) {
-    u8 *buffer = calloc(count, 1);
-    pread(process->memory, &buffer, count, address);
-    return buffer;
+void read_bytes(const ProcessHandle *process, const u64 address, void *data,
+                const u64 count) {
+    pread(process->memory, &data, count, address);
 }
 
 char *read_string(const ProcessHandle *process, const u64 address) {
