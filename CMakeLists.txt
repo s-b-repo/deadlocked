@@ -16,7 +16,9 @@ add_executable(deadlock src/main.c
         src/mouse.h
         src/mouse.c
         src/game.h
-        src/game.c)
+        src/game.c
+        src/buttons.h
+        src/bones.h)
 
 find_library(LIBUDEV udev)
 target_link_libraries(deadlock PRIVATE ${LIBUDEV})

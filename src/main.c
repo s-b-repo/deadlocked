@@ -38,7 +38,7 @@ int main(void) {
     }
 
     while (true) {
-        run(&process);
+        run(&process, &offsets);
     }
 
     close_mouse();

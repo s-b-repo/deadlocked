@@ -140,7 +140,6 @@ u8 *read_bytes(const ProcessHandle *process, const u64 address,
     return buffer;
 }
 
-// done: validate that this works
 char *read_string(const ProcessHandle *process, const u64 address) {
     u32 current_size = 8;
     char *buffer = calloc(current_size, 1);
@@ -383,8 +382,8 @@ u64 get_convar(const ProcessHandle *process, u64 convar_offset,
     return 0;
 }
 
-u64 get_interface_function(ProcessHandle *process, u64 interface_address,
-                           u64 index) {
+u64 get_interface_function(const ProcessHandle *process,
+                           const u64 interface_address, const u64 index) {
     return read_u64(process,
                     read_u64(process, interface_address) + (index * 8));
 }

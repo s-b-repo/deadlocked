@@ -134,10 +134,10 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
             }
             offsets->pawn.weapon = *(u32 *)(entry + 0x10);
         } else if (!strncmp(name, "m_flFOVSensitivityAdjust", 24)) {
-            if (offsets->pawn.sensitivity_multiplier) {
+            if (offsets->pawn.fov_multiplier) {
                 continue;
             }
-            offsets->pawn.sensitivity_multiplier = *(u32 *)(entry + 0x08);
+            offsets->pawn.fov_multiplier = *(u32 *)(entry + 0x08);
         } else if (!strncmp(name, "m_pGameSceneNode", 16)) {
             if (offsets->pawn.game_scene_node) {
                 continue;
@@ -158,6 +158,11 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
                 continue;
             }
             offsets->pawn.shots_fired = *(u32 *)(entry + 0x08 + 0x10);
+        } else if (!strncmp(name, "v_angle", 7)) {
+            if (offsets->pawn.shots_fired) {
+                continue;
+            }
+            offsets->pawn.shots_fired = *(u32 *)(entry + 0x08);
         } else if (!strncmp(name, "m_bDormant", 11)) {
             if (offsets->game_scene_node.dormant) {
                 continue;
@@ -183,10 +188,14 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
     return true;
 }
 
-Matrix4 *get_view_matrix(const ProcessHandle *process, const Offsets *offsets) {
-    const u8 *buffer =
-        read_bytes(process, offsets->direct.view_matrix, sizeof(Matrix4));
-    return (Matrix4 *)buffer;
+Matrix4 get_view_matrix(const ProcessHandle *process, const Offsets *offsets) {
+    return *(Matrix4 *)read_bytes(process, offsets->direct.view_matrix, sizeof(Matrix4));
+}
+
+Vec2 get_view_angles(const ProcessHandle *process, const Offsets *offsets,
+                     const u64 pawn) {
+    return *(Vec2 *)read_bytes(process, pawn + offsets->pawn.view_angles,
+                               sizeof(Vec2));
 }
 
 u64 get_local_controller(const ProcessHandle *process, const Offsets *offsets) {
@@ -238,7 +247,11 @@ bool is_button_down(const ProcessHandle *process, const Offsets *offsets,
 
 i32 get_health(const ProcessHandle *process, const Offsets *offsets,
                const u64 pawn) {
-    return read_i32(process, pawn + offsets->pawn.health);
+    const i32 health = read_i32(process, pawn + offsets->pawn.health);
+    if (health < 0 || health > 100) {
+        return 0;
+    }
+    return health;
 }
 
 u8 get_team(const ProcessHandle *process, const Offsets *offsets,
@@ -256,8 +269,96 @@ u64 get_gs_node(const ProcessHandle *process, const Offsets *offsets,
     return read_u64(process, pawn + offsets->pawn.game_scene_node);
 }
 
-u64 get_position(const ProcessHandle *process, const Offsets *offsets,
-                 const u64 pawn) {
-    const game_scene_node = get_gs_node(process, offsets, pawn);
-    // todo
+bool is_dormant(const ProcessHandle *process, const Offsets *offsets,
+                const u64 pawn) {
+    const u64 gs_node = get_gs_node(process, offsets, pawn);
+    return read_u8(process, gs_node + offsets->game_scene_node.dormant);
+}
+
+Vec3 get_position(const ProcessHandle *process, const Offsets *offsets,
+                  const u64 pawn) {
+    const u64 game_scene_node = get_gs_node(process, offsets, pawn);
+    // todo: does this work?
+    const Vec3 position = *(Vec3 *)read_bytes(
+        process, game_scene_node + offsets->game_scene_node.origin,
+        sizeof(Vec3));
+    return position;
+}
+
+Vec3 get_eye_position(const ProcessHandle *process, const Offsets *offsets,
+                      const u64 pawn) {
+    Vec3 position = get_position(process, offsets, pawn);
+    const Vec3 eye_offset = *(Vec3 *)read_bytes(
+        process, pawn + offsets->pawn.eye_offset, sizeof(Vec3));
+
+    position.x += eye_offset.x;
+    position.y += eye_offset.y;
+    position.z += eye_offset.z;
+
+    return position;
+}
+
+Vec3 get_bone_position(const ProcessHandle *process, const Offsets *offsets,
+                       const u64 pawn, const u64 bone_index) {
+    const u64 skeleton = get_gs_node(process, offsets, pawn);
+    const u64 model_state = skeleton + offsets->game_scene_node.model_state;
+    const u64 bone_data = read_u64(process, model_state + 0x80);
+
+    Vec3 position = {0};
+    if (bone_data == 0) {
+        return position;
+    }
+
+    position = *(Vec3 *)read_bytes(process, bone_data + (bone_index * 32),
+                                   sizeof(Vec3));
+    return position;
+}
+
+i32 get_shots_fired(const ProcessHandle *process, const Offsets *offsets,
+                    const u64 pawn) {
+    return read_i32(process, pawn + offsets->pawn.shots_fired);
+}
+
+f32 get_fov_multiplier(const ProcessHandle *process, const Offsets *offsets,
+                       const u64 pawn) {
+    return read_f32(process, pawn + offsets->pawn.fov_multiplier);
+}
+
+Vec2 get_aim_punch(const ProcessHandle *process, const Offsets *offsets,
+                   const u64 pawn) {
+    Vec2 angle = {0};
+
+    const u64 length = read_u64(process, pawn + offsets->pawn.aim_punch_cache);
+    if (length < 1) {
+        return angle;
+    }
+
+    const u64 data_address =
+        read_u64(process, pawn + offsets->pawn.aim_punch_cache + sizeof(u64));
+    angle = *(Vec2 *)read_bytes(process, data_address + (length - 1) * 12,
+                                sizeof(Vec2));
+
+    return angle;
+}
+
+char *get_weapon(ProcessHandle *process, const Offsets *offsets, u64 pawn) {
+    const u64 weapon_entity_instance =
+        read_u64(process, pawn + offsets->pawn.weapon);
+    if (weapon_entity_instance == 0) {
+        return "unknown";
+    }
+
+    const u64 weapon_entity_identity =
+        read_u64(process, weapon_entity_instance + 0x10);
+    if (weapon_entity_identity == 0) {
+        return "unknown";
+    }
+
+    const u64 weapon_name_pointer =
+        read_u64(process, weapon_entity_identity + 0x20);
+    if (weapon_name_pointer == 0) {
+        return "unknown";
+    }
+
+    return read_string(process, weapon_name_pointer);
 }

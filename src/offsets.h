@@ -36,20 +36,21 @@ typedef struct ControllerOffsets {
 } ControllerOffsets;
 
 typedef struct PawnOffsets {
-    u64 health;                  // i32 (m_iHealth)
-    u64 team;                    // u8 (m_iTeamNum)
-    u64 life_state;              // u8 (m_lifeState)
-    u64 weapon;                  // Pointer -> Weapon (m_pClippingWeapon)
-    u64 sensitivity_multiplier;  // f32 (m_flFOVSensitivityAdjust)
-    u64 game_scene_node;         // Pointer -> GameSceneNode (m_pGameSceneNode)
-    u64 eye_offset;              // vec3 (m_vecViewOffset)
-    u64 aim_punch_cache;         // Vector<vec3> (m_aimPunchCache)
-    u64 shots_fired;             // i32 (m_iShotsFired)
+    u64 health;           // i32 (m_iHealth)
+    u64 team;             // u8 (m_iTeamNum)
+    u64 life_state;       // u8 (m_lifeState)
+    u64 weapon;           // Pointer -> Weapon (m_pClippingWeapon)
+    u64 fov_multiplier;   // f32 (m_flFOVSensitivityAdjust)
+    u64 game_scene_node;  // Pointer -> GameSceneNode (m_pGameSceneNode)
+    u64 eye_offset;       // Vec3 (m_vecViewOffset)
+    u64 aim_punch_cache;  // Vector<Vec3> (m_aimPunchCache)
+    u64 shots_fired;      // i32 (m_iShotsFired)
+    u64 view_angles;      // Vec2 (v_angle)
 } PawnOffsets;
 
 typedef struct GameSceneNodeOffsets {
     u64 dormant;      // bool (m_bDormant)
-    u64 origin;       // vec3 (m_vecAbsOrigin)
+    u64 origin;       // Vec3 (m_vecAbsOrigin)
     u64 model_state;  // Pointer -> ModelState (m_modelState)
 } GameSceneNodeOffsets;
 
