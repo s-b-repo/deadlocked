@@ -33,7 +33,7 @@ int main(void) {
 
     Offsets offsets = {0};
     if (!find_offsets(&process, &offsets)) {
-        printf("could not find library offsets\n");
+        printf("could not find offsets\n");
         return 0;
     }
 

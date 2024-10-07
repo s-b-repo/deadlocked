@@ -13,7 +13,7 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
     const u64 sdl_library = get_library_base_offset(process, SDL_LIB);
     if (!client_library || !engine_library || !tier0_library ||
         !input_library || !sdl_library) {
-        printf("could not locate library offsets");
+        printf("could not locate library offsets\n");
         return false;
     }
     offsets->library.client = client_library;
@@ -47,7 +47,7 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
         process, offsets->library.client,
         "\x48\x83\x3D\x00\x00\x00\x00\x00\x0F\x95\xC0\xC3", "xxx????xxxxx", 12);
     if (!local_controller) {
-        printf("could not find local player controller");
+        printf("could not find local player controller\n");
         return false;
     }
     offsets->direct.local_controller =
@@ -58,7 +58,7 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
         "\x48\x8D\x05\x00\x00\x00\x00\x4C\x8D\x05\x00\x00\x00\x00\x48\x8D\x0D",
         "xxx????xxx????xxx", 17);
     if (!view_matrix) {
-        printf("could not find view matrix");
+        printf("could not find view matrix\n");
         return false;
     }
     offsets->direct.view_matrix =
@@ -72,7 +72,7 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
     // dump netvars
     const u8 *client_dump = dump_library(process, offsets->library.client);
     if (!client_dump) {
-        printf("could not dump client library");
+        printf("could not dump client library\n");
         return false;
     }
 
@@ -164,10 +164,10 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
             }
             offsets->pawn.shots_fired = *(u32 *)(entry + 0x08 + 0x10);
         } else if (!strcmp(name, "v_angle")) {
-            if (offsets->pawn.shots_fired) {
+            if (offsets->pawn.view_angles) {
                 continue;
             }
-            offsets->pawn.shots_fired = *(u32 *)(entry + 0x08);
+            offsets->pawn.view_angles = *(u32 *)(entry + 0x08);
         } else if (!strcmp(name, "m_bDormant")) {
             if (offsets->game_scene_node.dormant) {
                 continue;
@@ -186,11 +186,11 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
         }
 
         if (all_offsets_found(offsets)) {
-            break;
+            return true;
         }
     }
     if (!all_offsets_found(offsets)) {
-        printf("not all offsets found");
+        printf("not all offsets found\n");
         return false;
     }
 
