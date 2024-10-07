@@ -108,72 +108,72 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
         const char *name = (char *)(name_pointer - base + client_dump);
 
         // switch
-        if (!strncmp(name, "m_hPawn", 7)) {
+        if (!strcmp(name, "m_hPawn")) {
             if (!network_enable || offsets->controller.pawn) {
                 continue;
             }
             offsets->controller.pawn = *(u32 *)(entry + 0x08 + 0x10);
-        } else if (!strncmp(name, "m_iHealth", 9)) {
+        } else if (!strcmp(name, "m_iHealth")) {
             if (!network_enable || offsets->pawn.health) {
                 continue;
             }
             offsets->pawn.health = *(u32 *)(entry + 0x08 + 0x10);
-        } else if (!strncmp(name, "m_iTeamNum", 10)) {
+        } else if (!strcmp(name, "m_iTeamNum")) {
             if (!network_enable || offsets->pawn.team) {
                 continue;
             }
             offsets->pawn.team = *(u32 *)(entry + 0x08 + 0x10);
-        } else if (!strncmp(name, "m_lifeState", 11)) {
+        } else if (!strcmp(name, "m_lifeState")) {
             if (!network_enable || offsets->pawn.life_state) {
                 continue;
             }
             offsets->pawn.life_state = *(u32 *)(entry + 0x08 + 0x10);
-        } else if (!strncmp(name, "m_pClippingWeapon", 17)) {
+        } else if (!strcmp(name, "m_pClippingWeapon")) {
             if (offsets->pawn.weapon) {
                 continue;
             }
             offsets->pawn.weapon = *(u32 *)(entry + 0x10);
-        } else if (!strncmp(name, "m_flFOVSensitivityAdjust", 24)) {
+        } else if (!strcmp(name, "m_flFOVSensitivityAdjust")) {
             if (offsets->pawn.fov_multiplier) {
                 continue;
             }
             offsets->pawn.fov_multiplier = *(u32 *)(entry + 0x08);
-        } else if (!strncmp(name, "m_pGameSceneNode", 16)) {
+        } else if (!strcmp(name, "m_pGameSceneNode")) {
             if (offsets->pawn.game_scene_node) {
                 continue;
             }
             offsets->pawn.game_scene_node = *(u32 *)(entry + 0x10);
-        } else if (!strncmp(name, "m_vecViewOffset", 15)) {
+        } else if (!strcmp(name, "m_vecViewOffset")) {
             if (!network_enable || offsets->pawn.eye_offset) {
                 continue;
             }
             offsets->pawn.eye_offset = *(u32 *)(entry + 0x08 + 0x10);
-        } else if (!strncmp(name, "m_aimPunchCache", 15)) {
+        } else if (!strcmp(name, "m_aimPunchCache")) {
             if (!network_enable || offsets->pawn.aim_punch_cache) {
                 continue;
             }
             offsets->pawn.aim_punch_cache = *(u32 *)(entry + 0x08 + 0x10);
-        } else if (!strncmp(name, "m_iShotsFired", 13)) {
+        } else if (!strcmp(name, "m_iShotsFired")) {
             if (!network_enable || offsets->pawn.shots_fired) {
                 continue;
             }
             offsets->pawn.shots_fired = *(u32 *)(entry + 0x08 + 0x10);
-        } else if (!strncmp(name, "v_angle", 7)) {
+        } else if (!strcmp(name, "v_angle")) {
             if (offsets->pawn.shots_fired) {
                 continue;
             }
             offsets->pawn.shots_fired = *(u32 *)(entry + 0x08);
-        } else if (!strncmp(name, "m_bDormant", 11)) {
+        } else if (!strcmp(name, "m_bDormant")) {
             if (offsets->game_scene_node.dormant) {
                 continue;
             }
             offsets->game_scene_node.dormant = *(u32 *)(entry + 0x08);
-        } else if (!strncmp(name, "m_vecAbsOrigin", 14)) {
+        } else if (!strcmp(name, "m_vecAbsOrigin")) {
             if (!network_enable || offsets->game_scene_node.origin) {
                 continue;
             }
             offsets->game_scene_node.origin = *(u32 *)(entry + 0x08 + 0x10);
-        } else if (!strncmp(name, "m_modelState", 12)) {
+        } else if (!strcmp(name, "m_modelState")) {
             if (offsets->game_scene_node.model_state) {
                 continue;
             }

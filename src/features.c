@@ -75,6 +75,14 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
                 continue;
             }
 
+            if (is_dormant(process, offsets, pawn)) {
+                continue;
+            }
+
+            if (get_health(process, offsets, pawn) <= 0) {
+                continue;
+            }
+
             if (!ffa && team == get_team(process, offsets, pawn)) {
                 continue;
             }

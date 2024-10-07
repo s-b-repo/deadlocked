@@ -18,7 +18,10 @@ add_executable(deadlock src/main.c
         src/game.h
         src/game.c
         src/buttons.h
-        src/bones.h)
+        src/bones.h
+        src/vecmath.h
+        src/vecmath.c)
 
 find_library(LIBUDEV udev)
 target_link_libraries(deadlock PRIVATE ${LIBUDEV})
+target_link_libraries(deadlock PRIVATE m)

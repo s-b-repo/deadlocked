@@ -3,7 +3,7 @@
 
 #include "buttons.h"
 
-#define AIMBOT_BUTTON MOUSE_LEFT
+#define AIMBOT_BUTTON MOUSE_RIGHT
 
 #define AIMBOT_FOV 5.0
 #define AIMBOT_SMOOTH 5.0
