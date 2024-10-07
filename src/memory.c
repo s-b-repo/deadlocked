@@ -133,9 +133,16 @@ f64 read_f64(const ProcessHandle *process, const u64 address) {
     return value;
 }
 
-void read_bytes(const ProcessHandle *process, const u64 address, void *data,
-                const u64 count) {
-    pread(process->memory, &data, count, address);
+Vec2 read_vec2(const ProcessHandle *process, const u64 address) {
+    Vec2 buffer = {0};
+    pread(process->memory, &buffer, sizeof(buffer), address);
+    return buffer;
+}
+
+Vec3 read_vec3(const ProcessHandle *process, const u64 address) {
+    Vec3 buffer = {0};
+    pread(process->memory, &buffer, sizeof(buffer), address);
+    return buffer;
 }
 
 char *read_string(const ProcessHandle *process, const u64 address) {

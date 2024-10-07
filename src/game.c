@@ -188,9 +188,7 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
 
 Vec2 get_view_angles(const ProcessHandle *process, const Offsets *offsets,
                      const u64 pawn) {
-    Vec2 angles = {0};
-    read_bytes(process, pawn + offsets->pawn.view_angles, &angles,
-               sizeof(Vec2));
+    const Vec2 angles = read_vec2(process, pawn + offsets->pawn.view_angles);
     return angles;
 }
 
@@ -274,19 +272,16 @@ bool is_dormant(const ProcessHandle *process, const Offsets *offsets,
 Vec3 get_position(const ProcessHandle *process, const Offsets *offsets,
                   const u64 pawn) {
     const u64 game_scene_node = get_gs_node(process, offsets, pawn);
-    // todo: does this work?
-    Vec3 position = {0};
-    read_bytes(process, game_scene_node + offsets->game_scene_node.origin,
-               &position, sizeof(Vec3));
+    // todo: still does not work?
+    const Vec3 position =
+        read_vec3(process, game_scene_node + offsets->game_scene_node.origin);
     return position;
 }
 
 Vec3 get_eye_position(const ProcessHandle *process, const Offsets *offsets,
                       const u64 pawn) {
     Vec3 position = get_position(process, offsets, pawn);
-    Vec3 eye_offset = {0};
-    read_bytes(process, pawn + offsets->pawn.eye_offset, &eye_offset,
-               sizeof(Vec3));
+    const Vec3 eye_offset = read_vec3(process, pawn + offsets->pawn.eye_offset);
 
     position.x += eye_offset.x;
     position.y += eye_offset.y;
@@ -297,16 +292,15 @@ Vec3 get_eye_position(const ProcessHandle *process, const Offsets *offsets,
 
 Vec3 get_bone_position(const ProcessHandle *process, const Offsets *offsets,
                        const u64 pawn, const u64 bone_index) {
-    const u64 skeleton = get_gs_node(process, offsets, pawn);
-    const u64 model_state = skeleton + offsets->game_scene_node.model_state;
-    const u64 bone_data = read_u64(process, model_state + 0x80);
+    const u64 gs_node = get_gs_node(process, offsets, pawn);
+    const u64 bone_data = read_u64(
+        process, gs_node + offsets->game_scene_node.model_state + 0x80);
 
-    Vec3 position = {0};
     if (bone_data == 0) {
-        return position;
+        return (Vec3){.x = 0.0, .y = 0.0, .z = 0.0};
     }
 
-    read_bytes(process, bone_data + (bone_index * 32), &position, sizeof(Vec3));
+    const Vec3 position = read_vec3(process, bone_data + (bone_index * 32));
     return position;
 }
 
@@ -322,17 +316,15 @@ f32 get_fov_multiplier(const ProcessHandle *process, const Offsets *offsets,
 
 Vec2 get_aim_punch(const ProcessHandle *process, const Offsets *offsets,
                    const u64 pawn) {
-    Vec2 angle = {0};
-
     const u64 length = read_u64(process, pawn + offsets->pawn.aim_punch_cache);
     if (length < 1) {
-        return angle;
+        return (Vec2){.x = 0.0, .y = 0.0};
     }
 
     const u64 data_address =
         read_u64(process, pawn + offsets->pawn.aim_punch_cache + sizeof(u64));
 
-    read_bytes(process, data_address + (length - 1) * 12, &angle, sizeof(Vec2));
+   const Vec2 angle = read_vec2(process, data_address + (length - 1) * 12);
 
     return angle;
 }
