@@ -6,7 +6,7 @@ bool all_offsets_found(Offsets *offsets) {
            offsets->pawn.weapon && offsets->pawn.fov_multiplier &&
            offsets->pawn.game_scene_node && offsets->pawn.eye_offset &&
            offsets->pawn.aim_punch_cache && offsets->pawn.shots_fired &&
-           offsets->game_scene_node.dormant &&
+           offsets->pawn.view_angles && offsets->game_scene_node.dormant &&
            offsets->game_scene_node.origin &&
            offsets->game_scene_node.model_state;
 }

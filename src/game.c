@@ -1,5 +1,6 @@
 #include "game.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include "constants.h"
@@ -291,7 +292,7 @@ Vec3 get_position(const ProcessHandle *process, const Offsets *offsets,
                   const u64 pawn) {
     const u64 game_scene_node = get_gs_node(process, offsets, pawn);
     // todo: does this work?
-    const Vec3 position = {0};
+    Vec3 position = {0};
     read_bytes(process, game_scene_node + offsets->game_scene_node.origin,
                &position, sizeof(Vec3));
     return position;
@@ -300,7 +301,7 @@ Vec3 get_position(const ProcessHandle *process, const Offsets *offsets,
 Vec3 get_eye_position(const ProcessHandle *process, const Offsets *offsets,
                       const u64 pawn) {
     Vec3 position = get_position(process, offsets, pawn);
-    const Vec3 eye_offset = {0};
+    Vec3 eye_offset = {0};
     read_bytes(process, pawn + offsets->pawn.eye_offset, &eye_offset,
                sizeof(Vec3));
 
