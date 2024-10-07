@@ -12,6 +12,7 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
     const u64 sdl_library = get_library_base_offset(process, SDL_LIB);
     if (!client_library || !engine_library || !tier0_library ||
         !input_library || !sdl_library) {
+        printf("could not locate library offsets");
         return false;
     }
     offsets->library.client = client_library;
@@ -45,6 +46,7 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
         process, offsets->library.client,
         "\x48\x83\x3D\x00\x00\x00\x00\x00\x0F\x95\xC0\xC3", "xxx????xxxxx", 12);
     if (!local_controller) {
+        printf("could not find local player controller");
         return false;
     }
     offsets->direct.local_controller =
@@ -55,6 +57,7 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
         "\x48\x8D\x05\x00\x00\x00\x00\x4C\x8D\x05\x00\x00\x00\x00\x48\x8D\x0D",
         "xxx????xxx????xxx", 17);
     if (!view_matrix) {
+        printf("could not find view matrix");
         return false;
     }
     offsets->direct.view_matrix =
@@ -68,6 +71,7 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
     // dump netvars
     const u8 *client_dump = dump_library(process, offsets->library.client);
     if (!client_dump) {
+        printf("could not dump client library");
         return false;
     }
 
@@ -183,6 +187,10 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
         if (all_offsets_found(offsets)) {
             break;
         }
+    }
+    if (!all_offsets_found(offsets)) {
+        printf("not all offsets found");
+        return false;
     }
 
     return true;
