@@ -53,17 +53,6 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
     offsets->direct.local_controller =
         get_relative_address(process, local_controller, 0x03, 0x07);
 
-    const u64 view_matrix = scan_pattern(
-        process, offsets->library.client,
-        "\x48\x8D\x05\x00\x00\x00\x00\x4C\x8D\x05\x00\x00\x00\x00\x48\x8D\x0D",
-        "xxx????xxx????xxx", 17);
-    if (!view_matrix) {
-        printf("could not find view matrix\n");
-        return false;
-    }
-    offsets->direct.view_matrix =
-        get_relative_address(process, view_matrix + 0x07, 0x03, 0x07);
-
     offsets->convars.sensitivity =
         get_convar(process, offsets->interface.convar, "sensitivity");
     offsets->convars.ffa = get_convar(process, offsets->interface.convar,
@@ -195,12 +184,6 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
     }
 
     return true;
-}
-
-Matrix4 get_view_matrix(const ProcessHandle *process, const Offsets *offsets) {
-    Matrix4 matrix = {0};
-    read_bytes(process, offsets->direct.view_matrix, &matrix, sizeof(Matrix4));
-    return matrix;
 }
 
 Vec2 get_view_angles(const ProcessHandle *process, const Offsets *offsets,

@@ -25,10 +25,6 @@ typedef struct Vec3 {
     f32 x, y, z;
 } Vec3;
 
-typedef struct Matrix4 {
-    f32 matrix[4][4];
-} Matrix4;
-
 typedef struct WindowSize {
     f32 x, y, w, h;
 } WindowSize;

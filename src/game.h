@@ -6,8 +6,6 @@
 
 bool find_offsets(const ProcessHandle *process, Offsets *offsets);
 
-Matrix4 get_view_matrix(const ProcessHandle *process, const Offsets *offsets);
-
 Vec2 get_view_angles(const ProcessHandle *process, const Offsets *offsets,
                      const u64 pawn);
 

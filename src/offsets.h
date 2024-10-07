@@ -21,7 +21,6 @@ typedef struct InterfaceOffsets {
 
 typedef struct DirectOffsets {
     u64 local_controller;
-    u64 view_matrix;
     u64 button_state;
 } DirectOffsets;
 
