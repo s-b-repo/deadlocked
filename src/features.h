@@ -4,6 +4,6 @@
 #include "memory.h"
 #include "offsets.h"
 
-void run(ProcessHandle *process, Offsets *offsets);
+void run(const ProcessHandle *process, const Offsets *offsets);
 
 #endif
