@@ -28,7 +28,7 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug" AND CMAKE_C_COMPILER_ID MATCHES "GNU")
     "-Wno-sign-conversion" "-fsanitize=undefined,address")
     target_link_options(deadlock PRIVATE "-fsanitize=undefined,address")
 elseif(CMAKE_C_COMPILER_ID MATCHES "GNU")
-    target_compile_options(deadlock PRIVATE "-O3")
+    target_compile_options(deadlock PRIVATE "-O3" "-flto")
 endif()
 
 find_library(LIBUDEV udev)
