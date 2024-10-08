@@ -11,7 +11,6 @@
 
 typedef struct Target {
     u64 pawn;
-    u64 bone_index;
     Vec2 angle;
 } Target;
 
@@ -19,7 +18,6 @@ static Target target = {0};
 
 void reset(void) {
     target.pawn = 0;
-    target.bone_index = 0;
     target.angle.x = 0.0;
     target.angle.y = 0.0;
 }
@@ -61,8 +59,7 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
     const u8 team = get_team(process, offsets, local_pawn);
     const Vec2 aim_punch = get_aim_punch(process, offsets, local_pawn);
 
-    // update target when button not held, or when no target was previously
-    // found
+    // update target
     f32 best_fov = 360.0;
     if (!aimbot_active || !target.pawn ||
         !is_pawn_valid(process, offsets, target.pawn)) {
@@ -100,7 +97,6 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
                 best_fov = fov;
 
                 target.pawn = pawn;
-                target.bone_index = BONE_HEAD;
                 target.angle = angle;
             }
         }
@@ -111,7 +107,6 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
     }
 
     // update target angle
-    // todo: this does not work...
     if (target.pawn) {
         const Vec3 head_position =
             get_bone_position(process, offsets, target.pawn, BONE_HEAD);
@@ -119,7 +114,10 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
         const Vec2 angle = get_target_angle(process, offsets, local_pawn,
                                             head_position, aim_punch);
 
-        target.angle = angle;
+        if (fabsf(target.angle.x - angle.x) < 10.0 &
+            fabsf(target.angle.y - angle.y) < 10.0) {
+            target.angle = angle;
+        }
     }
 
     if (!aimbot_active) {
