@@ -15,19 +15,19 @@ void loop(void) {
     const i64 pid = get_pid(PROCESS_NAME);
     if (!pid) {
         //printf("could not find process\n");
-        return 0;
+        return;
     }
 
     ProcessHandle process = {0};
     if (!open_process(pid, &process)) {
         printf("could not open process\n");
-        return 0;
+        return;
     }
 
     Offsets offsets = {0};
     if (!find_offsets(&process, &offsets)) {
         printf("could not find offsets\n");
-        return 0;
+        return;
     }
 
     // more than 10ms is laggy, less borks the bot somehow
