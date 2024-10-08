@@ -7,7 +7,7 @@
 
 #define DEBUG_MOUSE false
 
-#define AIMBOT_FOV 5.0f
+#define AIMBOT_FOV 2.0f
 #define AIMBOT_SMOOTH 5.0f
 #define AIMBOT_MULTIBONE true
 

@@ -46,9 +46,11 @@ i64 get_pid(const char *process_name) {
         }
         last_slash += 1;
         if (strncmp(last_slash, process_name, name_length) == 0) {
+            closedir(dir);
             return strtoll(entry->d_name, NULL, 10);
         }
     }
+    closedir(dir);
     return 0;
 }
 
