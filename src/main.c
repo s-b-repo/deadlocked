@@ -17,7 +17,7 @@ void loop(void) {
         //printf("could not find process\n");
         return;
     }
-    printf("game found, pid: %d\n", pid);
+    printf("game found, pid: %ld\n", pid);
 
     ProcessHandle process = {0};
     if (!open_process(pid, &process)) {

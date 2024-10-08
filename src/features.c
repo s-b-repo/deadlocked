@@ -37,8 +37,8 @@ Vec2 get_target_angle(const ProcessHandle *process, const Offsets *offsets, cons
     Vec2 angles = {0};
     angles_from_vector(&forward, &angles);
 
-    angles.x -= 2.0 * aim_punch.x;
-    angles.y -= 2.0 * aim_punch.y;
+    angles.x -= 2.0f * aim_punch.x;
+    angles.y -= 2.0f * aim_punch.y;
 
     vec2_clamp(&angles);
 
@@ -138,7 +138,7 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
                 continue;
             }
 
-            if (fabsf(target.angle.x - angle.x) < 10.0 & fabsf(target.angle.y - angle.y) < 10.0) {
+            if (fabsf(target.angle.x - angle.x) < 10.0f && fabsf(target.angle.y - angle.y) < 10.0f) {
                 target.angle = angle;
             }
         }
@@ -164,16 +164,16 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
     const f32 sensitivity = get_sensitivity(process, offsets) * get_fov_multiplier(process, offsets, local_pawn);
 
     // x is y, what?
-    Vec2 xy = {.x = (aim_angles.y / sensitivity) / 0.022, .y = (aim_angles.x / sensitivity) / -0.022};
+    Vec2 xy = {.x = (aim_angles.y / sensitivity) / 0.022f, .y = (aim_angles.x / sensitivity) / -0.022f};
 
     Vec2 smooth_angles = {0};
 
-    if (AIMBOT_SMOOTH >= 1.0) {
-        if (fabsf(xy.x) > 1.0) {
+    if (AIMBOT_SMOOTH >= 1.0f) {
+        if (fabsf(xy.x) > 1.0f) {
             if (smooth_angles.x < xy.x) {
-                smooth_angles.x = smooth_angles.x + 1.0 + (xy.x / AIMBOT_SMOOTH);
+                smooth_angles.x = smooth_angles.x + 1.0f + (xy.x / AIMBOT_SMOOTH);
             } else if (smooth_angles.x > xy.x) {
-                smooth_angles.x = smooth_angles.x - 1.0 + (xy.x / AIMBOT_SMOOTH);
+                smooth_angles.x = smooth_angles.x - 1.0f + (xy.x / AIMBOT_SMOOTH);
             } else {
                 smooth_angles.x = xy.x;
             }
@@ -181,11 +181,11 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
             smooth_angles.x = xy.x;
         }
 
-        if (fabsf(xy.y) > 1.0) {
+        if (fabsf(xy.y) > 1.0f) {
             if (smooth_angles.y < xy.y) {
-                smooth_angles.y = smooth_angles.y + 1.0 + (xy.y / AIMBOT_SMOOTH);
+                smooth_angles.y = smooth_angles.y + 1.0f + (xy.y / AIMBOT_SMOOTH);
             } else if (smooth_angles.y > xy.y) {
-                smooth_angles.y = smooth_angles.y - 1.0 + (xy.y / AIMBOT_SMOOTH);
+                smooth_angles.y = smooth_angles.y - 1.0f + (xy.y / AIMBOT_SMOOTH);
             } else {
                 smooth_angles.y = xy.y;
             }

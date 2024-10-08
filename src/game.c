@@ -197,7 +197,7 @@ u64 get_client_entity(const ProcessHandle *process, const Offsets *offsets, cons
 
 u64 get_pawn(const ProcessHandle *process, const Offsets *offsets, const u64 controller) {
     // this HAS to be i32, WHYY
-    const u64 v1 = read_i32(process, controller + offsets->controller.pawn);
+    const i64 v1 = read_i32(process, controller + offsets->controller.pawn);
     if (v1 == -1) {
         return 0;
     }
