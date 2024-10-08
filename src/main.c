@@ -14,7 +14,7 @@
 void loop(void) {
     const i64 pid = get_pid(PROCESS_NAME);
     if (!pid) {
-        printf("could not find process\n");
+        //printf("could not find process\n");
         return 0;
     }
 
@@ -52,8 +52,10 @@ int main(void) {
     signal(SIGSEGV, terminate_mouse);
     signal(SIGINT, terminate_mouse);
 
+    const struct timespec sleep_time = {.tv_sec = 5, .tv_nsec = 0};
     while (true) {
         loop();
+        nanosleep(&sleep_time, NULL);
     }
 
     close_mouse();
