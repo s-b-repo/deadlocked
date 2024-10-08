@@ -55,7 +55,7 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
     }
 
     const enum WeaponClass weapon = get_weapon_class(process, offsets, local_pawn);
-    if (weapon == WEAPON_CLASS_GRENADE) {
+    if (weapon == WEAPON_CLASS_UNKNOWN || weapon == WEAPON_CLASS_KNIFE || weapon == WEAPON_CLASS_GRENADE) {
         return;
     }
 
@@ -63,7 +63,8 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
     const Vec2 view_angles = get_view_angles(process, offsets, local_pawn);
     const bool ffa = is_ffa(process, offsets);
     const u8 team = get_team(process, offsets, local_pawn);
-    const Vec2 aim_punch = get_aim_punch(process, offsets, local_pawn);
+    const Vec2 aim_punch =
+        weapon == WEAPON_CLASS_SNIPER ? get_aim_punch(process, offsets, local_pawn) : (Vec2){.x = 0.0, .y = 0.0};
 
     // update target
     f32 best_fov = 360.0;
