@@ -72,6 +72,7 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
 
         // can this be rewritten to be more concise?
         if (ne_name_pointer >= base && ne_name_pointer <= base + size) {
+            // todo: this seems to not be 8 byte aligned
             ne_name_pointer = *(u64 *)(ne_name_pointer - base + client_dump);
             if (ne_name_pointer >= base && ne_name_pointer <= base + size) {
                 const char *name = (char *)(ne_name_pointer - base + client_dump);
