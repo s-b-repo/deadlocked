@@ -39,8 +39,8 @@ int main(void) {
         return 0;
     }
 
-    const struct timespec sleep_time = {.tv_sec = 0,
-                                        .tv_nsec = SLEEP_TIME * 1000000};
+    // more than 5ms is laggy, less borks the bot somehow
+    const struct timespec sleep_time = {.tv_sec = 0, .tv_nsec = 5000000};
     while (true) {
         run(&process, &offsets);
         nanosleep(&sleep_time, NULL);

@@ -120,7 +120,8 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
         }
     }
 
-    if (!aimbot_active) {
+    if (!aimbot_active ||
+        angles_to_fov(&view_angles, &target.angle) > AIMBOT_FOV) {
         return;
     }
 
