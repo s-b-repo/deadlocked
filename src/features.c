@@ -1,6 +1,7 @@
 #include "features.h"
 
 #include <math.h>
+#include <stdio.h>
 
 #include "bones.h"
 #include "config.h"
@@ -63,7 +64,8 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
     // update target when button not held, or when no target was previously
     // found
     f32 best_fov = 360.0;
-    if (!aimbot_active || !target.pawn) {
+    if (!aimbot_active || !target.pawn ||
+        !is_pawn_valid(process, offsets, target.pawn)) {
         for (i32 i = 1; i <= 64; i++) {
             const u64 controller = get_client_entity(process, offsets, i);
             if (!controller) {
@@ -75,15 +77,7 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
                 continue;
             }
 
-            if (is_dormant(process, offsets, pawn)) {
-                continue;
-            }
-
-            if (get_health(process, offsets, pawn) <= 0) {
-                continue;
-            }
-
-            if (get_life_state(process, offsets, pawn)) {
+            if (!is_pawn_valid(process, offsets, pawn)) {
                 continue;
             }
 
@@ -113,6 +107,22 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
     }
 
     if (best_fov > AIMBOT_FOV && !target.pawn) {
+        return;
+    }
+
+    // update target angle
+    // todo: this does not work...
+    if (target.pawn) {
+        const Vec3 head_position =
+            get_bone_position(process, offsets, target.pawn, BONE_HEAD);
+
+        const Vec2 angle = get_target_angle(process, offsets, local_pawn,
+                                            head_position, aim_punch);
+
+        target.angle = angle;
+    }
+
+    if (!aimbot_active) {
         return;
     }
 

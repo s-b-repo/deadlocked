@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <linux/uinput.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "config.h"
@@ -53,12 +54,17 @@ void close_mouse(void) {
         ioctl(mouse, UI_DEV_DESTROY);
         close(mouse);
         printf("destroyed mouse device\n");
+        exit(0);
     }
 }
 
 void terminate_mouse(int _) { close_mouse(); }
 
 void move_mouse(i32 x, i32 y) {
+    // fix sudden weird turns
+    if (x > 50 || y > 50) {
+        return;
+    }
 #if !DEBUG_MOUSE
     struct input_event ev = {0};
 

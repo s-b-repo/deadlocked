@@ -60,13 +60,13 @@ f32 angles_to_fov(const Vec2 *view_angles, const Vec2 *aim_angles) {
         delta.x = 360.0 - delta.x;
     }
     if (delta.x < 0.0) {
-        delta.x -= delta.x;
+        delta.x = -delta.x;
     }
 
     // clamp?
     delta.y = fmodf(delta.y + 180.0, 360.0) - 180.0;
     if (delta.y < 0) {
-        delta.y -= delta.y;
+        delta.y = -delta.y;
     }
 
     return sqrtf(delta.x * delta.x + delta.y * delta.y);

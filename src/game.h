@@ -59,4 +59,7 @@ Vec2 get_aim_punch(const ProcessHandle *process, const Offsets *offsets,
 
 char *get_weapon(ProcessHandle *process, const Offsets *offsets, u64 pawn);
 
+bool is_pawn_valid(const ProcessHandle *process, const Offsets *offsets,
+                   const u64 pawn);
+
 #endif

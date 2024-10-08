@@ -303,7 +303,7 @@ u64 get_library_export(const ProcessHandle *process, const u64 address,
     while (read_u32(process, symbol_table) != 0) {
         // index into string table
         const u32 name_index = read_u32(process, symbol_table);
-        const char *name = read_string(process, string_table + name_index);
+        char *name = read_string(process, string_table + name_index);
 
         if (strcmp(name, export_name) == 0) {
             // st_value is 8 bytes from struct start
@@ -316,25 +316,6 @@ u64 get_library_export(const ProcessHandle *process, const u64 address,
     }
 
     return 0;
-}
-
-u64 get_library_export_windows(const ProcessHandle *process, const u64 address,
-                               const char *export_name) {
-    // 0x3C is nt header offset in dos header
-    const u64 nt_header = address + read_u16(process, address + 0x3C);
-    if (nt_header == address) {
-        return 0;
-    }
-
-    const u64 export_directory = address + read_u32(process, nt_header + 0x88);
-
-    u32 num_exports = read_u32(process, export_directory + 0x18);
-    const u32 idk = read_u32(process, export_directory + 0x18 + 0x08);
-
-    while (num_exports--) {
-        const u64 function_name_pointer =
-            read_u32(process, address + idk + num_exports * 4);
-    }
 }
 
 // done: fix
@@ -352,7 +333,7 @@ u64 get_interface(const ProcessHandle *process, const u64 address,
     while (true) {
         const u64 interface_name_address =
             read_u64(process, interface_entry + 8);
-        const char *name = read_string(process, interface_name_address);
+        char *name = read_string(process, interface_name_address);
 
         if (strncmp(name, interface_name, interface_name_length) == 0) {
             free(name);
@@ -381,7 +362,7 @@ u64 get_convar(const ProcessHandle *process, u64 convar_offset,
             break;
         }
 
-        const char *name = read_string(process, read_u64(process, object));
+        char *name = read_string(process, read_u64(process, object));
 
         if (strcmp(convar_name, name) == 0) {
             free(name);

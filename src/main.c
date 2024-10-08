@@ -1,7 +1,9 @@
 #include <signal.h>
 #include <stdio.h>
+#include <time.h>
 #include <unistd.h>
 
+#include "config.h"
 #include "constants.h"
 #include "features.h"
 #include "game.h"
@@ -37,8 +39,11 @@ int main(void) {
         return 0;
     }
 
+    const struct timespec sleep_time = {.tv_sec = 0,
+                                        .tv_nsec = SLEEP_TIME * 1000000};
     while (true) {
         run(&process, &offsets);
+        nanosleep(&sleep_time, NULL);
     }
 
     close_mouse();

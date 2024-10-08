@@ -51,6 +51,7 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
         printf("could not find local player controller\n");
         return false;
     }
+    // there was 0x07 instead of 0x08, FUUUCK
     offsets->direct.local_controller =
         get_relative_address(process, local_controller, 0x03, 0x08);
 
@@ -209,6 +210,7 @@ u64 get_client_entity(const ProcessHandle *process, const Offsets *offsets,
 
 u64 get_pawn(const ProcessHandle *process, const Offsets *offsets,
              const u64 controller) {
+    // this HAS to be i32, WHYY
     const u64 v1 = read_i32(process, controller + offsets->controller.pawn);
     if (v1 == -1) {
         return 0;
@@ -349,4 +351,21 @@ char *get_weapon(ProcessHandle *process, const Offsets *offsets, u64 pawn) {
     }
 
     return read_string(process, weapon_name_pointer);
+}
+
+bool is_pawn_valid(const ProcessHandle *process, const Offsets *offsets,
+                   const u64 pawn) {
+    if (is_dormant(process, offsets, pawn)) {
+        return false;
+    }
+
+    if (get_health(process, offsets, pawn) <= 0) {
+        return false;
+    }
+
+    if (get_life_state(process, offsets, pawn)) {
+        return false;
+    }
+
+    return true;
 }
