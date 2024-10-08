@@ -387,7 +387,6 @@ enum WeaponClass get_weapon_class(const ProcessHandle *process, const Offsets *o
     }
 
     // Default case: unknown weapon
-    printf("unknown weapon: %s", weapon);
     return WEAPON_CLASS_UNKNOWN;
 }
 

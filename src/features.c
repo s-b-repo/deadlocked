@@ -54,6 +54,11 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
         return;
     }
 
+    const u8 team = get_team(process, offsets, local_pawn);
+    if (team != 2 && team != 3) {
+        return;
+    }
+
     const enum WeaponClass weapon = get_weapon_class(process, offsets, local_pawn);
     if (weapon == WEAPON_CLASS_UNKNOWN || weapon == WEAPON_CLASS_KNIFE || weapon == WEAPON_CLASS_GRENADE) {
         return;
@@ -62,9 +67,8 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
     const bool aimbot_active = is_button_down(process, offsets, AIMBOT_BUTTON);
     const Vec2 view_angles = get_view_angles(process, offsets, local_pawn);
     const bool ffa = is_ffa(process, offsets);
-    const u8 team = get_team(process, offsets, local_pawn);
     const Vec2 aim_punch =
-        weapon == WEAPON_CLASS_SNIPER ? get_aim_punch(process, offsets, local_pawn) : (Vec2){.x = 0.0, .y = 0.0};
+        weapon == WEAPON_CLASS_SNIPER ? (Vec2){.x = 0.0, .y = 0.0} : get_aim_punch(process, offsets, local_pawn);
 
     // update target
     f32 best_fov = 360.0;

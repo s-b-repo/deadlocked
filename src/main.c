@@ -17,18 +17,21 @@ void loop(void) {
         //printf("could not find process\n");
         return;
     }
+    printf("game found, pid: %d\n", pid);
 
     ProcessHandle process = {0};
     if (!open_process(pid, &process)) {
         printf("could not open process\n");
         return;
     }
+    printf("opened process\n");
 
     Offsets offsets = {0};
     if (!find_offsets(&process, &offsets)) {
         printf("could not find offsets\n");
         return;
     }
+    printf("offsets found\n");
 
     // more than 10ms is laggy, less borks the bot somehow
     const struct timespec sleep_time = {.tv_sec = 0, .tv_nsec = 10 * 1000000};
