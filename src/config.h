@@ -3,7 +3,7 @@
 
 #include "buttons.h"
 
-#define AIMBOT_BUTTON KEYCODE_E
+#define AIMBOT_BUTTON MOUSE_LEFT
 
 #define DEBUG_MOUSE false
 

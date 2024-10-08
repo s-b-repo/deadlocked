@@ -24,8 +24,7 @@ bool setup_mouse(void) {
     ioctl(mouse, UI_SET_RELBIT, REL_Y);
 
     struct uinput_user_dev uidev = {0};
-    snprintf(uidev.name, UINPUT_MAX_NAME_SIZE,
-             "Logitech, Inc. M105 Optical Mouse");
+    snprintf(uidev.name, UINPUT_MAX_NAME_SIZE, "Logitech, Inc. M105 Optical Mouse");
     uidev.id.bustype = BUS_USB;
     uidev.id.vendor = 0x046D;
     uidev.id.product = 0xC077;

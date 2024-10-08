@@ -21,8 +21,7 @@ i64 get_pid(const char *process_name) {
 
     while ((entry = readdir(dir)) != NULL) {
         // . and .. are not valid directories
-        if (strcmp(entry->d_name, ".") == 0 ||
-            strcmp(entry->d_name, "..") == 0) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
             continue;
         }
 
@@ -164,8 +163,7 @@ char *read_string(const ProcessHandle *process, const u64 address) {
     return buffer;
 }
 
-u64 get_library_base_offset(const ProcessHandle *process,
-                            const char *library_name) {
+u64 get_library_base_offset(const ProcessHandle *process, const char *library_name) {
     char maps_path[1024] = {0};
     snprintf(maps_path, sizeof(maps_path), "/proc/%ld/maps", process->pid);
 
@@ -208,19 +206,14 @@ u8 *dump_library(const ProcessHandle *process, const u64 address) {
 
 void free_dump(const u8 *dump) { free((void *)(dump - sizeof(u64))); }
 
-bool check_elf_header(const u8 *data) {
-    return data[0] == 0x7f && data[1] == 'E' && data[2] == 'L' &&
-           data[3] == 'F';
-}
+bool check_elf_header(const u8 *data) { return data[0] == 0x7f && data[1] == 'E' && data[2] == 'L' && data[3] == 'F'; }
 
-u64 get_relative_address(const ProcessHandle *process, u64 instruction,
-                         const u64 offset, const u64 instruction_size) {
+u64 get_relative_address(const ProcessHandle *process, u64 instruction, const u64 offset, const u64 instruction_size) {
     const i32 rip_address = read_i32(process, instruction + offset);
     return (u64)(instruction + instruction_size + rip_address);
 }
 
-u64 scan_pattern(const ProcessHandle *process, const u64 address,
-                 const u8 *pattern, const u8 *mask, u64 length) {
+u64 scan_pattern(const ProcessHandle *process, const u64 address, const u8 *pattern, const u8 *mask, u64 length) {
     const u8 *dump = dump_library(process, address);
 
     for (u64 i = 0; i < (u64)(dump - sizeof(u64)) - length; i++) {
@@ -242,14 +235,11 @@ u64 scan_pattern(const ProcessHandle *process, const u64 address,
 }
 
 // segment is from program header, section is from section header
-u64 get_segment(const ProcessHandle *process, const u64 address,
-                const u32 tag) {
-    const u64 first_entry =
-        read_u64(process, address + ELF_PH_OFFSET) + address;
+u64 get_segment(const ProcessHandle *process, const u64 address, const u32 tag) {
+    const u64 first_entry = read_u64(process, address + ELF_PH_OFFSET) + address;
     const u16 entry_size = read_u16(process, address + ELF_PH_ENTRY_SIZE);
 
-    for (size_t i = 0; i < read_u16(process, address + ELF_PH_NUM_ENTRIES);
-         i++) {
+    for (size_t i = 0; i < read_u16(process, address + ELF_PH_NUM_ENTRIES); i++) {
         const u64 entry = first_entry + i * entry_size;
         if (read_u32(process, entry) == tag) {
             return entry;
@@ -262,13 +252,10 @@ u64 get_segment(const ProcessHandle *process, const u64 address,
 #define REGISTER_SIZE 8
 #define DYN_ENTRY_SIZE 16  // one Elf64_Dyn entry is 16 bytes long
 
-u64 get_dynamic_export(const ProcessHandle *process, const u64 address,
-                       const u32 tag) {
-    const u64 dynamic_section =
-        get_segment(process, address, ELF_DYNAMIC_SECTION_TAG);
+u64 get_dynamic_export(const ProcessHandle *process, const u64 address, const u32 tag) {
+    const u64 dynamic_section = get_segment(process, address, ELF_DYNAMIC_SECTION_TAG);
 
-    u64 current_entry =
-        read_u64(process, dynamic_section + DYN_ENTRY_SIZE) + address;
+    u64 current_entry = read_u64(process, dynamic_section + DYN_ENTRY_SIZE) + address;
 
     while (true) {
         const u64 entry = current_entry;
@@ -289,8 +276,7 @@ u64 get_dynamic_export(const ProcessHandle *process, const u64 address,
     return 0;
 }
 
-u64 get_library_export(const ProcessHandle *process, const u64 address,
-                       const char *export_name) {
+u64 get_library_export(const ProcessHandle *process, const u64 address, const char *export_name) {
     // Elf64_Sym size (why 24 and not 16?)
     const u64 add = 24;
 
@@ -319,27 +305,20 @@ u64 get_library_export(const ProcessHandle *process, const u64 address,
 }
 
 // done: fix
-u64 get_interface(const ProcessHandle *process, const u64 address,
-                  const char *interface_name) {
-    const u64 interface_export =
-        get_library_export(process, address, "CreateInterface");
-    const u64 export_address =
-        get_relative_address(process, interface_export, 0x01, 0x05) + 0x10;
-    u64 interface_entry =
-        read_u64(process, export_address + 0x07 +
-                              read_u32(process, export_address + 0x03));
+u64 get_interface(const ProcessHandle *process, const u64 address, const char *interface_name) {
+    const u64 interface_export = get_library_export(process, address, "CreateInterface");
+    const u64 export_address = get_relative_address(process, interface_export, 0x01, 0x05) + 0x10;
+    u64 interface_entry = read_u64(process, export_address + 0x07 + read_u32(process, export_address + 0x03));
 
     const size_t interface_name_length = strlen(interface_name);
     while (true) {
-        const u64 interface_name_address =
-            read_u64(process, interface_entry + 8);
+        const u64 interface_name_address = read_u64(process, interface_entry + 8);
         char *name = read_string(process, interface_name_address);
 
         if (strncmp(name, interface_name, interface_name_length) == 0) {
             free(name);
             const u64 vfunc_address = read_u64(process, interface_entry);
-            return read_u32(process, vfunc_address + 0x03) + vfunc_address +
-                   0x07;
+            return read_u32(process, vfunc_address + 0x03) + vfunc_address + 0x07;
         }
         free(name);
 
@@ -352,8 +331,7 @@ u64 get_interface(const ProcessHandle *process, const u64 address,
     return 0;
 }
 
-u64 get_convar(const ProcessHandle *process, u64 convar_offset,
-               const char *convar_name) {
+u64 get_convar(const ProcessHandle *process, u64 convar_offset, const char *convar_name) {
     const u64 objects = read_u64(process, convar_offset + 64);
 
     for (size_t i = 0; i < read_u32(process, convar_offset + 160); i++) {
@@ -374,8 +352,6 @@ u64 get_convar(const ProcessHandle *process, u64 convar_offset,
     return 0;
 }
 
-u64 get_interface_function(const ProcessHandle *process,
-                           const u64 interface_address, const u64 index) {
-    return read_u64(process,
-                    read_u64(process, interface_address) + (index * 8));
+u64 get_interface_function(const ProcessHandle *process, const u64 interface_address, const u64 index) {
+    return read_u64(process, read_u64(process, interface_address) + (index * 8));
 }

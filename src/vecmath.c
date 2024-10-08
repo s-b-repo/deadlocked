@@ -5,9 +5,7 @@
 #define PI 3.14159265358979323846
 
 void vec3_normalize(Vec3 *vector) {
-    const f32 length =
-        1.0 / sqrtf(vector->x * vector->x + vector->y * vector->y +
-                    vector->z * vector->z);
+    const f32 length = 1.0 / sqrtf(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);
 
     vector->x *= length;
     vector->y *= length;
@@ -40,9 +38,7 @@ void angles_from_vector(const Vec3 *forward, Vec2 *angles) {
             yaw += 360.0;
         }
 
-        pitch = atan2f(-forward->z, sqrtf(forward->x * forward->x +
-                                          forward->y * forward->y)) *
-                180.0 / PI;
+        pitch = atan2f(-forward->z, sqrtf(forward->x * forward->x + forward->y * forward->y)) * 180.0 / PI;
         if (pitch < 0.0) {
             pitch += 360.0;
         }
@@ -53,8 +49,7 @@ void angles_from_vector(const Vec3 *forward, Vec2 *angles) {
 }
 
 f32 angles_to_fov(const Vec2 *view_angles, const Vec2 *aim_angles) {
-    Vec2 delta = {.x = view_angles->x - aim_angles->x,
-                  .y = view_angles->y - aim_angles->y};
+    Vec2 delta = {.x = view_angles->x - aim_angles->x, .y = view_angles->y - aim_angles->y};
 
     if (delta.x > 180.0) {
         delta.x = 360.0 - delta.x;
