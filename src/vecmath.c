@@ -2,7 +2,7 @@
 
 #include <math.h>
 
-#define PI 3.14159265358979323846
+#define PI 3.14159265358979323846f
 
 void vec3_normalize(Vec3 *vector) {
     const f32 length = 1.0f / sqrtf(vector->x * vector->x + vector->y * vector->y + vector->z * vector->z);

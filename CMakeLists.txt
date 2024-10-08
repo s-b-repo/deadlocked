@@ -23,11 +23,11 @@ add_executable(deadlock src/main.c
         src/vecmath.c
         src/weapons.h)
 
-if (CMAKE_BUILD_TYPE MATCHES "Debug")
+if (CMAKE_BUILD_TYPE MATCHES "Debug" AND CMAKE_C_COMPILER_ID MATCHES "GNU")
     target_compile_options(deadlock PRIVATE "-g3" "-Wall" "-Wextra" "-Wconversion" "-Wdouble-promotion" "-Wno-unused-parameter" "-Wno-unused-function"
     "-Wno-sign-conversion" "-fsanitize=undefined,address")
     target_link_options(deadlock PRIVATE "-fsanitize=undefined,address")
-else()
+elseif(CMAKE_C_COMPILER_ID MATCHES "GNU")
     target_compile_options(deadlock PRIVATE "-O3")
 endif()
 
