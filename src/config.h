@@ -9,5 +9,6 @@
 
 #define AIMBOT_FOV 5.0f
 #define AIMBOT_SMOOTH 5.0f
+#define AIMBOT_MULTIBONE true
 
 #endif

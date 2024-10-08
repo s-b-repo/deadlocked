@@ -116,7 +116,7 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
     }
 
     // update target angle
-    if (target.pawn) {
+    if (target.pawn && AIMBOT_MULTIBONE) {
         const u64 bones[] = {
             BONE_PELVIS,     BONE_SPINE1,    BONE_SPINE2,         BONE_NECK,        BONE_HEAD,       BONE_LEFT_SHOULDER,
             BONE_LEFT_ELBOW, BONE_LEFT_HAND, BONE_RIGHT_SHOULDER, BONE_RIGHT_ELBOW, BONE_RIGHT_HAND, BONE_LEFT_HIP,
@@ -130,8 +130,7 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
             const Vec2 angle = get_target_angle(process, offsets, local_pawn, bone_position, aim_punch);
             const f32 fov = angles_to_fov(&view_angles, &angle);
 
-            if (fov < smallest_fov && fabsf(target.angle.x - angle.x) < 10.0f &&
-                fabsf(target.angle.y - angle.y) < 10.0f) {
+            if (fov < smallest_fov) {
                 target.angle = angle;
                 target.bone_index = bone;
                 smallest_fov = fov;
@@ -139,6 +138,14 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
                 continue;
             }
         }
+    } else if (target.pawn) {
+        const Vec3 head_position = get_bone_position(process, offsets, target.pawn, BONE_HEAD);
+
+        const Vec2 angle = get_target_angle(process, offsets, local_pawn, head_position, aim_punch);
+        const f32 fov = angles_to_fov(&view_angles, &angle);
+
+        target.angle = angle;
+        target.bone_index = BONE_HEAD;
     }
 
     if (!aimbot_active) {
