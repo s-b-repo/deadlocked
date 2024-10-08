@@ -83,6 +83,10 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
                 continue;
             }
 
+            if (get_life_state(process, offsets, pawn)) {
+                continue;
+            }
+
             if (!ffa && team == get_team(process, offsets, pawn)) {
                 continue;
             }

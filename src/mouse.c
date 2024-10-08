@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include "config.h"
+
 int mouse = 0;
 
 bool setup_mouse(void) {
@@ -54,11 +56,10 @@ void close_mouse(void) {
     }
 }
 
-void terminate_mouse(int _) {
-    close_mouse();
-}
+void terminate_mouse(int _) { close_mouse(); }
 
 void move_mouse(i32 x, i32 y) {
+#if !DEBUG_MOUSE
     struct input_event ev = {0};
 
     // Move along X-axis
@@ -87,4 +88,7 @@ void move_mouse(i32 x, i32 y) {
         perror("error writing syn event\n");
         return;
     }
+#else
+    printf("mouse move: %d/%d\n", x, y);
+#endif
 }

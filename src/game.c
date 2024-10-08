@@ -43,15 +43,16 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
         process,
         get_interface_function(process, offsets->interface.input, 19) + 0x14);
 
-    const u64 local_controller = scan_pattern(
-        process, offsets->library.client,
-        "\x48\x83\x3D\x00\x00\x00\x00\x00\x0F\x95\xC0\xC3", "xxx????xxxxx", 12);
+    const u64 local_controller =
+        scan_pattern(process, offsets->library.client,
+                     (u8 *)"\x48\x83\x3D\x00\x00\x00\x00\x00\x0F\x95\xC0\xC3",
+                     (u8 *)"xxx????xxxxx", 12);
     if (!local_controller) {
         printf("could not find local player controller\n");
         return false;
     }
     offsets->direct.local_controller =
-        get_relative_address(process, local_controller, 0x03, 0x07);
+        get_relative_address(process, local_controller, 0x03, 0x08);
 
     offsets->convars.sensitivity =
         get_convar(process, offsets->interface.convar, "sensitivity");
@@ -208,7 +209,7 @@ u64 get_client_entity(const ProcessHandle *process, const Offsets *offsets,
 
 u64 get_pawn(const ProcessHandle *process, const Offsets *offsets,
              const u64 controller) {
-    const u64 v1 = read_u32(process, controller + offsets->controller.pawn);
+    const u64 v1 = read_i32(process, controller + offsets->controller.pawn);
     if (v1 == -1) {
         return 0;
     }
@@ -272,10 +273,8 @@ bool is_dormant(const ProcessHandle *process, const Offsets *offsets,
 Vec3 get_position(const ProcessHandle *process, const Offsets *offsets,
                   const u64 pawn) {
     const u64 game_scene_node = get_gs_node(process, offsets, pawn);
-    // todo: still does not work?
-    const Vec3 position =
-        read_vec3(process, game_scene_node + offsets->game_scene_node.origin);
-    return position;
+    return read_vec3(process,
+                     game_scene_node + offsets->game_scene_node.origin);
 }
 
 Vec3 get_eye_position(const ProcessHandle *process, const Offsets *offsets,
@@ -324,7 +323,7 @@ Vec2 get_aim_punch(const ProcessHandle *process, const Offsets *offsets,
     const u64 data_address =
         read_u64(process, pawn + offsets->pawn.aim_punch_cache + sizeof(u64));
 
-   const Vec2 angle = read_vec2(process, data_address + (length - 1) * 12);
+    const Vec2 angle = read_vec2(process, data_address + (length - 1) * 12);
 
     return angle;
 }
