@@ -11,16 +11,7 @@
 #include "mouse.h"
 #include "offsets.h"
 
-int main(void) {
-    if (!setup_mouse()) {
-        return 0;
-    }
-
-    // uinput mouse has to be destroyed on some signals
-    signal(SIGTERM, terminate_mouse);
-    signal(SIGSEGV, terminate_mouse);
-    signal(SIGINT, terminate_mouse);
-
+void loop(void) {
     const i64 pid = get_pid(PROCESS_NAME);
     if (!pid) {
         printf("could not find process\n");
@@ -39,11 +30,30 @@ int main(void) {
         return 0;
     }
 
-    // more than 5ms is laggy, less borks the bot somehow
+    // more than 10ms is laggy, less borks the bot somehow
     const struct timespec sleep_time = {.tv_sec = 0, .tv_nsec = 10 * 1000000};
     while (true) {
+        if (!validate_pid(pid)) {
+            printf("game closed\n");
+            return;
+        }
         run(&process, &offsets);
         nanosleep(&sleep_time, NULL);
+    }
+}
+
+int main(void) {
+    if (!setup_mouse()) {
+        return 0;
+    }
+
+    // uinput mouse has to be destroyed on some signals
+    signal(SIGTERM, terminate_mouse);
+    signal(SIGSEGV, terminate_mouse);
+    signal(SIGINT, terminate_mouse);
+
+    while (true) {
+        loop();
     }
 
     close_mouse();
