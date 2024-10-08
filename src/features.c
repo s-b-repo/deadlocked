@@ -130,16 +130,13 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
             const Vec2 angle = get_target_angle(process, offsets, local_pawn, bone_position, aim_punch);
             const f32 fov = angles_to_fov(&view_angles, &angle);
 
-            if (fov < smallest_fov) {
+            if (fov < smallest_fov && fabsf(target.angle.x - angle.x) < 10.0f &&
+                fabsf(target.angle.y - angle.y) < 10.0f) {
                 target.angle = angle;
                 target.bone_index = bone;
                 smallest_fov = fov;
             } else {
                 continue;
-            }
-
-            if (fabsf(target.angle.x - angle.x) < 10.0f && fabsf(target.angle.y - angle.y) < 10.0f) {
-                target.angle = angle;
             }
         }
     }
