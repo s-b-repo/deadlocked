@@ -48,4 +48,6 @@ enum WeaponClass get_weapon_class(const ProcessHandle *process, const Offsets *o
 
 bool is_pawn_valid(const ProcessHandle *process, const Offsets *offsets, const u64 pawn);
 
+i32 get_spotted_mask(const ProcessHandle *process, const Offsets *offsets, const u64 pawn);
+
 #endif

@@ -70,16 +70,32 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
     const Vec2 aim_punch =
         weapon == WEAPON_CLASS_SNIPER ? (Vec2){.x = 0.0, .y = 0.0} : get_aim_punch(process, offsets, local_pawn);
 
+    u64 pawns[64] = {0};
+    u64 local_pawn_index = 0;
+    for (i32 i = 1; i <= 64; i++) {
+        const u64 controller = get_client_entity(process, offsets, i);
+        if (!controller) {
+            pawns[i - 1] = 0;
+            continue;
+        }
+
+        const u64 pawn = get_pawn(process, offsets, controller);
+        if (!pawn) {
+            pawns[i - 1] = 0;
+            continue;
+        }
+
+        if (pawn == local_pawn) {
+            local_pawn_index = i - 1;
+        }
+        pawns[i - 1] = pawn;
+    }
+
     // update target
     f32 best_fov = 360.0;
     if (!aimbot_active || !target.pawn || !is_pawn_valid(process, offsets, target.pawn)) {
         for (i32 i = 1; i <= 64; i++) {
-            const u64 controller = get_client_entity(process, offsets, i);
-            if (!controller) {
-                continue;
-            }
-
-            const u64 pawn = get_pawn(process, offsets, controller);
+            const u64 pawn = pawns[i - 1];
             if (!pawn) {
                 continue;
             }
@@ -113,6 +129,13 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
 
     if (best_fov > AIMBOT_FOV && !target.pawn) {
         return;
+    }
+
+    if (VISIBILITY_CHECK) {
+        const i32 spotted_mask = get_spotted_mask(process, offsets, target.pawn);
+        if (!(spotted_mask & (1 << local_pawn_index))) {
+            return;
+        }
     }
 
     // update target angle

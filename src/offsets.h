@@ -45,6 +45,7 @@ typedef struct PawnOffsets {
     u64 aim_punch_cache;  // Vector<Vec3> (m_aimPunchCache)
     u64 shots_fired;      // i32 (m_iShotsFired)
     u64 view_angles;      // Vec2 (v_angle)
+    u64 spotted_state;    // SpottedState (m_entitySpottedState)
 } PawnOffsets;
 
 typedef struct GameSceneNodeOffsets {
@@ -52,6 +53,11 @@ typedef struct GameSceneNodeOffsets {
     u64 origin;       // Vec3 (m_vecAbsOrigin)
     u64 model_state;  // Pointer -> ModelState (m_modelState)
 } GameSceneNodeOffsets;
+
+typedef struct SpottedStateOffsets {
+    u64 spotted; // bool (m_bSpotted)
+    u64 mask;    // i32[2]? or u64? (m_bSpottedByMask)
+} SpottedStateOffsets;
 
 typedef struct Offsets {
     LibraryOffsets library;
@@ -62,6 +68,7 @@ typedef struct Offsets {
     ControllerOffsets controller;
     PawnOffsets pawn;
     GameSceneNodeOffsets game_scene_node;
+    SpottedStateOffsets spotted_state;
 } Offsets;
 
 bool all_offsets_found(Offsets *offsets);

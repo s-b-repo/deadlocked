@@ -150,6 +150,14 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
                 continue;
             }
             offsets->pawn.view_angles = *(u32 *)(entry + 0x08);
+        } else if (!strcmp(name, "m_entitySpottedState")) {
+            if (!network_enable || offsets->pawn.spotted_state) {
+                continue;
+            }
+            offsets->pawn.spotted_state = *(u32 *)(entry + 0x08 + 0x10);
+            if (offsets->pawn.spotted_state < 10000 || offsets->pawn.spotted_state > 14000) {
+                offsets->pawn.spotted_state = 0;
+            }
         } else if (!strcmp(name, "m_bDormant")) {
             if (offsets->game_scene_node.dormant) {
                 continue;
@@ -165,6 +173,16 @@ bool find_offsets(const ProcessHandle *process, Offsets *offsets) {
                 continue;
             }
             offsets->game_scene_node.model_state = *(u32 *)(entry + 0x08);
+        } else if (!strcmp(name, "m_bSpotted")) {
+            if (offsets->spotted_state.spotted) {
+                continue;
+            }
+            offsets->spotted_state.spotted = *(u32 *)(entry + 0x10);
+        } else if (!strcmp(name, "m_bSpottedByMask")) {
+            if (!network_enable || offsets->spotted_state.mask) {
+                continue;
+            }
+            offsets->spotted_state.mask = *(u32 *)(entry + 0x08 + 0x10);
         }
 
         if (all_offsets_found(offsets)) {
@@ -405,4 +423,8 @@ bool is_pawn_valid(const ProcessHandle *process, const Offsets *offsets, const u
     }
 
     return true;
+}
+
+i32 get_spotted_mask(const ProcessHandle *process, const Offsets *offsets, const u64 pawn) {
+    return read_i32(process, pawn + offsets->pawn.spotted_state + offsets->spotted_state.mask);
 }
