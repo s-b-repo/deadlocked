@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.28)
-project(deadlock C)
+project(deadlocked C)
 
 set(CMAKE_C_STANDARD 17)
 
-add_executable(deadlock src/main.c
+add_executable(deadlocked src/main.c
         src/bones.h
         src/buttons.h
         src/config.c
@@ -25,13 +25,13 @@ add_executable(deadlock src/main.c
         src/weapons.h)
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug" AND CMAKE_C_COMPILER_ID MATCHES "GNU")
-    target_compile_options(deadlock PRIVATE "-g3" "-Wall" "-Wextra" "-Wconversion" "-Wdouble-promotion" "-Wno-unused-parameter" "-Wno-unused-function"
+    target_compile_options(deadlocked PRIVATE "-g3" "-Wall" "-Wextra" "-Wconversion" "-Wdouble-promotion" "-Wno-unused-parameter" "-Wno-unused-function"
     "-Wno-sign-conversion" "-fsanitize=undefined,address")
-    target_link_options(deadlock PRIVATE "-fsanitize=undefined,address")
+    target_link_options(deadlocked PRIVATE "-fsanitize=undefined,address")
 elseif(CMAKE_C_COMPILER_ID MATCHES "GNU")
-    target_compile_options(deadlock PRIVATE "-O3" "-flto")
+    target_compile_options(deadlocked PRIVATE "-O3" "-flto")
 endif()
 
 find_library(LIBUDEV udev)
-target_link_libraries(deadlock PRIVATE ${LIBUDEV})
-target_link_libraries(deadlock PRIVATE m)
+target_link_libraries(deadlocked PRIVATE ${LIBUDEV})
+target_link_libraries(deadlocked PRIVATE m)
