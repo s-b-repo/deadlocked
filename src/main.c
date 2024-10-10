@@ -62,6 +62,8 @@ int main(void) {
         FILE *file = fopen(CONFIG_FILE_NAME, "w");
         create_config(file);
         fclose(file);
+        printf("config file generated, edit it to your liking, then restart\n");
+        close_mouse();
     } else {
         FILE *file = fopen(CONFIG_FILE_NAME, "rw");
         parse_config(file);
