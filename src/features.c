@@ -10,6 +10,8 @@
 #include "vecmath.h"
 #include "weapons.h"
 
+extern Config config;
+
 typedef struct Target {
     u64 pawn;
     Vec2 angle;
@@ -64,7 +66,7 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
         return;
     }
 
-    const bool aimbot_active = is_button_down(process, offsets, AIMBOT_BUTTON);
+    const bool aimbot_active = is_button_down(process, offsets, config.button);
     const Vec2 view_angles = get_view_angles(process, offsets, local_pawn);
     const bool ffa = is_ffa(process, offsets);
     const Vec2 aim_punch =
@@ -114,7 +116,7 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
 
             const f32 fov = angles_to_fov(&view_angles, &angle);
 
-            if (fov > AIMBOT_FOV) {
+            if (fov > config.fov) {
                 continue;
             }
             if (fov < best_fov) {
@@ -127,11 +129,11 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
         }
     }
 
-    if (best_fov > AIMBOT_FOV && !target.pawn) {
+    if (best_fov > config.fov && !target.pawn) {
         return;
     }
 
-    if (VISIBILITY_CHECK) {
+    if (config.visibility_check) {
         const i32 spotted_mask = get_spotted_mask(process, offsets, target.pawn);
         if (!(spotted_mask & (1 << local_pawn_index))) {
             return;
@@ -139,7 +141,7 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
     }
 
     // update target angle
-    if (target.pawn && AIMBOT_MULTIBONE) {
+    if (target.pawn && config.multibone) {
         const u64 bones[] = {
             BONE_PELVIS,     BONE_SPINE1,    BONE_SPINE2,         BONE_NECK,        BONE_HEAD,       BONE_LEFT_SHOULDER,
             BONE_LEFT_ELBOW, BONE_LEFT_HAND, BONE_RIGHT_SHOULDER, BONE_RIGHT_ELBOW, BONE_RIGHT_HAND, BONE_LEFT_HIP,
@@ -174,7 +176,7 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
     if (!aimbot_active) {
         return;
     }
-    if (angles_to_fov(&view_angles, &target.angle) > AIMBOT_FOV) {
+    if (angles_to_fov(&view_angles, &target.angle) > config.fov) {
         return;
     }
     if (!is_pawn_valid(process, offsets, target.pawn)) {
@@ -195,12 +197,12 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
 
     Vec2 smooth_angles = {0};
 
-    if (AIMBOT_SMOOTH >= 1.0f) {
+    if (config.smooth >= 1.0f) {
         if (fabsf(xy.x) > 1.0f) {
             if (smooth_angles.x < xy.x) {
-                smooth_angles.x = smooth_angles.x + 1.0f + (xy.x / AIMBOT_SMOOTH);
+                smooth_angles.x = smooth_angles.x + 1.0f + (xy.x / config.smooth);
             } else if (smooth_angles.x > xy.x) {
-                smooth_angles.x = smooth_angles.x - 1.0f + (xy.x / AIMBOT_SMOOTH);
+                smooth_angles.x = smooth_angles.x - 1.0f + (xy.x / config.smooth);
             } else {
                 smooth_angles.x = xy.x;
             }
@@ -210,9 +212,9 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
 
         if (fabsf(xy.y) > 1.0f) {
             if (smooth_angles.y < xy.y) {
-                smooth_angles.y = smooth_angles.y + 1.0f + (xy.y / AIMBOT_SMOOTH);
+                smooth_angles.y = smooth_angles.y + 1.0f + (xy.y / config.smooth);
             } else if (smooth_angles.y > xy.y) {
-                smooth_angles.y = smooth_angles.y - 1.0f + (xy.y / AIMBOT_SMOOTH);
+                smooth_angles.y = smooth_angles.y - 1.0f + (xy.y / config.smooth);
             } else {
                 smooth_angles.y = xy.y;
             }

@@ -11,10 +11,12 @@
 #include "mouse.h"
 #include "offsets.h"
 
+extern Config config;
+
 void loop(void) {
     const i64 pid = get_pid(PROCESS_NAME);
     if (!pid) {
-        //printf("could not find process\n");
+        // printf("could not find process\n");
         return;
     }
     printf("game found, pid: %ld\n", pid);
@@ -54,6 +56,17 @@ int main(void) {
     signal(SIGTERM, terminate_mouse);
     signal(SIGSEGV, terminate_mouse);
     signal(SIGINT, terminate_mouse);
+
+    // parse config file, create if it does not exist
+    if (access(CONFIG_FILE_NAME, F_OK) != 0) {
+        FILE *file = fopen(CONFIG_FILE_NAME, "w");
+        create_config(file);
+        fclose(file);
+    } else {
+        FILE *file = fopen(CONFIG_FILE_NAME, "rw");
+        parse_config(file);
+        fclose(file);
+    }
 
     const struct timespec sleep_time = {.tv_sec = 5, .tv_nsec = 0};
     while (true) {

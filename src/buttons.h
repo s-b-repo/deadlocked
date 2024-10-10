@@ -109,16 +109,14 @@ enum ButtonCode {
     KEYCODE_CAPSLOCKTOGGLE,
     KEYCODE_NUMLOCKTOGGLE,
     KEYCODE_SCROLLLOCKTOGGLE,
-    // todo: is this right?
+    // mouse
     MOUSE_LEFT = 317,
     MOUSE_RIGHT,
     MOUSE_MIDDLE,
     MOUSE_4,
     MOUSE_5,
-    MOUSE_WHEEL_UP,    // A fake button which is 'pressed' and 'released' when the
-                       // wheel is moved up
-    MOUSE_WHEEL_DOWN,  // A fake button which is 'pressed' and 'released' when
-                       // the wheel is moved down
+    MOUSE_WHEEL_UP,
+    MOUSE_WHEEL_DOWN,
 };
 
 #endif

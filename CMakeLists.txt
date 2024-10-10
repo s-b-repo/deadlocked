@@ -6,6 +6,7 @@ set(CMAKE_C_STANDARD 17)
 add_executable(deadlock src/main.c
         src/bones.h
         src/buttons.h
+        src/config.c
         src/config.h
         src/constants.h
         src/features.c

@@ -1,15 +1,25 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "buttons.h"
+#include <stdio.h>
 
-#define AIMBOT_BUTTON MOUSE_LEFT
+#include "buttons.h"
+#include "types.h"
+
+#define CONFIG_FILE_NAME "config.txt"
+#define MAX_SMOOTH 10.0
 
 #define DEBUG_MOUSE false
 
-#define AIMBOT_FOV 2.0f
-#define AIMBOT_SMOOTH 5.0f
-#define AIMBOT_MULTIBONE true
-#define VISIBILITY_CHECK true
+typedef struct Config {
+    i64 button;
+    f32 fov;
+    f32 smooth;
+    bool multibone;
+    bool visibility_check;
+} Config;
+
+void parse_config(FILE *file);
+void create_config(FILE *file);
 
 #endif

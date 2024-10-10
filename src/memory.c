@@ -10,6 +10,8 @@
 #include "config.h"
 #include "constants.h"
 
+extern Config config;
+
 i64 get_pid(const char *process_name) {
     DIR *dir = opendir("/proc");
     if (dir == NULL) {

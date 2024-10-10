@@ -8,6 +8,8 @@
 
 #include "config.h"
 
+extern Config config;
+
 int mouse = 0;
 
 bool setup_mouse(void) {
