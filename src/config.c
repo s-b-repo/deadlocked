@@ -130,8 +130,8 @@ void parse_config(FILE *file) {
 
 void create_config(FILE *file) {
     fprintf(file, "button %ld\n", config.button);
-    fprintf(file, "fov %f\n", config.fov);
-    fprintf(file, "smooth %f\n", config.smooth);
+    fprintf(file, "fov %.2f\n", config.fov);
+    fprintf(file, "smooth %.2f\n", config.smooth);
     fprintf(file, "multibone %s\n", config.multibone ? "true" : "false");
     fprintf(file, "visibility_check %s\n", config.visibility_check ? "true" : "false");
 }

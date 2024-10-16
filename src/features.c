@@ -192,7 +192,7 @@ void run(const ProcessHandle *process, const Offsets *offsets) {
 
     const f32 sensitivity = get_sensitivity(process, offsets) * get_fov_multiplier(process, offsets, local_pawn);
 
-    // x is y, what?
+    // y angle is horizontal movement, so x mouse movement, and x angle is vertical movement, so y mouse movement
     Vec2 xy = {.x = (aim_angles.y / sensitivity) / 0.022f, .y = (aim_angles.x / sensitivity) / -0.022f};
 
     Vec2 smooth_angles = {0};
