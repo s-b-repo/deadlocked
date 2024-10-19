@@ -1,0 +1,9 @@
+[package]
+name = "deadlocked"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+config = "0.14"
+eframe = "0.29"
+egui_extras = {version = "0.29", features = ["default", "all_loaders"]}
