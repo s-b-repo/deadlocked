@@ -22,20 +22,30 @@ fn main() {
     let tx_deadlock = tx_cs2.clone();
     let txs_gui = vec![tx_gui_cs2, tx_gui_deadlock];
 
-    thread::spawn(move || {
-        let mut cs2 = CS2::new(tx_cs2, rx_cs2);
-        cs2.run();
-    });
+    if thread::Builder::new()
+        .name(String::from("deadlocked_cs2"))
+        .spawn(move || {
+            let mut cs2 = CS2::new(tx_cs2, rx_cs2);
+            cs2.run();
+        })
+        .is_err()
+    {
+        return;
+    }
 
-    thread::spawn(move || {
-        let mut deadlock = Deadlock::new(tx_deadlock, rx_deadlock);
-        deadlock.run();
-    });
+    if thread::Builder::new()
+        .name(String::from("deadlocked_deadlock"))
+        .spawn(move || {
+            let mut deadlock = Deadlock::new(tx_deadlock, rx_deadlock);
+            deadlock.run();
+        })
+        .is_err()
+    {
+        return;
+    }
 
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
-            .with_inner_size([200.0, 200.0])
-            .with_resizable(false),
+        viewport: egui::ViewportBuilder::default().with_inner_size([600.0, 400.0]),
         ..Default::default()
     };
     eframe::run_native(

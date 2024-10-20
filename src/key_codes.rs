@@ -1,6 +1,9 @@
 #![allow(dead_code)]
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+use serde::{Deserialize, Serialize};
+use strum::EnumIter;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, EnumIter, Serialize, Deserialize)]
 pub enum KeyCode {
     None,
     Key0,

@@ -1,7 +1,7 @@
 use std::{sync::mpsc, thread::sleep, time::Instant};
 
 use crate::{
-    config::{Config, DUR},
+    config::{AimbotConfig, DUR},
     message::Message,
 };
 
@@ -9,7 +9,7 @@ use crate::{
 pub struct Deadlock {
     tx: mpsc::Sender<Message>,
     rx: mpsc::Receiver<Message>,
-    config: Config,
+    config: AimbotConfig,
 }
 
 impl Deadlock {
@@ -17,11 +17,15 @@ impl Deadlock {
         Self {
             tx,
             rx,
-            config: Config::default(),
+            config: AimbotConfig::default(),
         }
     }
 
-    pub fn run(&mut self) {}
+    pub fn run(&mut self) {
+        loop {
+            self.main_loop();
+        }
+    }
 
     fn main_loop(&mut self) {
         let start = Instant::now();
