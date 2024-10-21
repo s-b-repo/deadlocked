@@ -20,7 +20,8 @@ pub struct Gui {
 impl Gui {
     pub fn new(tx: Vec<mpsc::Sender<Message>>, rx: mpsc::Receiver<Message>) -> Self {
         // read config
-        let config = parse_config();
+        let mut config = parse_config();
+        config.get_mut(&Game::CS2).unwrap().enabled = true;
         let mut status = HashMap::new();
         for game in Game::iter() {
             status.insert(game, AimbotStatus::GameNotStarted);

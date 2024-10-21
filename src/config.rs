@@ -8,6 +8,7 @@ use crate::{key_codes::KeyCode, message::Game};
 
 const REFRESH_RATE: u64 = 1000;
 pub const LOOP_DURATION: Duration = Duration::from_millis(1000 / REFRESH_RATE);
+pub const SLEEP_DURATION: Duration = Duration::from_secs(5);
 pub const CONFIG_FILE_NAME: &str = "config.toml";
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]

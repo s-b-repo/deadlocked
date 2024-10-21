@@ -1,11 +1,11 @@
-use std::{sync::mpsc, thread::sleep, time::Instant};
+use std::{fs::File, sync::mpsc, thread::sleep, time::Instant};
 
 use bones::Bones;
 use glam::{Vec2, Vec3};
 use strum::IntoEnumIterator;
 
 use crate::{
-    config::{AimbotConfig, LOOP_DURATION},
+    config::{AimbotConfig, AimbotStatus, LOOP_DURATION, SLEEP_DURATION},
     constants::{CS2Constants, WEAPON_UNKNOWN},
     cs2::offsets::Offsets,
     key_codes::KeyCode,
@@ -15,9 +15,10 @@ use crate::{
         read_u64_vec, validate_pid,
     },
     message::{Game, Message},
+    mouse::{move_mouse, open_mouse},
     process_handle::ProcessHandle,
     target::Target,
-    weapon_class::{self, WeaponClass},
+    weapon_class::WeaponClass,
 };
 mod bones;
 pub mod offsets;
@@ -28,6 +29,7 @@ pub struct CS2 {
     rx: mpsc::Receiver<Message>,
     config: AimbotConfig,
     offsets: Offsets,
+    mouse: File,
     target: Target,
 }
 
@@ -38,50 +40,58 @@ impl CS2 {
             rx,
             config: AimbotConfig::default(),
             offsets: Offsets::default(),
+            mouse: open_mouse().unwrap(),
             target: Target::default(),
         }
     }
 
     pub fn run(&mut self) {
         loop {
-            let pid = match get_pid(CS2Constants::PROCESS_NAME) {
-                Some(pid) => pid,
-                None => continue,
-            };
-
-            let process = match open_process(pid) {
-                Some(process) => process,
-                None => continue,
-            };
-
-            self.offsets = match self.find_offsets(&process) {
-                Some(offsets) => offsets,
-                None => continue,
-            };
-
-            loop {
-                if !validate_pid(pid) {
-                    break;
-                }
-                self.main_loop(&process);
-            }
+            self.main_loop();
+            sleep(SLEEP_DURATION);
         }
     }
 
-    fn main_loop(&mut self, process: &ProcessHandle) {
-        let start = Instant::now();
+    fn main_loop(&mut self) {
+        self.tx
+            .send(Message::Status(Game::CS2, AimbotStatus::GameNotStarted))
+            .unwrap();
+        let pid = match get_pid(CS2Constants::PROCESS_NAME) {
+            Some(pid) => pid,
+            None => return,
+        };
 
-        if let Ok(message) = self.rx.try_recv() {
-            self.parse_message(message);
-        }
+        let process = match open_process(pid) {
+            Some(process) => process,
+            None => return,
+        };
 
-        self.aimbot(process);
+        self.offsets = match self.find_offsets(&process) {
+            Some(offsets) => offsets,
+            None => return,
+        };
 
-        let elapsed = start.elapsed();
-        if elapsed < LOOP_DURATION {
-            sleep(LOOP_DURATION - elapsed);
-        } else {
-            println!("loop exceeded max duration: took {}ms", elapsed.as_millis());
+        self.tx
+            .send(Message::Status(Game::CS2, AimbotStatus::Working))
+            .unwrap();
+        loop {
+            if !validate_pid(pid) {
+                break;
+            }
+            let start = Instant::now();
+
+            if let Ok(message) = self.rx.try_recv() {
+                self.parse_message(message);
+            }
+
+            self.aimbot(&process);
+
+            let elapsed = start.elapsed();
+            if elapsed < LOOP_DURATION {
+                sleep(LOOP_DURATION - elapsed);
+            } else {
+                println!("loop exceeded max duration: took {}ms", elapsed.as_millis());
+            }
         }
     }
 
@@ -222,7 +232,6 @@ impl CS2 {
             let head_position =
                 self.get_bone_position(process, self.target.pawn, Bones::Head.u64());
             let angle = self.get_target_angle(process, local_pawn, head_position, aim_punch);
-            let fov = angles_to_fov(view_angles, angle);
 
             self.target.angle = angle;
             self.target.bone_index = Bones::Head.u64();
@@ -247,7 +256,8 @@ impl CS2 {
         let mut aim_angles = view_angles - self.target.angle;
         vec2_clamp(&mut aim_angles);
 
-        let sensitivity = self.get_sensitivity(process) * self.get_fov_multiplier(process, local_pawn);
+        let sensitivity =
+            self.get_sensitivity(process) * self.get_fov_multiplier(process, local_pawn);
 
         let mut xy = aim_angles / sensitivity;
         xy.x /= 0.022;
@@ -278,7 +288,7 @@ impl CS2 {
             smooth_angles = xy;
         }
 
-        //move_mouse(smooth_angles);
+        move_mouse(&mut self.mouse, smooth_angles);
     }
 
     fn get_target_angle(
@@ -642,7 +652,7 @@ impl CS2 {
             return false;
         }
 
-        return true;
+        true
     }
 
     fn get_view_angles(&self, process: &ProcessHandle, pawn: u64) -> Vec2 {

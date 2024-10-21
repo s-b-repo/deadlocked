@@ -70,24 +70,6 @@ pub fn get_module_base_address(process: &ProcessHandle, module_name: &str) -> Op
     None
 }
 
-pub fn get_module_path(process: &ProcessHandle, module_name: &str) -> Option<String> {
-    let maps = File::open(format!("/proc/{}/maps", process.pid)).unwrap();
-    for line in BufReader::new(maps).lines() {
-        if line.is_err() {
-            continue;
-        }
-        let line = line.unwrap();
-        if !line.contains(module_name) {
-            continue;
-        }
-        let (_, path) = line.split_once('/').unwrap();
-        let mut p = String::from(path);
-        p.insert(0, '/');
-        return Some(p);
-    }
-    None
-}
-
 pub fn check_elf_header(data: Vec<u8>) -> bool {
     data.len() >= 4 && data[0..4] == [0x7f, b'E', b'L', b'F']
 }

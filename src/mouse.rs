@@ -1,7 +1,6 @@
 use std::{
     fs::{read_dir, File, OpenOptions},
     io::{ErrorKind, Write},
-    path::Path,
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -22,7 +21,7 @@ struct InputEvent {
 }
 
 impl InputEvent {
-    fn to_bytes(&self) -> Vec<u8> {
+    fn bytes(&self) -> Vec<u8> {
         let mut bytes: Vec<u8> = Vec::with_capacity(24);
 
         bytes.extend(&self.time.seconds.to_le_bytes());
@@ -42,7 +41,7 @@ const SYN_REPORT: u16 = 0x00;
 const AXIS_X: u16 = 0x00;
 const AXIS_Y: u16 = 0x01;
 
-pub fn open_device() -> Option<File> {
+pub fn open_mouse() -> Option<File> {
     for file in read_dir("/dev/input/by-id").unwrap() {
         let entry = file.unwrap();
         let name = entry.file_name().into_string().unwrap();
@@ -94,9 +93,9 @@ pub fn move_mouse(mouse: &mut File, coords: Vec2) {
         value: 0,
     };
 
-    let _ = mouse.write(&x.to_bytes());
-    let _ = mouse.write(&syn.to_bytes());
+    let _ = mouse.write(&x.bytes());
+    let _ = mouse.write(&syn.bytes());
 
-    let _ = mouse.write(&y.to_bytes());
-    let _ = mouse.write(&syn.to_bytes());
+    let _ = mouse.write(&y.bytes());
+    let _ = mouse.write(&syn.bytes());
 }
