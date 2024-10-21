@@ -2,13 +2,14 @@ use std::{sync::mpsc, thread::sleep, time::Instant};
 
 use bones::Bones;
 use glam::{Vec2, Vec3};
+use strum::IntoEnumIterator;
 
 use crate::{
     config::{AimbotConfig, LOOP_DURATION},
     constants::{CS2Constants, WEAPON_UNKNOWN},
     cs2::offsets::Offsets,
     key_codes::KeyCode,
-    math::angles_from_vector,
+    math::{angles_from_vector, angles_to_fov, vec2_clamp},
     memory::{
         get_module_base_address, get_pid, open_process, read_string_vec, read_u32_vec,
         read_u64_vec, validate_pid,
@@ -174,8 +175,110 @@ impl CS2 {
                 }
 
                 let head_position = self.get_bone_position(process, pawn, Bones::Head.u64());
+                let angle = self.get_target_angle(process, local_pawn, head_position, aim_punch);
+                let fov = angles_to_fov(view_angles, angle);
+
+                if fov > self.config.fov {
+                    continue;
+                }
+
+                if fov < best_fov {
+                    best_fov = fov;
+
+                    self.target.pawn = pawn;
+                    self.target.angle = angle;
+                    self.target.bone_index = Bones::Head.u64();
+                }
             }
         }
+
+        if best_fov > self.config.fov && self.target.pawn == 0 {
+            return;
+        }
+
+        if self.config.visibility_check {
+            let spotted_mask = self.get_spotted_mask(process, self.target.pawn);
+            if (spotted_mask & (1 << local_pawn_index)) == 0 {
+                return;
+            }
+        }
+
+        // update target angle
+        if self.target.pawn != 0 && self.config.multibone {
+            let mut smallest_fov = 360.0;
+            for bone in Bones::iter() {
+                let bone_position = self.get_bone_position(process, self.target.pawn, bone.u64());
+                let angle = self.get_target_angle(process, local_pawn, bone_position, aim_punch);
+                let fov = angles_to_fov(view_angles, angle);
+
+                if fov < smallest_fov {
+                    smallest_fov = fov;
+
+                    self.target.angle = angle;
+                    self.target.bone_index = bone.u64();
+                }
+            }
+        } else if self.target.pawn != 0 {
+            let head_position =
+                self.get_bone_position(process, self.target.pawn, Bones::Head.u64());
+            let angle = self.get_target_angle(process, local_pawn, head_position, aim_punch);
+            let fov = angles_to_fov(view_angles, angle);
+
+            self.target.angle = angle;
+            self.target.bone_index = Bones::Head.u64();
+        }
+
+        if !aimbot_active {
+            return;
+        }
+
+        if angles_to_fov(view_angles, self.target.angle) > self.config.fov {
+            return;
+        }
+
+        if !self.is_pawn_valid(process, self.target.pawn) {
+            return;
+        }
+
+        if self.get_shots_fired(process, local_pawn) < self.config.start_bullet {
+            return;
+        }
+
+        let mut aim_angles = view_angles - self.target.angle;
+        vec2_clamp(&mut aim_angles);
+
+        let sensitivity = self.get_sensitivity(process) * self.get_fov_multiplier(process, local_pawn);
+
+        let mut xy = aim_angles / sensitivity;
+        xy.x /= 0.022;
+        xy.y /= -0.022;
+        let mut smooth_angles = Vec2::ZERO;
+
+        if !self.config.aim_lock && self.config.smooth >= 1.0 {
+            smooth_angles.x = if xy.x.abs() > 1.0 {
+                if smooth_angles.x < xy.x {
+                    smooth_angles.x + 1.0 + (xy.x / self.config.smooth)
+                } else {
+                    smooth_angles.x - 1.0 + (xy.x / self.config.smooth)
+                }
+            } else {
+                xy.x
+            };
+
+            smooth_angles.y = if xy.y.abs() > 1.0 {
+                if smooth_angles.y < xy.y {
+                    smooth_angles.y + 1.0 + (xy.y / self.config.smooth)
+                } else {
+                    smooth_angles.y - 1.0 + (xy.y / self.config.smooth)
+                }
+            } else {
+                xy.y
+            };
+        } else {
+            smooth_angles = xy;
+        }
+
+        //move_mouse(smooth_angles);
     }
 
     fn get_target_angle(
@@ -184,11 +287,14 @@ impl CS2 {
         local_pawn: u64,
         position: Vec3,
         aim_punch: Vec2,
-    ) {
+    ) -> Vec2 {
         let eye_position = self.get_eye_position(process, local_pawn);
         let forward = (position - eye_position).normalize();
 
-        let angles = angles_from_vector(forward) + 2.0 * aim_punch;
+        let mut angles = angles_from_vector(forward) + 2.0 * aim_punch;
+        vec2_clamp(&mut angles);
+
+        angles
     }
 
     fn reset(&mut self) {

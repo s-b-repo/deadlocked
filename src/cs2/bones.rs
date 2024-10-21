@@ -2,7 +2,7 @@
 
 use strum::EnumIter;
 
-#[derive(Debug, EnumIter)]
+#[derive(Debug, Clone, Copy, EnumIter)]
 pub enum Bones {
     Pelvis = 0,
     Spine1 = 2,

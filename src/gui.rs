@@ -223,14 +223,21 @@ impl eframe::App for Gui {
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            egui::ComboBox::new("game", "Current Game")
+            let game = self.current_game;
+            if egui::ComboBox::new("game", "Current Game")
                 .selected_text(self.current_game.upper_string())
                 .show_ui(ui, |ui| {
                     for game in Game::iter() {
                         let text = game.upper_string();
                         ui.selectable_value(&mut self.current_game, game, text);
                     }
-                });
+                })
+                .response
+                .changed()
+            {
+                self.send_message(Message::ConfigEnabled(game, false));
+                self.send_message(Message::ConfigEnabled(self.current_game, true));
+            }
             ui.separator();
             egui::Grid::new("main_grid")
                 .num_columns(2)

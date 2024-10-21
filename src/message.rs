@@ -29,7 +29,7 @@ impl Game {
 pub enum Message {
     ConfigEnabled(Game, bool),
     ConfigHotkey(Game, KeyCode),
-    ConfigStartBullet(Game, u64),
+    ConfigStartBullet(Game, i32),
     ConfigAimLock(Game, bool),
     ConfigVisibilityCheck(Game, bool),
     ConfigFOV(Game, f32),

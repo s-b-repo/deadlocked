@@ -23,3 +23,17 @@ pub fn angles_from_vector(forward: Vec3) -> Vec2 {
 
     Vec2::new(pitch, yaw)
 }
+
+pub fn angles_to_fov(view_angles: Vec2, aim_angles: Vec2) -> f32 {
+    let mut delta = view_angles - aim_angles;
+
+    delta.x = delta.x.abs().min(360.0 - delta.x.abs());
+    delta.y = ((delta.y + 180.0) % 360.0 - 180.0).abs();
+
+    delta.length()
+}
+
+pub fn vec2_clamp(vec: &mut Vec2) {
+    vec.x = vec.x.clamp(-89.0, 89.0);
+    vec.y = (vec.y + 180.0) % 360.0 - 180.0;
+}

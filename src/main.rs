@@ -4,6 +4,7 @@ use cs2::CS2;
 use deadlock::Deadlock;
 use eframe::egui;
 use gui::Gui;
+use mouse::{move_mouse, open_device};
 
 mod colors;
 mod config;
@@ -15,6 +16,7 @@ mod key_codes;
 mod math;
 mod memory;
 mod message;
+mod mouse;
 mod process_handle;
 mod target;
 mod weapon_class;

@@ -31,7 +31,7 @@ impl AimbotStatus {
 pub struct AimbotConfig {
     pub enabled: bool,
     pub hotkey: KeyCode,
-    pub start_bullet: u64,
+    pub start_bullet: i32,
     pub aim_lock: bool,
     pub visibility_check: bool,
     pub fov: f32,
@@ -43,7 +43,7 @@ pub struct AimbotConfig {
 impl Default for AimbotConfig {
     fn default() -> Self {
         Self {
-            enabled: true,
+            enabled: false,
             hotkey: KeyCode::MouseLeft,
             start_bullet: 1,
             aim_lock: false,
