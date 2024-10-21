@@ -6,6 +6,8 @@ use std::{
 
 use glam::{IVec2, Vec2};
 
+use crate::config::DEBUG_WITHOUT_MOUSE;
+
 #[derive(Debug, Clone, Copy)]
 struct Timeval {
     seconds: u64,
@@ -42,6 +44,9 @@ const AXIS_X: u16 = 0x00;
 const AXIS_Y: u16 = 0x01;
 
 pub fn open_mouse() -> Option<File> {
+    if DEBUG_WITHOUT_MOUSE {
+        return Some(OpenOptions::new().write(true).open("/dev/null").unwrap());
+    }
     for file in read_dir("/dev/input/by-id").unwrap() {
         let entry = file.unwrap();
         let name = entry.file_name().into_string().unwrap();
@@ -64,6 +69,9 @@ pub fn open_mouse() -> Option<File> {
 }
 
 pub fn move_mouse(mouse: &mut File, coords: Vec2) {
+    if DEBUG_WITHOUT_MOUSE {
+        return;
+    }
     println!("moving mouse: {}", coords);
 
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
