@@ -1,10 +1,10 @@
-use config::{Config, File};
 use eframe::egui::{self, Ui};
 use std::{collections::HashMap, sync::mpsc};
 use strum::IntoEnumIterator;
 
 use crate::{
-    config::{parse_config, AimbotConfig, CONFIG_FILE_NAME},
+    colors::Colors,
+    config::{parse_config, AimbotConfig, AimbotStatus, CONFIG_FILE_NAME},
     key_codes::KeyCode,
     message::{Game, Message},
 };
@@ -13,13 +13,25 @@ pub struct Gui {
     tx: Vec<mpsc::Sender<Message>>,
     rx: mpsc::Receiver<Message>,
     config: HashMap<Game, AimbotConfig>,
+    status: HashMap<Game, AimbotStatus>,
+    current_game: Game,
 }
 
 impl Gui {
     pub fn new(tx: Vec<mpsc::Sender<Message>>, rx: mpsc::Receiver<Message>) -> Self {
         // read config
         let config = parse_config();
-        Self { tx, rx, config }
+        let mut status = HashMap::new();
+        for game in Game::iter() {
+            status.insert(game, AimbotStatus::GameNotStarted);
+        }
+        Self {
+            tx,
+            rx,
+            config,
+            status,
+            current_game: Game::CS2,
+        }
     }
 
     fn send_message(&self, message: Message) {
@@ -32,7 +44,6 @@ impl Gui {
     }
 
     fn add_game_grid(&mut self, ui: &mut Ui, game: Game) {
-        ui.heading(game.upper_string());
         egui::Grid::new(game.string())
             .num_columns(2)
             .min_col_width(75.0)
@@ -89,7 +100,8 @@ impl Gui {
                 }
                 ui.end_row();
 
-                ui.label("Aim Lock");
+                ui.label("Aim Lock")
+                    .on_hover_text("whether the aim should lock onto the target");
                 if ui
                     .checkbox(&mut self.config.get_mut(&game).unwrap().aim_lock, "")
                     .changed()
@@ -101,7 +113,8 @@ impl Gui {
                 }
                 ui.end_row();
 
-                ui.label("Visibility Check");
+                ui.label("Visibility Check")
+                    .on_hover_text("whether to check for player visibility");
                 if ui
                     .checkbox(
                         &mut self.config.get_mut(&game).unwrap().visibility_check,
@@ -116,7 +129,8 @@ impl Gui {
                 }
                 ui.end_row();
 
-                ui.label("FOV");
+                ui.label("FOV")
+                    .on_hover_text("how much around the crosshair the aimbot should \"see\"");
                 if ui
                     .add(
                         egui::Slider::new(&mut self.config.get_mut(&game).unwrap().fov, 0.1..=10.0)
@@ -131,7 +145,25 @@ impl Gui {
                 }
                 ui.end_row();
 
-                ui.label("Multibone");
+                ui.label("Smooth")
+                    .on_hover_text("how much the aimbot input should be smoothed, higher is more");
+                if ui
+                    .add(egui::Slider::new(
+                        &mut self.config.get_mut(&game).unwrap().smooth,
+                        1.0..=10.0,
+                    ))
+                    .changed()
+                {
+                    self.send_message(Message::ConfigSmooth(
+                        game,
+                        self.config.get(&game).unwrap().smooth,
+                    ));
+                }
+                ui.end_row();
+
+                ui.label("Multibone").on_hover_text(
+                    "whether the aimbot should aim at all of the body, or just the head",
+                );
                 if ui
                     .checkbox(&mut self.config.get_mut(&game).unwrap().multibone, "")
                     .changed()
@@ -142,7 +174,40 @@ impl Gui {
                     ));
                 }
                 ui.end_row();
+
+                ui.label("Pause when spectated")
+                    .on_hover_text("whether to pause when you are being spectated");
+                if ui
+                    .checkbox(
+                        &mut self.config.get_mut(&game).unwrap().pause_when_spectated,
+                        "",
+                    )
+                    .changed()
+                {
+                    self.send_message(Message::ConfigPauseWhenSpectated(
+                        game,
+                        self.config.get(&game).unwrap().pause_when_spectated,
+                    ));
+                }
+                ui.end_row();
             });
+    }
+
+    fn add_game_status(&mut self, ui: &mut Ui, game: Game) {
+        let status = self.status.get(&game).unwrap();
+        ui.label(
+            egui::RichText::new(status.string())
+                .heading()
+                .color(match status {
+                    AimbotStatus::Working => Colors::GREEN,
+                    AimbotStatus::GameNotStarted => Colors::YELLOW,
+                    AimbotStatus::Paused => Colors::YELLOW,
+                }),
+        );
+
+        if *status == AimbotStatus::Paused {
+            ui.label("someone is spectating you.");
+        }
     }
 
     fn write_config(&self) {
@@ -153,10 +218,27 @@ impl Gui {
 
 impl eframe::App for Gui {
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
+        if let Ok(Message::Status(game, status)) = self.rx.try_recv() {
+            *self.status.get_mut(&game).unwrap() = status
+        }
+
         egui::CentralPanel::default().show(ctx, |ui| {
-            for game in Game::iter() {
-                self.add_game_grid(ui, game);
-            }
+            egui::ComboBox::new("game", "Current Game")
+                .selected_text(self.current_game.upper_string())
+                .show_ui(ui, |ui| {
+                    for game in Game::iter() {
+                        let text = game.upper_string();
+                        ui.selectable_value(&mut self.current_game, game, text);
+                    }
+                });
+            ui.separator();
+            egui::Grid::new("main_grid")
+                .num_columns(2)
+                .spacing([40.0, 4.0])
+                .show(ui, |ui| {
+                    self.add_game_grid(ui, self.current_game);
+                    self.add_game_status(ui, self.current_game);
+                });
         });
     }
 }

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use strum::EnumIter;
 
-use crate::key_codes::KeyCode;
+use crate::{config::AimbotStatus, key_codes::KeyCode};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, EnumIter, Serialize, Deserialize)]
 pub enum Game {
@@ -33,5 +33,8 @@ pub enum Message {
     ConfigAimLock(Game, bool),
     ConfigVisibilityCheck(Game, bool),
     ConfigFOV(Game, f32),
+    ConfigSmooth(Game, f32),
     ConfigMultibone(Game, bool),
+    ConfigPauseWhenSpectated(Game, bool),
+    Status(Game, AimbotStatus),
 }

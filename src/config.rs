@@ -6,8 +6,26 @@ use strum::IntoEnumIterator;
 
 use crate::{key_codes::KeyCode, message::Game};
 
-pub const DUR: Duration = Duration::from_millis(1);
+const REFRESH_RATE: u64 = 1000;
+pub const LOOP_DURATION: Duration = Duration::from_millis(1000 / REFRESH_RATE);
 pub const CONFIG_FILE_NAME: &str = "config.toml";
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+pub enum AimbotStatus {
+    Working,
+    Paused,
+    GameNotStarted,
+}
+
+impl AimbotStatus {
+    pub fn string(&self) -> &str {
+        match self {
+            AimbotStatus::Working => "Working",
+            AimbotStatus::Paused => "Paused",
+            AimbotStatus::GameNotStarted => "Game Not Started",
+        }
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AimbotConfig {
@@ -19,6 +37,7 @@ pub struct AimbotConfig {
     pub fov: f32,
     pub smooth: f32,
     pub multibone: bool,
+    pub pause_when_spectated: bool,
 }
 
 impl Default for AimbotConfig {
@@ -32,6 +51,7 @@ impl Default for AimbotConfig {
             fov: 1.0,
             smooth: 5.0,
             multibone: true,
+            pause_when_spectated: true,
         }
     }
 }
