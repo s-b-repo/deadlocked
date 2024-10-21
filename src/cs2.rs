@@ -81,6 +81,7 @@ impl CS2 {
             let start = Instant::now();
 
             if let Ok(message) = self.rx.try_recv() {
+                dbg!(message);
                 self.parse_message(message);
             }
 
@@ -117,6 +118,10 @@ impl CS2 {
     }
 
     fn aimbot(&mut self, process: &ProcessHandle) {
+        if !self.config.enabled {
+            return;
+        }
+
         let local_controller = self.get_local_controller(process);
         let local_pawn = match self.get_pawn(process, local_controller) {
             Some(pawn) => pawn,
@@ -125,6 +130,11 @@ impl CS2 {
                 return;
             }
         };
+
+        if self.get_spectator_target(process, local_pawn).is_some() {
+            self.tx.send(Message::Status(Game::CS2, AimbotStatus::Paused)).unwrap();
+            return;
+        }
 
         let team = self.get_team(process, local_pawn);
         if team != CS2Constants::TEAM_CT && team != CS2Constants::TEAM_T {
@@ -637,6 +647,29 @@ impl CS2 {
 
     fn get_spotted_mask(&self, process: &ProcessHandle, pawn: u64) -> i32 {
         process.read_i32(pawn + self.offsets.pawn.spotted_state + self.offsets.spotted_state.mask)
+    }
+
+    fn get_spectator_target(&self, process: &ProcessHandle, pawn: u64) -> Option<u64> {
+        let observer_services = process.read_u64(pawn + self.offsets.pawn.observer_services);
+        if observer_services == 0 {
+            return None;
+        }
+
+        let target = process.read_u32(observer_services + self.offsets.observer_service.target) & 0x7fff;
+        if target == 0 {
+            return None;
+        }
+
+        let v2 = process.read_u64(self.offsets.interface.player + 8 * (target as u64 >> 9));
+        if v2 == 0 {
+            return None;
+        }
+
+        let entity = process.read_u64(v2 + 120 * (target as u64 & 0x1ff));
+        if entity == 0 {
+            return None;
+        }
+        Some(entity)
     }
 
     fn is_pawn_valid(&self, process: &ProcessHandle, pawn: u64) -> bool {
