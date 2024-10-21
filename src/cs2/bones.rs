@@ -3,7 +3,7 @@
 use strum::EnumIter;
 
 #[derive(Debug, EnumIter)]
-enum Bones {
+pub enum Bones {
     Pelvis = 0,
     Spine1 = 2,
     Spine2 = 4,
@@ -21,4 +21,10 @@ enum Bones {
     RightHip = 25,
     RightKnee = 26,
     RightFoot = 27,
+}
+
+impl Bones {
+    pub fn u64(self) -> u64 {
+        self as u64
+    }
 }

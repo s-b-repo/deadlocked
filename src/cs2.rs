@@ -1,10 +1,14 @@
 use std::{sync::mpsc, thread::sleep, time::Instant};
 
+use bones::Bones;
+use glam::{Vec2, Vec3};
+
 use crate::{
     config::{AimbotConfig, LOOP_DURATION},
     constants::{CS2Constants, WEAPON_UNKNOWN},
     cs2::offsets::Offsets,
     key_codes::KeyCode,
+    math::angles_from_vector,
     memory::{
         get_module_base_address, get_pid, open_process, read_string_vec, read_u32_vec,
         read_u64_vec, validate_pid,
@@ -130,6 +134,61 @@ impl CS2 {
         }
 
         let aimbot_active = self.is_button_down(process, &self.config.hotkey);
+        let view_angles = self.get_view_angles(process, local_pawn);
+        let ffa = self.is_ffa(process);
+        let aim_punch = if weapon_class == WeaponClass::Sniper {
+            Vec2::ZERO
+        } else {
+            self.get_aim_punch(process, local_pawn)
+        };
+
+        let mut pawns = Vec::with_capacity(64);
+        let mut local_pawn_index = 0;
+        for i in 1..=64 {
+            let controller = match self.get_client_entity(process, i) {
+                Some(controller) => controller,
+                None => continue,
+            };
+
+            let pawn = match self.get_pawn(process, controller) {
+                Some(pawn) => pawn,
+                None => continue,
+            };
+
+            if pawn == local_pawn {
+                local_pawn_index = i - 1;
+            }
+            pawns.push(pawn);
+        }
+
+        let mut best_fov = 360.0;
+        if !aimbot_active || self.target.pawn == 0 || !self.is_pawn_valid(process, self.target.pawn)
+        {
+            for pawn in pawns {
+                if !self.is_pawn_valid(process, pawn) {
+                    continue;
+                }
+
+                if !ffa && team == self.get_team(process, pawn) {
+                    continue;
+                }
+
+                let head_position = self.get_bone_position(process, pawn, Bones::Head.u64());
+            }
+        }
+    }
+
+    fn get_target_angle(
+        &self,
+        process: &ProcessHandle,
+        local_pawn: u64,
+        position: Vec3,
+        aim_punch: Vec2,
+    ) {
+        let eye_position = self.get_eye_position(process, local_pawn);
+        let forward = (position - eye_position).normalize();
+
+        let angles = angles_from_vector(forward) + 2.0 * aim_punch;
     }
 
     fn reset(&mut self) {
@@ -420,6 +479,91 @@ impl CS2 {
         WeaponClass::from_string(&self.get_weapon(process, pawn))
     }
 
+    fn get_gs_node(&self, process: &ProcessHandle, pawn: u64) -> u64 {
+        process.read_u64(pawn + self.offsets.pawn.game_scene_node)
+    }
+
+    fn is_dormant(&self, process: &ProcessHandle, pawn: u64) -> bool {
+        let gs_node = self.get_gs_node(process, pawn);
+        process.read_u8(gs_node + self.offsets.game_scene_node.dormant) != 0
+    }
+
+    fn get_position(&self, process: &ProcessHandle, pawn: u64) -> Vec3 {
+        let gs_node = self.get_gs_node(process, pawn);
+        process.read_vec3(gs_node + self.offsets.game_scene_node.origin)
+    }
+
+    fn get_eye_position(&self, process: &ProcessHandle, pawn: u64) -> Vec3 {
+        let position = self.get_position(process, pawn);
+        let eye_offset = process.read_vec3(pawn + self.offsets.pawn.eye_offset);
+
+        position + eye_offset
+    }
+
+    fn get_bone_position(&self, process: &ProcessHandle, pawn: u64, bone_index: u64) -> Vec3 {
+        let gs_node = self.get_gs_node(process, pawn);
+        let bone_data = process.read_u64(gs_node + self.offsets.game_scene_node.model_state + 0x80);
+
+        if bone_data == 0 {
+            return Vec3::ZERO;
+        }
+
+        process.read_vec3(bone_data + (bone_index * 32))
+    }
+
+    fn get_shots_fired(&self, process: &ProcessHandle, pawn: u64) -> i32 {
+        process.read_i32(pawn + self.offsets.pawn.shots_fired)
+    }
+
+    fn get_fov_multiplier(&self, process: &ProcessHandle, pawn: u64) -> f32 {
+        process.read_f32(pawn + self.offsets.pawn.fov_multiplier)
+    }
+
+    fn get_spotted_mask(&self, process: &ProcessHandle, pawn: u64) -> i32 {
+        process.read_i32(pawn + self.offsets.pawn.spotted_state + self.offsets.spotted_state.mask)
+    }
+
+    fn is_pawn_valid(&self, process: &ProcessHandle, pawn: u64) -> bool {
+        if self.is_dormant(process, pawn) {
+            return false;
+        }
+
+        if self.get_health(process, pawn) <= 0 {
+            return false;
+        }
+
+        if self.get_life_state(process, pawn) != 0 {
+            return false;
+        }
+
+        return true;
+    }
+
+    fn get_view_angles(&self, process: &ProcessHandle, pawn: u64) -> Vec2 {
+        process.read_vec2(pawn + self.offsets.pawn.view_angles)
+    }
+
+    fn get_aim_punch(&self, process: &ProcessHandle, pawn: u64) -> Vec2 {
+        let length = process.read_u64(pawn + self.offsets.pawn.aim_punch_cache);
+        if length < 1 {
+            return Vec2::ZERO;
+        }
+
+        let data_address = process.read_u64(pawn + self.offsets.pawn.aim_punch_cache + 0x08);
+
+        process.read_vec2(data_address + (length - 1) * 12)
+    }
+
+    // convars
+    fn get_sensitivity(&self, process: &ProcessHandle) -> f32 {
+        process.read_f32(self.offsets.convar.sensitivity + 0x40)
+    }
+
+    fn is_ffa(&self, process: &ProcessHandle) -> bool {
+        process.read_u32(self.offsets.convar.ffa + 0x40) == 1
+    }
+
+    // misc
     fn is_button_down(&self, process: &ProcessHandle, button: &KeyCode) -> bool {
         // what the actual fuck is happening here?
         let value = process.read_u32(

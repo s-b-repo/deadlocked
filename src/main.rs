@@ -12,6 +12,7 @@ mod cs2;
 mod deadlock;
 mod gui;
 mod key_codes;
+mod math;
 mod memory;
 mod message;
 mod process_handle;

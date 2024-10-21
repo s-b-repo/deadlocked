@@ -1,10 +1,12 @@
 use std::{fs::File, os::unix::fs::FileExt};
 
+use glam::{Vec2, Vec3};
+
 use crate::{
     constants::Elf,
-    memory::{check_elf_header, read_u64_vec},
     // todo: generalize this
     cs2::offsets::InterfaceOffsets,
+    memory::{check_elf_header, read_u64_vec},
 };
 
 pub struct ProcessHandle {
@@ -107,6 +109,21 @@ impl ProcessHandle {
         let mut buffer = vec![0u8; count as usize];
         self.memory.read_at(&mut buffer, address).unwrap_or(0);
         buffer
+    }
+
+    #[allow(unused)]
+    pub fn read_vec2(&self, address: u64) -> Vec2 {
+        let x = self.read_f32(address);
+        let y = self.read_f32(address + 0x04);
+        Vec2::from_slice(&[x, y])
+    }
+
+    #[allow(unused)]
+    pub fn read_vec3(&self, address: u64) -> Vec3 {
+        let x = self.read_f32(address);
+        let y = self.read_f32(address + 0x04);
+        let z = self.read_f32(address + 0x08);
+        Vec3::from_slice(&[x, y, z])
     }
 
     pub fn dump_module(&self, address: u64) -> Vec<u8> {
