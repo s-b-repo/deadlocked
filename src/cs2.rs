@@ -134,20 +134,6 @@ impl CS2 {
             }
         };
 
-        let spectator = self.get_spectator_target(process, local_pawn);
-        if spectator.is_some() && !self.is_being_spectated {
-            self.tx
-                .send(Message::Status(Game::CS2, AimbotStatus::Paused))
-                .unwrap();
-            self.is_being_spectated = true;
-            return;
-        } else if spectator.is_none() && self.is_being_spectated {
-            self.tx
-                .send(Message::Status(Game::CS2, AimbotStatus::Working))
-                .unwrap();
-            self.is_being_spectated = false;
-        }
-
         let team = self.get_team(process, local_pawn);
         if team != CS2Constants::TEAM_CT && team != CS2Constants::TEAM_T {
             self.reset();
@@ -177,6 +163,7 @@ impl CS2 {
 
         let mut pawns = Vec::with_capacity(64);
         let mut local_pawn_index = 0;
+        let mut is_being_spectated = false;
         for i in 1..=64 {
             let controller = match self.get_client_entity(process, i) {
                 Some(controller) => controller,
@@ -188,10 +175,27 @@ impl CS2 {
                 None => continue,
             };
 
+            let spectator_target = self.get_spectator_target(process, local_pawn);
+            if let Some(spectated_pawn) = spectator_target {
+                if spectated_pawn == local_pawn && !self.is_being_spectated {
+                    is_being_spectated = true;
+                }
+            }
+
             if pawn == local_pawn {
                 local_pawn_index = i - 1;
             }
             pawns.push(pawn);
+        }
+
+        if is_being_spectated && !self.is_being_spectated {
+            self.tx
+                .send(Message::Status(Game::CS2, AimbotStatus::Paused))
+                .unwrap();
+        } else if !is_being_spectated && self.is_being_spectated {
+            self.tx
+                .send(Message::Status(Game::CS2, AimbotStatus::Working))
+                .unwrap();
         }
 
         let mut best_fov = 360.0;
