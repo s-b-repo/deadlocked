@@ -1,6 +1,7 @@
 use std::{
     fs::{read_dir, File, OpenOptions},
     io::{ErrorKind, Write},
+    process::exit,
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -60,7 +61,8 @@ pub fn open_mouse() -> Option<File> {
             Ok(file) => return Some(file),
             Err(error) => {
                 if error.kind() == ErrorKind::PermissionDenied {
-                    println!("execute as sudo, then continue")
+                    println!("please execute with sudo");
+                    exit(1);
                 }
             }
         }
