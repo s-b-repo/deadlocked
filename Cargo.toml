@@ -8,5 +8,10 @@ config = "0.14"
 eframe = "0.29"
 glam = "0.29"
 strum = { version = "0.26", features = ["derive"] }
-serde = {version = "1.0", features = ["derive"]}
+serde = { version = "1.0", features = ["derive"] }
 toml = "0.8"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "debuginfo"
