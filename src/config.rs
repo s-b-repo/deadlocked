@@ -51,7 +51,7 @@ impl Default for AimbotConfig {
             start_bullet: 1,
             aim_lock: false,
             visibility_check: true,
-            fov: 1.0,
+            fov: 1.2,
             smooth: 5.0,
             multibone: true,
             pause_when_spectated: true,

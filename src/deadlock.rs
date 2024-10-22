@@ -38,8 +38,6 @@ impl Deadlock {
         let elapsed = start.elapsed();
         if elapsed < LOOP_DURATION {
             sleep(LOOP_DURATION - elapsed);
-        } else {
-            println!("loop exceeded max duration: took {}ms", elapsed.as_millis());
         }
     }
 

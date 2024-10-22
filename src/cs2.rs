@@ -47,6 +47,9 @@ impl CS2 {
 
     pub fn run(&mut self) {
         self.config = parse_config().get(&Game::CS2).unwrap().clone();
+        self.tx
+            .send(Message::Status(Game::CS2, AimbotStatus::GameNotStarted))
+            .unwrap();
         loop {
             self.main_loop();
             sleep(SLEEP_DURATION);
@@ -54,9 +57,6 @@ impl CS2 {
     }
 
     fn main_loop(&mut self) {
-        self.tx
-            .send(Message::Status(Game::CS2, AimbotStatus::GameNotStarted))
-            .unwrap();
         let pid = match get_pid(CS2Constants::PROCESS_NAME) {
             Some(pid) => pid,
             None => return,
@@ -90,10 +90,11 @@ impl CS2 {
             let elapsed = start.elapsed();
             if elapsed < LOOP_DURATION {
                 sleep(LOOP_DURATION - elapsed);
-            } else {
-                println!("loop exceeded max duration: took {}ms", elapsed.as_millis());
             }
         }
+        self.tx
+            .send(Message::Status(Game::CS2, AimbotStatus::GameNotStarted))
+            .unwrap();
     }
 
     fn parse_message(&mut self, message: Message) {
