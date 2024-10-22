@@ -472,7 +472,11 @@ impl CS2 {
                     if !network_enable || offsets.pawn.spotted_state != 0 {
                         continue;
                     }
-                    offsets.pawn.spotted_state = read_u32_vec(&client_dump, i + 0x08 + 0x10) as u64;
+                    let offset = read_u32_vec(&client_dump, i + 0x08 + 0x10) as u64;
+                    if !(10000..=14000).contains(&offset) {
+                        continue;
+                    }
+                    offsets.spotted_state.mask = offset;
                 }
                 "m_pObserverServices" => {
                     if offsets.pawn.observer_services != 0 {
@@ -510,11 +514,7 @@ impl CS2 {
                     if !network_enable || offsets.spotted_state.mask != 0 {
                         continue;
                     }
-                    let offset = read_u32_vec(&client_dump, i + 0x08 + 0x10) as u64;
-                    if !(10000..=14000).contains(&offset) {
-                        continue;
-                    }
-                    offsets.spotted_state.mask = offset;
+                    offsets.pawn.spotted_state = read_u32_vec(&client_dump, i + 0x08 + 0x10) as u64;
                 }
                 "m_hObserverTarget" => {
                     if offsets.observer_service.target != 0 {
