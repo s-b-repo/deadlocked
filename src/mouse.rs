@@ -70,9 +70,9 @@ pub fn open_mouse() -> Option<File> {
 
 pub fn move_mouse(mouse: &mut File, coords: Vec2) {
     if DEBUG_WITHOUT_MOUSE {
+        println!("moving mouse: {}", coords);
         return;
     }
-    println!("moving mouse: {}", coords);
 
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
     let time = Timeval {

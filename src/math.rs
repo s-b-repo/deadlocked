@@ -15,7 +15,7 @@ pub fn angles_from_vector(forward: Vec3) -> Vec2 {
         }
 
         pitch = (-forward.z)
-            .atan2((forward.x * forward.x + forward.y * forward.y).sqrt())
+            .atan2(Vec2::new(forward.x, forward.y).length())
             .to_degrees();
         if pitch < 0.0 {
             pitch += 360.0;
@@ -28,13 +28,26 @@ pub fn angles_from_vector(forward: Vec3) -> Vec2 {
 pub fn angles_to_fov(view_angles: Vec2, aim_angles: Vec2) -> f32 {
     let mut delta = view_angles - aim_angles;
 
-    delta.x = delta.x.abs().min(360.0 - delta.x.abs());
+    if delta.x > 180.0 {
+        delta.x = 360.0 - delta.x;
+    }
+    delta.x = delta.x.abs();
+
+    // clamp?
     delta.y = ((delta.y + 180.0) % 360.0 - 180.0).abs();
 
     delta.length()
 }
 
 pub fn vec2_clamp(vec: &mut Vec2) {
-    vec.x = vec.x.clamp(-89.0, 89.0);
+    if vec.x > 89.0 && vec.x <= 180.0 {
+        vec.x = 89.0;
+    }
+    if vec.x > 180.0 {
+        vec.x -= 360.0;
+    }
+    if vec.x < -89.0 {
+        vec.x = -89.0;
+    }
     vec.y = (vec.y + 180.0) % 360.0 - 180.0;
 }

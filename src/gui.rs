@@ -33,6 +33,7 @@ impl Gui {
             status,
             current_game: Game::CS2,
         };
+        out.send_message(Message::ConfigEnabled(Game::CS2, true));
         out.write_config();
         out
     }

@@ -5,7 +5,7 @@ use glam::{Vec2, Vec3};
 use strum::IntoEnumIterator;
 
 use crate::{
-    config::{AimbotConfig, AimbotStatus, LOOP_DURATION, SLEEP_DURATION},
+    config::{parse_config, AimbotConfig, AimbotStatus, LOOP_DURATION, SLEEP_DURATION},
     constants::{CS2Constants, WEAPON_UNKNOWN},
     cs2::offsets::Offsets,
     key_codes::KeyCode,
@@ -46,6 +46,7 @@ impl CS2 {
     }
 
     pub fn run(&mut self) {
+        self.config = parse_config().get(&Game::CS2).unwrap().clone();
         loop {
             self.main_loop();
             sleep(SLEEP_DURATION);
@@ -132,7 +133,9 @@ impl CS2 {
         };
 
         if self.get_spectator_target(process, local_pawn).is_some() {
-            self.tx.send(Message::Status(Game::CS2, AimbotStatus::Paused)).unwrap();
+            self.tx
+                .send(Message::Status(Game::CS2, AimbotStatus::Paused))
+                .unwrap();
             return;
         }
 
@@ -216,6 +219,7 @@ impl CS2 {
             return;
         }
 
+        // todo: why is this busted?
         if self.config.visibility_check {
             let spotted_mask = self.get_spotted_mask(process, self.target.pawn);
             if (spotted_mask & (1 << local_pawn_index)) == 0 {
@@ -506,7 +510,11 @@ impl CS2 {
                     if !network_enable || offsets.spotted_state.mask != 0 {
                         continue;
                     }
-                    offsets.spotted_state.mask = read_u32_vec(&client_dump, i + 0x08 + 0x10) as u64;
+                    let offset = read_u32_vec(&client_dump, i + 0x08 + 0x10) as u64;
+                    if !(10000..=14000).contains(&offset) {
+                        continue;
+                    }
+                    offsets.spotted_state.mask = offset;
                 }
                 "m_hObserverTarget" => {
                     if offsets.observer_service.target != 0 {
@@ -655,7 +663,8 @@ impl CS2 {
             return None;
         }
 
-        let target = process.read_u32(observer_services + self.offsets.observer_service.target) & 0x7fff;
+        let target =
+            process.read_u32(observer_services + self.offsets.observer_service.target) & 0x7fff;
         if target == 0 {
             return None;
         }
