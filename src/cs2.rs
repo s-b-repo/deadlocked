@@ -31,6 +31,7 @@ pub struct CS2 {
     offsets: Offsets,
     mouse: File,
     target: Target,
+    is_being_spectated: bool,
 }
 
 impl CS2 {
@@ -42,6 +43,7 @@ impl CS2 {
             offsets: Offsets::default(),
             mouse: open_mouse().unwrap(),
             target: Target::default(),
+            is_being_spectated: false,
         }
     }
 
@@ -132,11 +134,18 @@ impl CS2 {
             }
         };
 
-        if self.get_spectator_target(process, local_pawn).is_some() {
+        let spectator = self.get_spectator_target(process, local_pawn);
+        if spectator.is_some() && !self.is_being_spectated {
             self.tx
                 .send(Message::Status(Game::CS2, AimbotStatus::Paused))
                 .unwrap();
+            self.is_being_spectated = true;
             return;
+        } else if spectator.is_none() && self.is_being_spectated {
+            self.tx
+                .send(Message::Status(Game::CS2, AimbotStatus::Working))
+                .unwrap();
+            self.is_being_spectated = false;
         }
 
         let team = self.get_team(process, local_pawn);
