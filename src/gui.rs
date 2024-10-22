@@ -26,13 +26,15 @@ impl Gui {
         for game in Game::iter() {
             status.insert(game, AimbotStatus::GameNotStarted);
         }
-        Self {
+        let out = Self {
             tx,
             rx,
             config,
             status,
             current_game: Game::CS2,
-        }
+        };
+        out.write_config();
+        out
     }
 
     fn send_message(&self, message: Message) {
@@ -63,26 +65,26 @@ impl Gui {
 
                 ui.label("Hotkey")
                     .on_hover_text("which key or mouse button should activate the aimbot");
-                if egui::ComboBox::new(format!("{}_hotkey", game.string()), "")
+                egui::ComboBox::new(format!("{}_hotkey", game.string()), "")
                     .selected_text(format!("{:?}", self.config.get(&game).unwrap().hotkey))
                     .show_ui(ui, |ui| {
                         for key_code in KeyCode::iter() {
                             let text = format!("{:?}", &key_code);
-                            ui.selectable_value(
-                                &mut self.config.get_mut(&game).unwrap().hotkey,
-                                key_code,
-                                text,
-                            );
+                            if ui
+                                .selectable_value(
+                                    &mut self.config.get_mut(&game).unwrap().hotkey,
+                                    key_code,
+                                    text,
+                                )
+                                .clicked()
+                            {
+                                self.send_message(Message::ConfigHotkey(
+                                    game,
+                                    self.config.get(&game).unwrap().hotkey,
+                                ));
+                            }
                         }
-                    })
-                    .response
-                    .changed()
-                {
-                    self.send_message(Message::ConfigHotkey(
-                        game,
-                        self.config.get(&game).unwrap().hotkey,
-                    ));
-                }
+                    });
                 ui.end_row();
 
                 ui.label("Start Bullet")
@@ -224,21 +226,26 @@ impl eframe::App for Gui {
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            let game = self.current_game;
-            if egui::ComboBox::new("game", "Current Game")
+            let previous_game = self.current_game;
+            egui::ComboBox::new("game", "Current Game")
                 .selected_text(self.current_game.upper_string())
                 .show_ui(ui, |ui| {
                     for game in Game::iter() {
                         let text = game.upper_string();
-                        ui.selectable_value(&mut self.current_game, game, text);
+                        if ui
+                            .selectable_value(&mut self.current_game, game, text)
+                            .clicked()
+                        {
+                            self.send_message(Message::ConfigEnabled(previous_game, false));
+                            self.send_message(Message::ConfigEnabled(self.current_game, true));
+
+                            self.config.get_mut(&previous_game).unwrap().enabled = false;
+                            self.config.get_mut(&self.current_game).unwrap().enabled = true;
+
+                            self.write_config();
+                        }
                     }
-                })
-                .response
-                .changed()
-            {
-                self.send_message(Message::ConfigEnabled(game, false));
-                self.send_message(Message::ConfigEnabled(self.current_game, true));
-            }
+                });
             ui.separator();
             egui::Grid::new("main_grid")
                 .num_columns(2)
