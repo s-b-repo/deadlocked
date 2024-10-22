@@ -48,11 +48,12 @@ fn main() {
         return;
     }
 
-    let default_size = [700.0, 375.0];
+    let default_size = [700.0, 325.0];
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size(default_size)
-            .with_min_inner_size(default_size),
+            .with_min_inner_size(default_size)
+            .with_resizable(false),
         ..Default::default()
     };
     eframe::run_native(
