@@ -40,7 +40,6 @@ pub struct AimbotConfig {
     pub fov: f32,
     pub smooth: f32,
     pub multibone: bool,
-    pub pause_when_spectated: bool,
 }
 
 impl Default for AimbotConfig {
@@ -54,7 +53,6 @@ impl Default for AimbotConfig {
             fov: 1.2,
             smooth: 5.0,
             multibone: true,
-            pause_when_spectated: true,
         }
     }
 }

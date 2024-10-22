@@ -31,7 +31,6 @@ pub struct CS2 {
     offsets: Offsets,
     mouse: File,
     target: Target,
-    is_being_spectated: bool,
 }
 
 impl CS2 {
@@ -43,7 +42,6 @@ impl CS2 {
             offsets: Offsets::default(),
             mouse: open_mouse().unwrap(),
             target: Target::default(),
-            is_being_spectated: false,
         }
     }
 
@@ -113,9 +111,6 @@ impl CS2 {
             Message::ConfigFOV(Game::CS2, fov) => self.config.fov = fov,
             Message::ConfigSmooth(Game::CS2, smooth) => self.config.smooth = smooth,
             Message::ConfigMultibone(Game::CS2, multibone) => self.config.multibone = multibone,
-            Message::ConfigPauseWhenSpectated(Game::CS2, pause_when_spectated) => {
-                self.config.pause_when_spectated = pause_when_spectated
-            }
             _ => {}
         }
     }
@@ -163,7 +158,6 @@ impl CS2 {
 
         let mut pawns = Vec::with_capacity(64);
         let mut local_pawn_index = 0;
-        let mut is_being_spectated = false;
         for i in 1..=64 {
             let controller = match self.get_client_entity(process, i) {
                 Some(controller) => controller,
@@ -175,27 +169,10 @@ impl CS2 {
                 None => continue,
             };
 
-            let spectator_target = self.get_spectator_target(process, local_pawn);
-            if let Some(spectated_pawn) = spectator_target {
-                if spectated_pawn == local_pawn && !self.is_being_spectated {
-                    is_being_spectated = true;
-                }
-            }
-
             if pawn == local_pawn {
                 local_pawn_index = i - 1;
             }
             pawns.push(pawn);
-        }
-
-        if is_being_spectated && !self.is_being_spectated {
-            self.tx
-                .send(Message::Status(Game::CS2, AimbotStatus::Paused))
-                .unwrap();
-        } else if !is_being_spectated && self.is_being_spectated {
-            self.tx
-                .send(Message::Status(Game::CS2, AimbotStatus::Working))
-                .unwrap();
         }
 
         let mut best_fov = 360.0;
@@ -673,6 +650,7 @@ impl CS2 {
         process.read_i32(pawn + self.offsets.pawn.spotted_state + self.offsets.spotted_state.mask)
     }
 
+    #[allow(unused)]
     fn get_spectator_target(&self, process: &ProcessHandle, pawn: u64) -> Option<u64> {
         let observer_services = process.read_u64(pawn + self.offsets.pawn.observer_services);
         if observer_services == 0 {

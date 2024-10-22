@@ -35,6 +35,5 @@ pub enum Message {
     ConfigFOV(Game, f32),
     ConfigSmooth(Game, f32),
     ConfigMultibone(Game, bool),
-    ConfigPauseWhenSpectated(Game, bool),
     Status(Game, AimbotStatus),
 }

@@ -178,22 +178,6 @@ impl Gui {
                     ));
                 }
                 ui.end_row();
-
-                ui.label("Pause when spectated")
-                    .on_hover_text("whether to pause when you are being spectated");
-                if ui
-                    .checkbox(
-                        &mut self.config.get_mut(&game).unwrap().pause_when_spectated,
-                        "",
-                    )
-                    .changed()
-                {
-                    self.send_message(Message::ConfigPauseWhenSpectated(
-                        game,
-                        self.config.get(&game).unwrap().pause_when_spectated,
-                    ));
-                }
-                ui.end_row();
             });
     }
 
@@ -208,10 +192,6 @@ impl Gui {
                     AimbotStatus::Paused => Colors::YELLOW,
                 }),
         );
-
-        if *status == AimbotStatus::Paused {
-            ui.label("someone is spectating you.");
-        }
     }
 
     fn write_config(&self) {

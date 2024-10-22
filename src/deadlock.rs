@@ -57,9 +57,6 @@ impl Deadlock {
             Message::ConfigMultibone(Game::Deadlock, multibone) => {
                 self.config.multibone = multibone
             }
-            Message::ConfigPauseWhenSpectated(Game::Deadlock, pause_when_spectated) => {
-                self.config.pause_when_spectated = pause_when_spectated
-            }
             _ => {}
         }
     }
