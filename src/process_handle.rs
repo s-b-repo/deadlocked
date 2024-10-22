@@ -140,7 +140,6 @@ impl ProcessHandle {
             );
             return None;
         }
-        let start_time = std::time::Instant::now();
 
         let module = self.dump_module(base_address);
         if module.len() < 500 {
@@ -155,7 +154,6 @@ impl ProcessHandle {
                     continue 'outer;
                 }
             }
-            println!("scan: {}ms", start_time.elapsed().as_millis());
             return Some(base_address + i as u64);
         }
         None
