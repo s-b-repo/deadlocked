@@ -82,7 +82,6 @@ impl CS2 {
             let start = Instant::now();
 
             if let Ok(message) = self.rx.try_recv() {
-                dbg!(message);
                 self.parse_message(message);
             }
 
@@ -163,7 +162,7 @@ impl CS2 {
         let aim_punch = if weapon_class == WeaponClass::Sniper {
             Vec2::ZERO
         } else {
-            self.get_aim_punch(process, local_pawn)
+            self.get_aim_punch(process, local_pawn) * 2.0
         };
 
         let mut pawns = Vec::with_capacity(64);
@@ -186,8 +185,10 @@ impl CS2 {
         }
 
         let mut best_fov = 360.0;
-        if !aimbot_active || self.target.pawn == 0 || !self.is_pawn_valid(process, self.target.pawn)
-        {
+        if !self.is_pawn_valid(process, self.target.pawn) {
+            self.reset();
+        }
+        if !aimbot_active || self.target.pawn == 0 {
             for pawn in pawns {
                 if !self.is_pawn_valid(process, pawn) {
                     continue;
@@ -228,7 +229,7 @@ impl CS2 {
         }
 
         // update target angle
-        if self.target.pawn != 0 && self.config.multibone {
+        if self.target.pawn != 0 && self.config.multibone && !self.config.aim_lock {
             let mut smallest_fov = 360.0;
             for bone in Bones::iter() {
                 let bone_position = self.get_bone_position(process, self.target.pawn, bone.u64());
@@ -273,9 +274,10 @@ impl CS2 {
         let sensitivity =
             self.get_sensitivity(process) * self.get_fov_multiplier(process, local_pawn);
 
-        let mut xy = aim_angles / sensitivity;
-        xy.x /= 0.022;
-        xy.y /= -0.022;
+        let xy = Vec2::new(
+            aim_angles.y / sensitivity * 50.0,
+            -aim_angles.x / sensitivity * 50.0,
+        );
         let mut smooth_angles = Vec2::ZERO;
 
         if !self.config.aim_lock && self.config.smooth >= 1.0 {
@@ -315,7 +317,7 @@ impl CS2 {
         let eye_position = self.get_eye_position(process, local_pawn);
         let forward = (position - eye_position).normalize();
 
-        let mut angles = angles_from_vector(forward) + 2.0 * aim_punch;
+        let mut angles = angles_from_vector(forward) - aim_punch;
         vec2_clamp(&mut angles);
 
         angles
