@@ -6,7 +6,7 @@ use strum::IntoEnumIterator;
 
 use crate::{key_codes::KeyCode, message::Game};
 
-pub const DEBUG_WITHOUT_MOUSE: bool = true;
+pub const DEBUG_WITHOUT_MOUSE: bool = false;
 
 const REFRESH_RATE: u64 = 1000;
 pub const LOOP_DURATION: Duration = Duration::from_millis(1000 / REFRESH_RATE);
