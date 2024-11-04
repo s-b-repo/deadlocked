@@ -1,7 +1,6 @@
 use std::{
     fs::{read_dir, File, OpenOptions},
     io::{ErrorKind, Write},
-    process::exit,
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -44,9 +43,10 @@ const SYN_REPORT: u16 = 0x00;
 const AXIS_X: u16 = 0x00;
 const AXIS_Y: u16 = 0x01;
 
-pub fn open_mouse() -> Option<File> {
+pub fn open_mouse() -> Option<(File, String)> {
     if DEBUG_WITHOUT_MOUSE {
-        return Some(OpenOptions::new().write(true).open("/dev/null").unwrap());
+        let file = OpenOptions::new().write(true).open("/dev/null").unwrap();
+        return Some((file, String::from("/dev/null")));
     }
     for file in read_dir("/dev/input/by-id").unwrap() {
         let entry = file.unwrap();
@@ -58,15 +58,20 @@ pub fn open_mouse() -> Option<File> {
         let path = format!("/dev/input/by-id/{}", name);
         let file = OpenOptions::new().write(true).open(path);
         match file {
-            Ok(file) => return Some(file),
+            Ok(file) => return Some((file, format!("/dev/input/by-id/{}", name))),
             Err(error) => {
                 if error.kind() == ErrorKind::PermissionDenied {
-                    println!("please execute with sudo");
-                    exit(1);
+                    println!("please execute with sudo.");
+                    println!(
+                        "without sudo, mouse movements will be written to /dev/null and discarded."
+                    );
+                    let file = OpenOptions::new().write(true).open("/dev/null").unwrap();
+                    return Some((file, String::from("/dev/null")));
                 }
             }
         }
     }
+
     None
 }
 

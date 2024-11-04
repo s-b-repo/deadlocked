@@ -37,7 +37,7 @@ fn main() {
         Err(_) => return,
     };
 
-    let default_size = [700.0, 325.0];
+    let default_size = [700.0, 300.0];
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size(default_size)

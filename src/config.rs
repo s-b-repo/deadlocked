@@ -46,10 +46,10 @@ impl Default for AimbotConfig {
         Self {
             enabled: false,
             hotkey: KeyCode::MouseLeft,
-            start_bullet: 1,
+            start_bullet: 2,
             aim_lock: false,
             visibility_check: true,
-            fov: 1.2,
+            fov: 2.5,
             smooth: 5.0,
             multibone: true,
         }
@@ -67,18 +67,18 @@ pub fn parse_config() -> AimbotConfig {
         .build()
         .unwrap();
 
-    config.enabled = config_file.get("CS2.enabled").unwrap_or(config.enabled);
-    config.hotkey = config_file.get("CS2.hotkey").unwrap_or(config.hotkey);
+    config.enabled = config_file.get("enabled").unwrap_or(config.enabled);
+    config.hotkey = config_file.get("hotkey").unwrap_or(config.hotkey);
     config.start_bullet = config_file
-        .get("CS2.start_bullet")
+        .get("start_bullet")
         .unwrap_or(config.start_bullet);
-    config.aim_lock = config_file.get("CS2.aim_lock").unwrap_or(config.aim_lock);
+    config.aim_lock = config_file.get("aim_lock").unwrap_or(config.aim_lock);
     config.visibility_check = config_file
-        .get("CS2.visibility_check")
+        .get("visibility_check")
         .unwrap_or(config.visibility_check);
-    config.fov = config_file.get("CS2.fov").unwrap_or(config.fov);
-    config.smooth = config_file.get("CS2.smooth").unwrap_or(config.smooth);
-    config.multibone = config_file.get("CS2.multibone").unwrap_or(config.multibone);
+    config.fov = config_file.get("fov").unwrap_or(config.fov);
+    config.smooth = config_file.get("smooth").unwrap_or(config.smooth);
+    config.multibone = config_file.get("multibone").unwrap_or(config.multibone);
 
     config
 }

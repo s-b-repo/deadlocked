@@ -1,5 +1,11 @@
 use crate::{config::AimbotStatus, key_codes::KeyCode};
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum MouseStatus {
+    Working,
+    SudoRequired,
+}
+
 #[derive(Clone, Copy, Debug)]
 pub enum Message {
     ConfigEnabled(bool),
@@ -11,4 +17,5 @@ pub enum Message {
     ConfigSmooth(f32),
     ConfigMultibone(bool),
     Status(AimbotStatus),
+    MouseStatus(MouseStatus),
 }

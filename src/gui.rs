@@ -6,7 +6,7 @@ use crate::{
     colors::Colors,
     config::{parse_config, AimbotConfig, AimbotStatus, CONFIG_FILE_NAME},
     key_codes::KeyCode,
-    message::Message,
+    message::{Message, MouseStatus},
 };
 
 pub struct Gui {
@@ -14,6 +14,7 @@ pub struct Gui {
     rx: mpsc::Receiver<Message>,
     config: AimbotConfig,
     status: AimbotStatus,
+    mouse_status: MouseStatus,
 }
 
 impl Gui {
@@ -27,6 +28,7 @@ impl Gui {
             rx,
             config,
             status,
+            mouse_status: MouseStatus::Working,
         };
         out.write_config();
         out
@@ -132,6 +134,13 @@ impl Gui {
                     AimbotStatus::Paused => Colors::YELLOW,
                 }),
         );
+
+        if self.mouse_status == MouseStatus::SudoRequired {
+            ui.label(
+                egui::RichText::new("restart with sudo for mouse to function")
+                    .color(Colors::YELLOW),
+            );
+        }
     }
 
     fn write_config(&self) {
@@ -142,8 +151,10 @@ impl Gui {
 
 impl eframe::App for Gui {
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
-        if let Ok(Message::Status(status)) = self.rx.try_recv() {
-            self.status = status
+        match self.rx.try_recv() {
+            Ok(Message::Status(status)) => self.status = status,
+            Ok(Message::MouseStatus(mouse_status)) => self.mouse_status = mouse_status,
+            _ => {}
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {

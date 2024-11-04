@@ -1,12 +1,12 @@
 use std::{fs::File, sync::mpsc, thread::sleep, time::Instant};
 
-use crate::bones::Bones;
+use crate::{bones::Bones, message::MouseStatus};
 use glam::{Vec2, Vec3};
 use strum::IntoEnumIterator;
 
 use crate::{
     config::{parse_config, AimbotConfig, AimbotStatus, LOOP_DURATION, SLEEP_DURATION},
-    constants::{CS2Constants, WEAPON_UNKNOWN},
+    constants::Constants,
     key_codes::KeyCode,
     math::{angles_from_vector, angles_to_fov, vec2_clamp},
     memory::{
@@ -33,12 +33,17 @@ pub struct Aimbot {
 
 impl Aimbot {
     pub fn new(tx: mpsc::Sender<Message>, rx: mpsc::Receiver<Message>) -> Self {
+        let (mouse, path) = open_mouse().unwrap();
+        if path == "/dev/null" {
+            tx.send(Message::MouseStatus(MouseStatus::SudoRequired))
+                .unwrap();
+        }
         Self {
             tx,
             rx,
             config: AimbotConfig::default(),
             offsets: Offsets::default(),
-            mouse: open_mouse().unwrap(),
+            mouse,
             target: Target::default(),
         }
     }
@@ -55,7 +60,7 @@ impl Aimbot {
     }
 
     fn main_loop(&mut self) {
-        let pid = match get_pid(CS2Constants::PROCESS_NAME) {
+        let pid = match get_pid(Constants::PROCESS_NAME) {
             Some(pid) => pid,
             None => return,
         };
@@ -126,7 +131,7 @@ impl Aimbot {
         };
 
         let team = self.get_team(process, local_pawn);
-        if team != CS2Constants::TEAM_CT && team != CS2Constants::TEAM_T {
+        if team != Constants::TEAM_CT && team != Constants::TEAM_T {
             self.reset();
             return;
         }
@@ -317,19 +322,19 @@ impl Aimbot {
     fn find_offsets(&self, process: &ProcessHandle) -> Option<Offsets> {
         let mut offsets = Offsets::default();
 
-        let client_address = get_module_base_address(process, CS2Constants::CLIENT_LIB);
+        let client_address = get_module_base_address(process, Constants::CLIENT_LIB);
         offsets.library.client = client_address?;
 
-        let engine_address = get_module_base_address(process, CS2Constants::ENGINE_LIB);
+        let engine_address = get_module_base_address(process, Constants::ENGINE_LIB);
         offsets.library.engine = engine_address?;
 
-        let tier0_address = get_module_base_address(process, CS2Constants::TIER0_LIB);
+        let tier0_address = get_module_base_address(process, Constants::TIER0_LIB);
         offsets.library.tier0 = tier0_address?;
 
-        let input_address = get_module_base_address(process, CS2Constants::INPUT_LIB);
+        let input_address = get_module_base_address(process, Constants::INPUT_LIB);
         offsets.library.input = input_address?;
 
-        let sdl_address = get_module_base_address(process, CS2Constants::SDL_LIB);
+        let sdl_address = get_module_base_address(process, Constants::SDL_LIB);
         offsets.library.sdl = sdl_address?;
 
         let resource_offset =
@@ -579,7 +584,7 @@ impl Aimbot {
         // CEntityInstance
         let weapon_entity_instance = process.read_u64(pawn + self.offsets.pawn.weapon);
         if weapon_entity_instance == 0 {
-            return String::from(WEAPON_UNKNOWN);
+            return String::from(Constants::WEAPON_UNKNOWN);
         }
         self.get_weapon_name(process, weapon_entity_instance)
     }
@@ -588,12 +593,12 @@ impl Aimbot {
         // CEntityIdentity, 0x10 = m_pEntity
         let weapon_entity_identity = process.read_u64(weapon_instance + 0x10);
         if weapon_entity_identity == 0 {
-            return String::from(WEAPON_UNKNOWN);
+            return String::from(Constants::WEAPON_UNKNOWN);
         }
         // 0x20 = m_designerName (pointer -> string)
         let weapon_name_pointer = process.read_u64(weapon_entity_identity + 0x20);
         if weapon_name_pointer == 0 {
-            return String::from(WEAPON_UNKNOWN);
+            return String::from(Constants::WEAPON_UNKNOWN);
         }
         process.read_string(weapon_name_pointer)
     }

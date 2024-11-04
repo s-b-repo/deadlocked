@@ -3,10 +3,7 @@ use std::{fs::File, os::unix::fs::FileExt};
 use glam::{Vec2, Vec3};
 
 use crate::{
-    constants::Elf,
-    // todo: generalize this
-    offsets::InterfaceOffsets,
-    memory::{check_elf_header, read_u64_vec},
+    constants::Constants, memory::{check_elf_header, read_u64_vec}, offsets::InterfaceOffsets
 };
 
 pub struct ProcessHandle {
@@ -222,7 +219,7 @@ impl ProcessHandle {
 
     pub fn get_address_from_dynamic_section(&self, base_address: u64, tag: u64) -> Option<u64> {
         let dynamic_section_offset =
-            self.get_segment_from_pht(base_address, Elf::ELF_DYNAMIC_SECTION_PHT_TYPE)?;
+            self.get_segment_from_pht(base_address, Constants::ELF_DYNAMIC_SECTION_PHT_TYPE)?;
 
         let register_size = 8;
         let mut address = self.read_u64(dynamic_section_offset + 2 * register_size) + base_address;
@@ -245,10 +242,10 @@ impl ProcessHandle {
 
     pub fn get_segment_from_pht(&self, base_address: u64, tag: u64) -> Option<u64> {
         let first_entry =
-            self.read_u64(base_address + Elf::ELF_PROGRAM_HEADER_OFFSET) + base_address;
-        let entry_size = self.read_u16(base_address + Elf::ELF_PROGRAM_HEADER_ENTRY_SIZE) as u64;
+            self.read_u64(base_address + Constants::ELF_PROGRAM_HEADER_OFFSET) + base_address;
+        let entry_size = self.read_u16(base_address + Constants::ELF_PROGRAM_HEADER_ENTRY_SIZE) as u64;
 
-        for i in 0..self.read_u16(base_address + Elf::ELF_PROGRAM_HEADER_NUM_ENTRIES) {
+        for i in 0..self.read_u16(base_address + Constants::ELF_PROGRAM_HEADER_NUM_ENTRIES) {
             let entry = first_entry + i as u64 * entry_size;
             if self.read_u32(entry) as u64 == tag {
                 return Some(entry);
@@ -279,11 +276,11 @@ impl ProcessHandle {
     }
 
     pub fn module_size(&self, base_address: u64) -> u64 {
-        let section_header_offset = self.read_u64(base_address + Elf::ELF_SECTION_HEADER_OFFSET);
+        let section_header_offset = self.read_u64(base_address + Constants::ELF_SECTION_HEADER_OFFSET);
         let section_header_entry_size =
-            self.read_u16(base_address + Elf::ELF_SECTION_HEADER_ENTRY_SIZE);
+            self.read_u16(base_address + Constants::ELF_SECTION_HEADER_ENTRY_SIZE);
         let section_header_num_entries =
-            self.read_u16(base_address + Elf::ELF_SECTION_HEADER_NUM_ENTRIES);
+            self.read_u16(base_address + Constants::ELF_SECTION_HEADER_NUM_ENTRIES);
 
         section_header_offset + section_header_entry_size as u64 * section_header_num_entries as u64
     }
