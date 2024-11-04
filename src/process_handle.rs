@@ -5,7 +5,7 @@ use glam::{Vec2, Vec3};
 use crate::{
     constants::Elf,
     // todo: generalize this
-    cs2::offsets::InterfaceOffsets,
+    offsets::InterfaceOffsets,
     memory::{check_elf_header, read_u64_vec},
 };
 

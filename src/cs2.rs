@@ -1,30 +1,28 @@
 use std::{fs::File, sync::mpsc, thread::sleep, time::Instant};
 
-use bones::Bones;
+use crate::bones::Bones;
 use glam::{Vec2, Vec3};
 use strum::IntoEnumIterator;
 
 use crate::{
     config::{parse_config, AimbotConfig, AimbotStatus, LOOP_DURATION, SLEEP_DURATION},
     constants::{CS2Constants, WEAPON_UNKNOWN},
-    cs2::offsets::Offsets,
     key_codes::KeyCode,
     math::{angles_from_vector, angles_to_fov, vec2_clamp},
     memory::{
         get_module_base_address, get_pid, open_process, read_string_vec, read_u32_vec,
         read_u64_vec, validate_pid,
     },
-    message::{Game, Message},
+    message::Message,
     mouse::{move_mouse, open_mouse},
+    offsets::Offsets,
     process_handle::ProcessHandle,
     target::Target,
     weapon_class::WeaponClass,
 };
-mod bones;
-pub mod offsets;
 
 #[derive(Debug)]
-pub struct CS2 {
+pub struct Aimbot {
     tx: mpsc::Sender<Message>,
     rx: mpsc::Receiver<Message>,
     config: AimbotConfig,
@@ -33,7 +31,7 @@ pub struct CS2 {
     target: Target,
 }
 
-impl CS2 {
+impl Aimbot {
     pub fn new(tx: mpsc::Sender<Message>, rx: mpsc::Receiver<Message>) -> Self {
         Self {
             tx,
@@ -46,9 +44,9 @@ impl CS2 {
     }
 
     pub fn run(&mut self) {
-        self.config = parse_config().get(&Game::CS2).unwrap().clone();
+        self.config = parse_config();
         self.tx
-            .send(Message::Status(Game::CS2, AimbotStatus::GameNotStarted))
+            .send(Message::Status(AimbotStatus::GameNotStarted))
             .unwrap();
         loop {
             self.main_loop();
@@ -73,7 +71,7 @@ impl CS2 {
         };
 
         self.tx
-            .send(Message::Status(Game::CS2, AimbotStatus::Working))
+            .send(Message::Status(AimbotStatus::Working))
             .unwrap();
         loop {
             if !validate_pid(pid) {
@@ -93,24 +91,22 @@ impl CS2 {
             }
         }
         self.tx
-            .send(Message::Status(Game::CS2, AimbotStatus::GameNotStarted))
+            .send(Message::Status(AimbotStatus::GameNotStarted))
             .unwrap();
     }
 
     fn parse_message(&mut self, message: Message) {
         match message {
-            Message::ConfigEnabled(Game::CS2, enabled) => self.config.enabled = enabled,
-            Message::ConfigHotkey(Game::CS2, hotkey) => self.config.hotkey = hotkey,
-            Message::ConfigStartBullet(Game::CS2, start_bullet) => {
-                self.config.start_bullet = start_bullet
-            }
-            Message::ConfigAimLock(Game::CS2, aim_lock) => self.config.aim_lock = aim_lock,
-            Message::ConfigVisibilityCheck(Game::CS2, visibility_check) => {
+            Message::ConfigEnabled(enabled) => self.config.enabled = enabled,
+            Message::ConfigHotkey(hotkey) => self.config.hotkey = hotkey,
+            Message::ConfigStartBullet(start_bullet) => self.config.start_bullet = start_bullet,
+            Message::ConfigAimLock(aim_lock) => self.config.aim_lock = aim_lock,
+            Message::ConfigVisibilityCheck(visibility_check) => {
                 self.config.visibility_check = visibility_check
             }
-            Message::ConfigFOV(Game::CS2, fov) => self.config.fov = fov,
-            Message::ConfigSmooth(Game::CS2, smooth) => self.config.smooth = smooth,
-            Message::ConfigMultibone(Game::CS2, multibone) => self.config.multibone = multibone,
+            Message::ConfigFOV(fov) => self.config.fov = fov,
+            Message::ConfigSmooth(smooth) => self.config.smooth = smooth,
+            Message::ConfigMultibone(multibone) => self.config.multibone = multibone,
             _ => {}
         }
     }

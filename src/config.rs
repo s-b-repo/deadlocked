@@ -1,10 +1,9 @@
-use std::{collections::HashMap, time::Duration};
+use std::time::Duration;
 
 use config::{Config, File};
 use serde::{Deserialize, Serialize};
-use strum::IntoEnumIterator;
 
-use crate::{key_codes::KeyCode, message::Game};
+use crate::key_codes::KeyCode;
 
 pub const DEBUG_WITHOUT_MOUSE: bool = false;
 
@@ -57,12 +56,9 @@ impl Default for AimbotConfig {
     }
 }
 
-pub fn parse_config() -> HashMap<Game, AimbotConfig> {
-    let mut config = HashMap::new();
+pub fn parse_config() -> AimbotConfig {
+    let mut config = AimbotConfig::default();
     if !std::path::Path::new(CONFIG_FILE_NAME).exists() {
-        for game in Game::iter() {
-            config.insert(game, AimbotConfig::default());
-        }
         return config;
     }
 
@@ -70,37 +66,19 @@ pub fn parse_config() -> HashMap<Game, AimbotConfig> {
         .add_source(File::with_name(CONFIG_FILE_NAME))
         .build()
         .unwrap();
-    for game in Game::iter() {
-        let mut cfg = AimbotConfig::default();
-        let game_str = game.string();
 
-        cfg.enabled = config_file
-            .get(format!("{game_str}.enabled").as_str())
-            .unwrap_or(cfg.enabled);
-        cfg.hotkey = config_file
-            .get(format!("{game_str}.hotkey").as_str())
-            .unwrap_or(cfg.hotkey);
-        cfg.start_bullet = config_file
-            .get(format!("{game_str}.start_bullet").as_str())
-            .unwrap_or(cfg.start_bullet);
-        cfg.aim_lock = config_file
-            .get(format!("{game_str}.aim_lock").as_str())
-            .unwrap_or(cfg.aim_lock);
-        cfg.visibility_check = config_file
-            .get(format!("{game_str}.visibility_check").as_str())
-            .unwrap_or(cfg.visibility_check);
-        cfg.fov = config_file
-            .get(format!("{game_str}.fov").as_str())
-            .unwrap_or(cfg.fov);
-        cfg.smooth = config_file
-            .get(format!("{game_str}.smooth").as_str())
-            .unwrap_or(cfg.smooth);
-        cfg.multibone = config_file
-            .get(format!("{game_str}.multibone").as_str())
-            .unwrap_or(cfg.multibone);
-
-        config.insert(game, cfg);
-    }
+    config.enabled = config_file.get("CS2.enabled").unwrap_or(config.enabled);
+    config.hotkey = config_file.get("CS2.hotkey").unwrap_or(config.hotkey);
+    config.start_bullet = config_file
+        .get("CS2.start_bullet")
+        .unwrap_or(config.start_bullet);
+    config.aim_lock = config_file.get("CS2.aim_lock").unwrap_or(config.aim_lock);
+    config.visibility_check = config_file
+        .get("CS2.visibility_check")
+        .unwrap_or(config.visibility_check);
+    config.fov = config_file.get("CS2.fov").unwrap_or(config.fov);
+    config.smooth = config_file.get("CS2.smooth").unwrap_or(config.smooth);
+    config.multibone = config_file.get("CS2.multibone").unwrap_or(config.multibone);
 
     config
 }
