@@ -3,7 +3,18 @@ use glam::{Vec2, Vec3};
 use strum::IntoEnumIterator;
 
 use crate::{
-    aimbot::Aimbot, config::Config, constants::Constants, cs2::{offsets::Offsets, target::Target}, key_codes::KeyCode, math::{angles_from_vector, angles_to_fov, vec2_clamp}, memory::{get_module_base_address, get_pid, open_process, read_string_vec, read_u32_vec, read_u64_vec, validate_pid}, process_handle::ProcessHandle, weapon_class::WeaponClass
+    aimbot::Aimbot,
+    config::Config,
+    constants::Constants,
+    cs2::{offsets::Offsets, target::Target},
+    key_codes::KeyCode,
+    math::{angles_from_vector, angles_to_fov, vec2_clamp},
+    memory::{
+        get_module_base_address, get_pid, open_process, read_string_vec, read_u32_vec,
+        read_u64_vec, validate_pid,
+    },
+    process_handle::ProcessHandle,
+    weapon_class::WeaponClass,
 };
 
 mod bones;
@@ -25,7 +36,7 @@ impl Aimbot for CS2 {
     }
 
     fn setup(&mut self) {
-        let pid = match get_pid(Constants::PROCESS_NAME) {
+        self.pid = match get_pid(Constants::PROCESS_NAME) {
             Some(pid) => pid,
             None => {
                 self.is_valid = false;
@@ -33,7 +44,7 @@ impl Aimbot for CS2 {
             }
         };
 
-        let process = match open_process(pid) {
+        let process = match open_process(self.pid) {
             Some(process) => process,
             None => {
                 self.is_valid = false;
@@ -49,6 +60,7 @@ impl Aimbot for CS2 {
             }
         };
 
+        self.process = Some(process);
         self.is_valid = true;
     }
 
