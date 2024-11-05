@@ -11,6 +11,7 @@ const REFRESH_RATE: u64 = 100;
 pub const LOOP_DURATION: Duration = Duration::from_millis(1000 / REFRESH_RATE);
 pub const SLEEP_DURATION: Duration = Duration::from_secs(1);
 pub const CONFIG_FILE_NAME: &str = "config.toml";
+pub const ZOOM: f32 = 1.5;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum AimbotStatus {
@@ -71,15 +72,32 @@ impl Default for Config {
     }
 }
 
+fn get_config_path() -> String {
+    format!(
+        "{}/{}",
+        std::env::current_exe()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .to_str()
+            .unwrap(),
+        CONFIG_FILE_NAME
+    )
+}
+
 pub fn parse_config() -> Config {
-    let mut config = Config::default();
-    if !std::path::Path::new(CONFIG_FILE_NAME).exists() {
-        return config;
+    let config_path = get_config_path();
+    let path = std::path::Path::new(config_path.as_str());
+    if !path.exists() {
+        return Config::default();
     }
 
-    let config_string = read_to_string(CONFIG_FILE_NAME).unwrap();
+    let config_string = read_to_string(get_config_path()).unwrap();
 
-    config = toml::from_str(config_string.as_str()).unwrap_or_default();
+    toml::from_str(config_string.as_str()).unwrap_or_default()
+}
 
-    config
+pub fn write_config(config: &Config) {
+    let out = toml::to_string(&config).unwrap();
+    std::fs::write(get_config_path(), out).unwrap();
 }

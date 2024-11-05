@@ -4,7 +4,7 @@ use strum::IntoEnumIterator;
 
 use crate::{
     colors::Colors,
-    config::{parse_config, AimbotConfig, AimbotStatus, Config, CONFIG_FILE_NAME},
+    config::{parse_config, write_config, AimbotConfig, AimbotStatus, Config},
     key_codes::KeyCode,
     message::{Game, Message, MouseStatus},
 };
@@ -29,7 +29,7 @@ impl Gui {
             status,
             mouse_status: MouseStatus::Working,
         };
-        out.write_config(&out.config);
+        write_config(&out.config);
         out
     }
 
@@ -146,7 +146,7 @@ impl Gui {
 
             if self.mouse_status == MouseStatus::PermissionsRequired {
                 ui.label(
-                    egui::RichText::new("mouse input only works when user is in input group or this program is executed with sudo")
+                    egui::RichText::new("mouse input only works when user is in input group")
                         .color(Colors::YELLOW),
                 );
             }
@@ -156,12 +156,7 @@ impl Gui {
     fn write_game_config(&self, game_config: &AimbotConfig) {
         let mut config = self.config.clone();
         *config.games.get_mut(&self.config.current_game).unwrap() = game_config.clone();
-        self.write_config(&config);
-    }
-
-    fn write_config(&self, config: &Config) {
-        let out = toml::to_string(&config).unwrap();
-        std::fs::write(CONFIG_FILE_NAME, out).unwrap();
+        write_config(&config);
     }
 }
 
@@ -184,7 +179,7 @@ impl eframe::App for Gui {
                             .clicked()
                         {
                             self.send_message(Message::ChangeGame(self.config.current_game));
-                            self.write_config(&self.config);
+                            write_config(&self.config);
                         }
                     }
                 });

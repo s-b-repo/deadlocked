@@ -1,7 +1,8 @@
 use std::{sync::mpsc, thread};
 
 use aimbot::AimbotManager;
-use eframe::egui;
+use config::ZOOM;
+use eframe::egui::{self, FontData, FontDefinitions};
 use gui::Gui;
 
 mod aimbot;
@@ -22,6 +23,14 @@ mod weapon_class;
 compile_error!("only linux is supported.");
 
 fn main() {
+    let username = std::env::var("USER")
+        .or_else(|_| std::env::var("USERNAME"))
+        .unwrap_or_default();
+    if username == "root" {
+        println!("start without sudo, and add your user to the input group.");
+        std::process::exit(0);
+    }
+
     let (tx_aimbot, rx_gui) = mpsc::channel();
     let (tx_gui, rx_aimbot) = mpsc::channel();
 
@@ -35,7 +44,7 @@ fn main() {
         Err(_) => return,
     };
 
-    let default_size = [700.0, 325.0];
+    let default_size = [460.0 * ZOOM, 220.0 * ZOOM];
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size(default_size)
@@ -47,7 +56,22 @@ fn main() {
         "deadlocked",
         options,
         Box::new(|cc| {
-            cc.egui_ctx.set_pixels_per_point(1.5);
+            cc.egui_ctx.set_pixels_per_point(ZOOM);
+
+            let font = include_bytes!("../resources/Nunito.ttf");
+            let mut font_definitions = FontDefinitions::default();
+            font_definitions
+                .font_data
+                .insert(String::from("inter"), FontData::from_static(font));
+
+            font_definitions
+                .families
+                .get_mut(&egui::FontFamily::Proportional)
+                .unwrap()
+                .insert(0, String::from("inter"));
+
+            cc.egui_ctx.set_fonts(font_definitions);
+
             Ok(Box::new(Gui::new(tx_gui, rx_gui)))
         }),
     )
