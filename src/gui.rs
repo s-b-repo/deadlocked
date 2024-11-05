@@ -15,6 +15,8 @@ pub struct Gui {
     config: Config,
     status: AimbotStatus,
     mouse_status: MouseStatus,
+    close_request_sent: bool,
+    can_close: bool,
 }
 
 impl Gui {
@@ -28,6 +30,8 @@ impl Gui {
             config,
             status,
             mouse_status: MouseStatus::Working,
+            close_request_sent: false,
+            can_close: false,
         };
         out.write_config(&out.config);
         out
@@ -136,24 +140,21 @@ impl Gui {
     }
 
     fn add_game_status(&mut self, ui: &mut Ui) {
-        ui.with_layout(
-            Layout::top_down_justified(egui::Align::Center),
-            |ui| {
-                ui.label(egui::RichText::new(self.status.string()).heading().color(
-                    match self.status {
-                        AimbotStatus::Working => Colors::GREEN,
-                        AimbotStatus::GameNotStarted => Colors::YELLOW,
-                    },
-                ));
+        ui.with_layout(Layout::top_down(egui::Align::Center), |ui| {
+            ui.label(egui::RichText::new(self.status.string()).heading().color(
+                match self.status {
+                    AimbotStatus::Working => Colors::GREEN,
+                    AimbotStatus::GameNotStarted => Colors::YELLOW,
+                },
+            ));
 
-                if self.mouse_status == MouseStatus::SudoRequired {
-                    ui.label(
-                        egui::RichText::new("restart with sudo for mouse to function")
-                            .color(Colors::YELLOW),
-                    );
-                }
-            },
-        );
+            if self.mouse_status == MouseStatus::NotWorking {
+                ui.label(
+                    egui::RichText::new("could not create a uinput device")
+                        .color(Colors::YELLOW),
+                );
+            }
+        });
     }
 
     fn write_game_config(&self, game_config: &AimbotConfig) {
@@ -170,9 +171,21 @@ impl Gui {
 
 impl eframe::App for Gui {
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
+        if ctx.input(|i| i.viewport().close_requested() && !self.close_request_sent) {
+            println!("close requested");
+            self.send_message(Message::CloseRequested);
+            self.close_request_sent = true;
+            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+        }
+        if self.can_close {
+            println!("closing");
+            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+        }
+
         match self.rx.try_recv() {
             Ok(Message::Status(status)) => self.status = status,
             Ok(Message::MouseStatus(mouse_status)) => self.mouse_status = mouse_status,
+            Ok(Message::CloseAcknowledged) => self.can_close = true,
             _ => {}
         }
 
@@ -195,7 +208,7 @@ impl eframe::App for Gui {
 
             egui::Grid::new("main_grid")
                 .num_columns(2)
-                .spacing([40.0, 4.0])
+                .spacing([5.0, 5.0])
                 .show(ui, |ui| {
                     self.add_grid(ui);
                     self.add_game_status(ui);

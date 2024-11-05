@@ -1,10 +1,12 @@
 use std::{
     fs::{read_dir, File, OpenOptions},
     io::{ErrorKind, Write},
+    os::fd::AsRawFd,
     time::{SystemTime, UNIX_EPOCH},
 };
 
 use glam::{IVec2, Vec2};
+use libc::{c_uint, ioctl, uinput_user_dev};
 
 use crate::config::DEBUG_WITHOUT_MOUSE;
 
@@ -37,47 +39,68 @@ impl InputEvent {
     }
 }
 
+const UI_SET_EVBIT: u64 = 0x40045564;
+const UI_SET_RELBIT: u64 = 0x40045566;
+const UI_DEV_CREATE: u64 = 0x5501;
+const UI_DEV_DESTROY: u64 = 0x5502;
+const BUS_USB: u16 = 0x03;
+
 const EV_SYN: u16 = 0x00;
 const EV_REL: u16 = 0x02;
 const SYN_REPORT: u16 = 0x00;
-const AXIS_X: u16 = 0x00;
-const AXIS_Y: u16 = 0x01;
+const REL_X: u16 = 0x00;
+const REL_Y: u16 = 0x01;
 
-pub fn open_mouse() -> Option<(File, String)> {
-    if DEBUG_WITHOUT_MOUSE {
-        let file = OpenOptions::new().write(true).open("/dev/null").unwrap();
-        return Some((file, String::from("/dev/null")));
-    }
-    for file in read_dir("/dev/input/by-id").unwrap() {
-        let entry = file.unwrap();
-        let name = entry.file_name().into_string().unwrap();
-        if !name.ends_with("event-mouse") {
-            continue;
-        }
+pub fn open_mouse() -> Option<File> {
+    let mut file = match OpenOptions::new().write(true).open("/dev/uinput") {
+        Ok(fd) => fd,
+        Err(_) => return None,
+    };
 
-        let path = format!("/dev/input/by-id/{}", name);
-        let file = OpenOptions::new().write(true).open(path);
-        match file {
-            Ok(file) => return Some((file, format!("/dev/input/by-id/{}", name))),
-            Err(error) => {
-                if error.kind() == ErrorKind::PermissionDenied {
-                    println!("please execute with sudo.");
-                    println!(
-                        "without sudo, mouse movements will be written to /dev/null and discarded."
-                    );
-                    let file = OpenOptions::new().write(true).open("/dev/null").unwrap();
-                    return Some((file, String::from("/dev/null")));
-                }
-            }
-        }
+    unsafe {
+        ioctl(file.as_raw_fd(), UI_SET_EVBIT, EV_REL as c_uint);
+        ioctl(file.as_raw_fd(), UI_SET_RELBIT, REL_X as c_uint);
+        ioctl(file.as_raw_fd(), UI_SET_RELBIT, REL_Y as c_uint);
     }
 
-    None
+    let mut uidev = uinput_user_dev {
+        name: [0; 80],
+        id: libc::input_id {
+            bustype: BUS_USB,
+            vendor: 0x046D,
+            product: 0xC077,
+            version: 1,
+        },
+        ..unsafe { std::mem::zeroed() }
+    };
+    let name = b"Logitech, Inc. M105 Optical Mouse\0";
+    for (i, &b) in name.iter().enumerate() {
+        uidev.name[i] = b as i8;
+    }
+
+    if file
+        .write_all(unsafe {
+            std::slice::from_raw_parts(
+                &uidev as *const uinput_user_dev as *const u8,
+                std::mem::size_of::<uinput_user_dev>(),
+            )
+        })
+        .is_err()
+    {
+        return None;
+    }
+
+    unsafe {
+        ioctl(file.as_raw_fd(), UI_DEV_CREATE);
+    }
+
+    Some(file)
 }
 
 pub fn move_mouse(mouse: &mut File, coords: Vec2) {
+    let coords = IVec2::new(coords.x as i32, coords.y as i32);
     if DEBUG_WITHOUT_MOUSE {
-        println!("moving mouse: {}", coords);
+        println!("moving mouse: ({} / {})", coords.x, coords.y);
         return;
     }
 
@@ -87,20 +110,18 @@ pub fn move_mouse(mouse: &mut File, coords: Vec2) {
         microseconds: now.subsec_micros() as u64,
     };
 
-    let xy = IVec2::new(coords.x as i32, coords.y as i32);
-
     let x = InputEvent {
         time,
         event_type: EV_REL,
-        code: AXIS_X,
-        value: xy.x,
+        code: REL_X,
+        value: coords.x,
     };
 
     let y = InputEvent {
         time,
         event_type: EV_REL,
-        code: AXIS_Y,
-        value: xy.y,
+        code: REL_Y,
+        value: coords.y,
     };
 
     let syn = InputEvent {
@@ -115,4 +136,10 @@ pub fn move_mouse(mouse: &mut File, coords: Vec2) {
 
     let _ = mouse.write(&y.bytes());
     let _ = mouse.write(&syn.bytes());
+}
+
+pub fn destroy_mouse(mouse: &mut File) {
+    unsafe {
+        ioctl(mouse.as_raw_fd(), UI_DEV_DESTROY);
+    }
 }

@@ -1,4 +1,10 @@
-use std::{fs::File, sync::mpsc, thread::sleep, time::Instant};
+use std::{
+    fs::{File, OpenOptions},
+    process::exit,
+    sync::mpsc,
+    thread::sleep,
+    time::Instant,
+};
 
 use glam::Vec2;
 
@@ -6,6 +12,7 @@ use crate::{
     config::{Config, SLEEP_DURATION},
     cs2::CS2,
     message::{Game, MouseStatus},
+    mouse::destroy_mouse,
 };
 
 use crate::{
@@ -31,11 +38,15 @@ pub struct AimbotManager {
 
 impl AimbotManager {
     pub fn new(tx: mpsc::Sender<Message>, rx: mpsc::Receiver<Message>) -> Self {
-        let (mouse, path) = open_mouse().unwrap();
-        if path == "/dev/null" {
-            tx.send(Message::MouseStatus(MouseStatus::SudoRequired))
-                .unwrap();
-        }
+        let mouse = match open_mouse() {
+            Some(mouse) => mouse,
+            None => {
+                let file = OpenOptions::new().write(true).open("/dev/null").unwrap();
+                tx.send(Message::MouseStatus(MouseStatus::NotWorking))
+                    .unwrap();
+                file
+            }
+        };
         let config = parse_config();
         let aimbot = Box::new(match config.current_game {
             Game::CS2 => CS2::new(),
@@ -114,6 +125,12 @@ impl AimbotManager {
             Message::ConfigFOV(fov) => config.fov = fov,
             Message::ConfigSmooth(smooth) => config.smooth = smooth,
             Message::ConfigMultibone(multibone) => config.multibone = multibone,
+            Message::CloseRequested => {
+                destroy_mouse(&mut self.mouse);
+                self.tx.send(Message::CloseAcknowledged).unwrap();
+                println!("closed mouse");
+                exit(0);
+            }
             _ => {}
         }
     }
