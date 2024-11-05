@@ -144,9 +144,9 @@ impl Gui {
                 },
             ));
 
-            if self.mouse_status == MouseStatus::SudoRequired {
+            if self.mouse_status == MouseStatus::PermissionsRequired {
                 ui.label(
-                    egui::RichText::new("mouse input only works when started with sudo")
+                    egui::RichText::new("mouse input only works when user is in input group or this program is executed with sudo")
                         .color(Colors::YELLOW),
                 );
             }

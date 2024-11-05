@@ -61,9 +61,9 @@ pub fn open_mouse() -> Option<(File, String)> {
             Ok(file) => return Some((file, format!("/dev/input/by-id/{}", name))),
             Err(error) => {
                 if error.kind() == ErrorKind::PermissionDenied {
-                    println!("please execute with sudo.");
+                    println!("please add your user to the input group or execute with sudo.");
                     println!(
-                        "without sudo, mouse movements will be written to /dev/null and discarded."
+                        "without this, mouse movements will be written to /dev/null and discarded."
                     );
                     let file = OpenOptions::new().write(true).open("/dev/null").unwrap();
                     return Some((file, String::from("/dev/null")));

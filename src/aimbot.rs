@@ -32,7 +32,7 @@ impl AimbotManager {
     pub fn new(tx: mpsc::Sender<Message>, rx: mpsc::Receiver<Message>) -> Self {
         let (mouse, path) = open_mouse().unwrap();
         if path == "/dev/null" {
-            tx.send(Message::MouseStatus(MouseStatus::SudoRequired))
+            tx.send(Message::MouseStatus(MouseStatus::PermissionsRequired))
                 .unwrap();
         }
         let config = parse_config();

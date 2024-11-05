@@ -29,7 +29,7 @@ impl Game {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum MouseStatus {
     Working,
-    SudoRequired,
+    PermissionsRequired,
 }
 
 #[derive(Clone, Copy, Debug)]
