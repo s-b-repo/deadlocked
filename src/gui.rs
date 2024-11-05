@@ -192,7 +192,7 @@ impl eframe::App for Gui {
 
             egui::Grid::new("main_grid")
                 .num_columns(2)
-                .spacing([5.0, 5.0])
+                .spacing([20.0, 5.0])
                 .show(ui, |ui| {
                     self.add_grid(ui);
                     self.add_game_status(ui);
