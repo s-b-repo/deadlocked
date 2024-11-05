@@ -15,8 +15,6 @@ pub struct Gui {
     config: Config,
     status: AimbotStatus,
     mouse_status: MouseStatus,
-    close_request_sent: bool,
-    can_close: bool,
 }
 
 impl Gui {
@@ -30,8 +28,6 @@ impl Gui {
             config,
             status,
             mouse_status: MouseStatus::Working,
-            close_request_sent: false,
-            can_close: false,
         };
         out.write_config(&out.config);
         out
@@ -148,9 +144,9 @@ impl Gui {
                 },
             ));
 
-            if self.mouse_status == MouseStatus::NotWorking {
+            if self.mouse_status == MouseStatus::SudoRequired {
                 ui.label(
-                    egui::RichText::new("could not create a uinput device")
+                    egui::RichText::new("mouse input only works when started with sudo")
                         .color(Colors::YELLOW),
                 );
             }
@@ -171,21 +167,9 @@ impl Gui {
 
 impl eframe::App for Gui {
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
-        if ctx.input(|i| i.viewport().close_requested() && !self.close_request_sent) {
-            println!("close requested");
-            self.send_message(Message::CloseRequested);
-            self.close_request_sent = true;
-            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
-        }
-        if self.can_close {
-            println!("closing");
-            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-        }
-
         match self.rx.try_recv() {
             Ok(Message::Status(status)) => self.status = status,
-            Ok(Message::MouseStatus(mouse_status)) => self.mouse_status = mouse_status,
-            Ok(Message::CloseAcknowledged) => self.can_close = true,
+            Ok(Message::MouseStatus(status)) => self.mouse_status = status,
             _ => {}
         }
 

@@ -29,7 +29,7 @@ impl Game {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum MouseStatus {
     Working,
-    NotWorking,
+    SudoRequired,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -42,8 +42,6 @@ pub enum Message {
     ConfigSmooth(f32),
     ConfigMultibone(bool),
     Status(AimbotStatus),
-    MouseStatus(MouseStatus),
     ChangeGame(Game),
-    CloseRequested,
-    CloseAcknowledged,
+    MouseStatus(MouseStatus),
 }

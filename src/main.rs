@@ -26,12 +26,12 @@ fn main() {
     let (tx_gui, rx_aimbot) = mpsc::channel();
 
     #[allow(unused)]
-    let cs2_thread = match thread::Builder::new()
-        .name(String::from("deadlocked_cs2"))
+    let aimbot_thread = match thread::Builder::new()
+        .name(String::from("deadlocked"))
         .spawn(move || {
             AimbotManager::new(tx_aimbot, rx_aimbot).run();
         }) {
-        Ok(cs2) => cs2,
+        Ok(thread) => thread,
         Err(_) => return,
     };
 
