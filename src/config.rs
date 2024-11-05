@@ -1,21 +1,20 @@
-use std::time::Duration;
+use std::{collections::HashMap, fs::read_to_string, time::Duration};
 
-use config::{Config, File};
 use serde::{Deserialize, Serialize};
+use strum::IntoEnumIterator;
 
-use crate::key_codes::KeyCode;
+use crate::{key_codes::KeyCode, message::Game};
 
 pub const DEBUG_WITHOUT_MOUSE: bool = false;
 
 const REFRESH_RATE: u64 = 100;
 pub const LOOP_DURATION: Duration = Duration::from_millis(1000 / REFRESH_RATE);
-pub const SLEEP_DURATION: Duration = Duration::from_secs(5);
+pub const SLEEP_DURATION: Duration = Duration::from_secs(1);
 pub const CONFIG_FILE_NAME: &str = "config.toml";
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum AimbotStatus {
     Working,
-    Paused,
     GameNotStarted,
 }
 
@@ -23,7 +22,6 @@ impl AimbotStatus {
     pub fn string(&self) -> &str {
         match self {
             AimbotStatus::Working => "Working",
-            AimbotStatus::Paused => "Paused",
             AimbotStatus::GameNotStarted => "Game Not Started",
         }
     }
@@ -31,7 +29,6 @@ impl AimbotStatus {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AimbotConfig {
-    pub enabled: bool,
     pub hotkey: KeyCode,
     pub start_bullet: i32,
     pub aim_lock: bool,
@@ -44,7 +41,6 @@ pub struct AimbotConfig {
 impl Default for AimbotConfig {
     fn default() -> Self {
         Self {
-            enabled: false,
             hotkey: KeyCode::MouseLeft,
             start_bullet: 2,
             aim_lock: false,
@@ -56,29 +52,34 @@ impl Default for AimbotConfig {
     }
 }
 
-pub fn parse_config() -> AimbotConfig {
-    let mut config = AimbotConfig::default();
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Config {
+    pub games: HashMap<Game, AimbotConfig>,
+    pub current_game: Game,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        let mut games = HashMap::new();
+        for game in Game::iter() {
+            games.insert(game, AimbotConfig::default());
+        }
+        Self {
+            games,
+            current_game: Game::CS2,
+        }
+    }
+}
+
+pub fn parse_config() -> Config {
+    let mut config = Config::default();
     if !std::path::Path::new(CONFIG_FILE_NAME).exists() {
         return config;
     }
 
-    let config_file = Config::builder()
-        .add_source(File::with_name(CONFIG_FILE_NAME))
-        .build()
-        .unwrap();
+    let config_string = read_to_string(CONFIG_FILE_NAME).unwrap();
 
-    config.enabled = config_file.get("enabled").unwrap_or(config.enabled);
-    config.hotkey = config_file.get("hotkey").unwrap_or(config.hotkey);
-    config.start_bullet = config_file
-        .get("start_bullet")
-        .unwrap_or(config.start_bullet);
-    config.aim_lock = config_file.get("aim_lock").unwrap_or(config.aim_lock);
-    config.visibility_check = config_file
-        .get("visibility_check")
-        .unwrap_or(config.visibility_check);
-    config.fov = config_file.get("fov").unwrap_or(config.fov);
-    config.smooth = config_file.get("smooth").unwrap_or(config.smooth);
-    config.multibone = config_file.get("multibone").unwrap_or(config.multibone);
+    config = toml::from_str(config_string.as_str()).unwrap_or_default();
 
     config
 }

@@ -1,139 +1,95 @@
-use std::{fs::File, sync::mpsc, thread::sleep, time::Instant};
-
-use crate::{bones::Bones, message::MouseStatus};
+use bones::Bones;
 use glam::{Vec2, Vec3};
 use strum::IntoEnumIterator;
 
 use crate::{
-    config::{parse_config, AimbotConfig, AimbotStatus, LOOP_DURATION, SLEEP_DURATION},
-    constants::Constants,
-    key_codes::KeyCode,
-    math::{angles_from_vector, angles_to_fov, vec2_clamp},
-    memory::{
-        get_module_base_address, get_pid, open_process, read_string_vec, read_u32_vec,
-        read_u64_vec, validate_pid,
-    },
-    message::Message,
-    mouse::{move_mouse, open_mouse},
-    offsets::Offsets,
-    process_handle::ProcessHandle,
-    target::Target,
-    weapon_class::WeaponClass,
+    aimbot::Aimbot, config::Config, constants::Constants, cs2::{offsets::Offsets, target::Target}, key_codes::KeyCode, math::{angles_from_vector, angles_to_fov, vec2_clamp}, memory::{get_module_base_address, get_pid, open_process, read_string_vec, read_u32_vec, read_u64_vec, validate_pid}, process_handle::ProcessHandle, weapon_class::WeaponClass
 };
 
+mod bones;
+pub mod offsets;
+mod target;
+
 #[derive(Debug)]
-pub struct Aimbot {
-    tx: mpsc::Sender<Message>,
-    rx: mpsc::Receiver<Message>,
-    config: AimbotConfig,
+pub struct CS2 {
+    is_valid: bool,
+    process: Option<ProcessHandle>,
     offsets: Offsets,
-    mouse: File,
     target: Target,
+    pid: u64,
 }
 
-impl Aimbot {
-    pub fn new(tx: mpsc::Sender<Message>, rx: mpsc::Receiver<Message>) -> Self {
-        let (mouse, path) = open_mouse().unwrap();
-        if path == "/dev/null" {
-            tx.send(Message::MouseStatus(MouseStatus::SudoRequired))
-                .unwrap();
-        }
-        Self {
-            tx,
-            rx,
-            config: AimbotConfig::default(),
-            offsets: Offsets::default(),
-            mouse,
-            target: Target::default(),
-        }
+impl Aimbot for CS2 {
+    fn is_valid(&self) -> bool {
+        self.is_valid && validate_pid(self.pid)
     }
 
-    pub fn run(&mut self) {
-        self.config = parse_config();
-        self.tx
-            .send(Message::Status(AimbotStatus::GameNotStarted))
-            .unwrap();
-        loop {
-            self.main_loop();
-            sleep(SLEEP_DURATION);
-        }
-    }
-
-    fn main_loop(&mut self) {
+    fn setup(&mut self) {
         let pid = match get_pid(Constants::PROCESS_NAME) {
             Some(pid) => pid,
-            None => return,
+            None => {
+                self.is_valid = false;
+                return;
+            }
         };
 
         let process = match open_process(pid) {
             Some(process) => process,
-            None => return,
+            None => {
+                self.is_valid = false;
+                return;
+            }
         };
 
         self.offsets = match self.find_offsets(&process) {
             Some(offsets) => offsets,
-            None => return,
+            None => {
+                self.is_valid = false;
+                return;
+            }
         };
 
-        self.tx
-            .send(Message::Status(AimbotStatus::Working))
-            .unwrap();
-        loop {
-            if !validate_pid(pid) {
-                break;
-            }
-            let start = Instant::now();
-
-            if let Ok(message) = self.rx.try_recv() {
-                self.parse_message(message);
-            }
-
-            self.aimbot(&process);
-
-            let elapsed = start.elapsed();
-            if elapsed < LOOP_DURATION {
-                sleep(LOOP_DURATION - elapsed);
-            }
-        }
-        self.tx
-            .send(Message::Status(AimbotStatus::GameNotStarted))
-            .unwrap();
+        self.is_valid = true;
     }
 
-    fn parse_message(&mut self, message: Message) {
-        match message {
-            Message::ConfigEnabled(enabled) => self.config.enabled = enabled,
-            Message::ConfigHotkey(hotkey) => self.config.hotkey = hotkey,
-            Message::ConfigStartBullet(start_bullet) => self.config.start_bullet = start_bullet,
-            Message::ConfigAimLock(aim_lock) => self.config.aim_lock = aim_lock,
-            Message::ConfigVisibilityCheck(visibility_check) => {
-                self.config.visibility_check = visibility_check
-            }
-            Message::ConfigFOV(fov) => self.config.fov = fov,
-            Message::ConfigSmooth(smooth) => self.config.smooth = smooth,
-            Message::ConfigMultibone(multibone) => self.config.multibone = multibone,
-            _ => {}
+    fn run(&mut self, config: &Config) -> Option<Vec2> {
+        self.aimbot(config)
+    }
+}
+impl CS2 {
+    pub fn new() -> Self {
+        Self {
+            is_valid: false,
+            process: None,
+            offsets: Offsets::default(),
+            target: Target::default(),
+            pid: 0,
         }
     }
 
-    fn aimbot(&mut self, process: &ProcessHandle) {
-        if !self.config.enabled {
-            return;
-        }
+    fn aimbot(&mut self, config: &Config) -> Option<Vec2> {
+        let process = match &self.process {
+            Some(process) => process,
+            None => {
+                self.is_valid = false;
+                return None;
+            }
+        };
+        let config = config.games.get(&config.current_game).unwrap().clone();
 
         let local_controller = self.get_local_controller(process);
         let local_pawn = match self.get_pawn(process, local_controller) {
             Some(pawn) => pawn,
             None => {
-                self.reset();
-                return;
+                self.target = Target::default();
+                return None;
             }
         };
 
         let team = self.get_team(process, local_pawn);
         if team != Constants::TEAM_CT && team != Constants::TEAM_T {
-            self.reset();
-            return;
+            self.target = Target::default();
+            return None;
         }
 
         let weapon_class = self.get_weapon_class(process, local_pawn);
@@ -144,11 +100,11 @@ impl Aimbot {
         ]
         .contains(&weapon_class)
         {
-            self.reset();
-            return;
+            self.target = Target::default();
+            return None;
         }
 
-        let aimbot_active = self.is_button_down(process, &self.config.hotkey);
+        let aimbot_active = self.is_button_down(process, &config.hotkey);
         let view_angles = self.get_view_angles(process, local_pawn);
         let ffa = self.is_ffa(process);
         let aim_punch = if weapon_class == WeaponClass::Sniper {
@@ -178,7 +134,7 @@ impl Aimbot {
 
         let mut best_fov = 360.0;
         if !self.is_pawn_valid(process, self.target.pawn) {
-            self.reset();
+            self.target = Target::default();
         }
         if !aimbot_active || self.target.pawn == 0 {
             for pawn in pawns {
@@ -194,7 +150,7 @@ impl Aimbot {
                 let angle = self.get_target_angle(process, local_pawn, head_position, aim_punch);
                 let fov = angles_to_fov(view_angles, angle);
 
-                if fov > self.config.fov {
+                if fov > config.fov {
                     continue;
                 }
 
@@ -208,20 +164,20 @@ impl Aimbot {
             }
         }
 
-        if best_fov > self.config.fov && self.target.pawn == 0 {
-            return;
+        if best_fov > config.fov && self.target.pawn == 0 {
+            return None;
         }
 
         // todo: why is this busted?
-        if self.config.visibility_check {
+        if config.visibility_check {
             let spotted_mask = self.get_spotted_mask(process, self.target.pawn);
             if (spotted_mask & (1 << local_pawn_index)) == 0 {
-                return;
+                return None;
             }
         }
 
         // update target angle
-        if self.target.pawn != 0 && self.config.multibone && !self.config.aim_lock {
+        if self.target.pawn != 0 && config.multibone && !config.aim_lock {
             let mut smallest_fov = 360.0;
             for bone in Bones::iter() {
                 let bone_position = self.get_bone_position(process, self.target.pawn, bone.u64());
@@ -245,19 +201,19 @@ impl Aimbot {
         }
 
         if !aimbot_active {
-            return;
+            return None;
         }
 
-        if angles_to_fov(view_angles, self.target.angle) > self.config.fov {
-            return;
+        if angles_to_fov(view_angles, self.target.angle) > config.fov {
+            return None;
         }
 
         if !self.is_pawn_valid(process, self.target.pawn) {
-            return;
+            return None;
         }
 
-        if self.get_shots_fired(process, local_pawn) < self.config.start_bullet {
-            return;
+        if self.get_shots_fired(process, local_pawn) < config.start_bullet {
+            return None;
         }
 
         let mut aim_angles = view_angles - self.target.angle;
@@ -272,12 +228,12 @@ impl Aimbot {
         );
         let mut smooth_angles = Vec2::ZERO;
 
-        if !self.config.aim_lock && self.config.smooth >= 1.0 {
+        if !config.aim_lock && config.smooth >= 1.0 {
             smooth_angles.x = if xy.x.abs() > 1.0 {
                 if smooth_angles.x < xy.x {
-                    smooth_angles.x + 1.0 + (xy.x / self.config.smooth)
+                    smooth_angles.x + 1.0 + (xy.x / config.smooth)
                 } else {
-                    smooth_angles.x - 1.0 + (xy.x / self.config.smooth)
+                    smooth_angles.x - 1.0 + (xy.x / config.smooth)
                 }
             } else {
                 xy.x
@@ -285,9 +241,9 @@ impl Aimbot {
 
             smooth_angles.y = if xy.y.abs() > 1.0 {
                 if smooth_angles.y < xy.y {
-                    smooth_angles.y + 1.0 + (xy.y / self.config.smooth)
+                    smooth_angles.y + 1.0 + (xy.y / config.smooth)
                 } else {
-                    smooth_angles.y - 1.0 + (xy.y / self.config.smooth)
+                    smooth_angles.y - 1.0 + (xy.y / config.smooth)
                 }
             } else {
                 xy.y
@@ -296,7 +252,7 @@ impl Aimbot {
             smooth_angles = xy;
         }
 
-        move_mouse(&mut self.mouse, smooth_angles);
+        Some(smooth_angles)
     }
 
     fn get_target_angle(
@@ -313,10 +269,6 @@ impl Aimbot {
         vec2_clamp(&mut angles);
 
         angles
-    }
-
-    fn reset(&mut self) {
-        self.target = Target::default();
     }
 
     fn find_offsets(&self, process: &ProcessHandle) -> Option<Offsets> {

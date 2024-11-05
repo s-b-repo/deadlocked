@@ -1,10 +1,10 @@
 use std::{sync::mpsc, thread};
 
-use cs2::Aimbot;
+use aimbot::AimbotManager;
 use eframe::egui;
 use gui::Gui;
 
-mod bones;
+mod aimbot;
 mod colors;
 mod config;
 mod constants;
@@ -15,34 +15,32 @@ mod math;
 mod memory;
 mod message;
 mod mouse;
-mod offsets;
 mod process_handle;
-mod target;
 mod weapon_class;
 
 #[cfg(not(target_os = "linux"))]
 compile_error!("only linux is supported.");
 
 fn main() {
-    let (tx_cs2, rx_gui) = mpsc::channel();
-    let (tx_gui, rx_cs2) = mpsc::channel();
+    let (tx_aimbot, rx_gui) = mpsc::channel();
+    let (tx_gui, rx_aimbot) = mpsc::channel();
 
     #[allow(unused)]
     let cs2_thread = match thread::Builder::new()
         .name(String::from("deadlocked_cs2"))
         .spawn(move || {
-            Aimbot::new(tx_cs2, rx_cs2).run();
+            AimbotManager::new(tx_aimbot, rx_aimbot).run();
         }) {
         Ok(cs2) => cs2,
         Err(_) => return,
     };
 
-    let default_size = [700.0, 300.0];
+    let default_size = [700.0, 325.0];
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size(default_size)
-            .with_min_inner_size(default_size)
-            .with_resizable(false),
+            .with_resizable(false)
+            .with_maximize_button(false),
         ..Default::default()
     };
     eframe::run_native(

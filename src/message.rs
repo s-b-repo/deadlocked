@@ -1,4 +1,30 @@
+use serde::{Deserialize, Serialize};
+use strum::EnumIter;
+
 use crate::{config::AimbotStatus, key_codes::KeyCode};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, EnumIter)]
+pub enum Game {
+    CS2,
+    Deadlock,
+}
+
+impl Game {
+    #[allow(unused)]
+    pub fn string(&self) -> &str {
+        match self {
+            Game::CS2 => "cs2",
+            Game::Deadlock => "deadlock",
+        }
+    }
+
+    pub fn upper_string(&self) -> &str {
+        match self {
+            Game::CS2 => "CS2",
+            Game::Deadlock => "Deadlock",
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum MouseStatus {
@@ -8,7 +34,6 @@ pub enum MouseStatus {
 
 #[derive(Clone, Copy, Debug)]
 pub enum Message {
-    ConfigEnabled(bool),
     ConfigHotkey(KeyCode),
     ConfigStartBullet(i32),
     ConfigAimLock(bool),
@@ -18,4 +43,5 @@ pub enum Message {
     ConfigMultibone(bool),
     Status(AimbotStatus),
     MouseStatus(MouseStatus),
+    ChangeGame(Game),
 }

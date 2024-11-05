@@ -3,9 +3,10 @@ use std::{fs::File, os::unix::fs::FileExt};
 use glam::{Vec2, Vec3};
 
 use crate::{
-    constants::Constants, memory::{check_elf_header, read_u64_vec}, offsets::InterfaceOffsets
+    constants::Constants, memory::{check_elf_header, read_u64_vec}, cs2::offsets::InterfaceOffsets
 };
 
+#[derive(Debug)]
 pub struct ProcessHandle {
     pub pid: u64,
     pub memory: File,
