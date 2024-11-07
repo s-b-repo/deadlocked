@@ -1,9 +1,7 @@
 use std::{sync::mpsc, thread};
 
-use aimbot::AimbotManager;
 use config::ZOOM;
 use eframe::egui::{self, FontData, FontDefinitions};
-use gui::Gui;
 
 mod aimbot;
 mod colors;
@@ -40,7 +38,7 @@ fn main() {
     let aimbot_thread = match thread::Builder::new()
         .name(String::from("deadlocked"))
         .spawn(move || {
-            AimbotManager::new(tx_aimbot, rx_aimbot).run();
+            aimbot::AimbotManager::new(tx_aimbot, rx_aimbot).run();
         }) {
         Ok(thread) => thread,
         Err(_) => return,
@@ -74,7 +72,7 @@ fn main() {
 
             cc.egui_ctx.set_fonts(font_definitions);
 
-            Ok(Box::new(Gui::new(tx_gui, rx_gui)))
+            Ok(Box::new(gui::Gui::new(tx_gui, rx_gui)))
         }),
     )
     .unwrap();
