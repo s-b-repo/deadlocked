@@ -1,7 +1,7 @@
 use std::{sync::mpsc, thread};
 
 use config::ZOOM;
-use eframe::egui::{self, FontData, FontDefinitions};
+use eframe::egui::{self, FontData, FontDefinitions, Style};
 
 mod aimbot;
 mod colors;
@@ -72,8 +72,15 @@ fn main() {
 
             cc.egui_ctx.set_fonts(font_definitions);
 
+            cc.egui_ctx
+                .style_mut_of(egui::Theme::Dark, no_label_interaction);
+
             Ok(Box::new(gui::Gui::new(tx_gui, rx_gui)))
         }),
     )
     .unwrap();
+}
+
+fn no_label_interaction(style: &mut Style) {
+    style.interaction.selectable_labels = false;
 }
