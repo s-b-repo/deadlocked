@@ -23,6 +23,8 @@ mod weapon_class;
 compile_error!("only linux is supported.");
 
 fn main() {
+    std::env::remove_var("WAYLAND_DISPLAY");
+
     let username = std::env::var("USER")
         .or_else(|_| std::env::var("USERNAME"))
         .unwrap_or_default();
