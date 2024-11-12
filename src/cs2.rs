@@ -97,6 +97,7 @@ impl CS2 {
                 return None;
             }
         };
+        dbg!(process.read_vec3(local_pawn + self.offsets.pawn.velocity));
 
         let team = self.get_team(process, local_pawn);
         if team != Constants::TEAM_CT && team != Constants::TEAM_T {
@@ -144,7 +145,8 @@ impl CS2 {
             pawns.push(pawn);
         }
 
-        let mut best_fov = 360.0;
+        let mut highest_priority = 0.0;
+        let eye_position = self.get_eye_position(process, local_pawn);
         if !self.is_pawn_valid(process, self.target.pawn) {
             self.target = Target::default();
         }
@@ -159,6 +161,7 @@ impl CS2 {
                 }
 
                 let head_position = self.get_bone_position(process, pawn, Bones::Head.u64());
+                let distance = eye_position.distance(head_position);
                 let angle = self.get_target_angle(process, local_pawn, head_position, aim_punch);
                 let fov = angles_to_fov(view_angles, angle);
 
@@ -166,8 +169,9 @@ impl CS2 {
                     continue;
                 }
 
-                if fov < best_fov {
-                    best_fov = fov;
+                let priority = 1.0 / (fov + distance);
+                if priority > highest_priority {
+                    highest_priority = priority;
 
                     self.target.pawn = pawn;
                     self.target.angle = angle;
@@ -176,7 +180,7 @@ impl CS2 {
             }
         }
 
-        if best_fov > config.fov && self.target.pawn == 0 {
+        if highest_priority > config.fov && self.target.pawn == 0 {
             return None;
         }
 
@@ -405,6 +409,16 @@ impl CS2 {
                         continue;
                     }
                     offsets.pawn.eye_offset = read_u32_vec(&client_dump, i + 0x08 + 0x10) as u64;
+                }
+                "m_vecVelocity" => {
+                    if offsets.pawn.velocity != 0 {
+                        continue;
+                    }
+                    let value = read_u32_vec(&client_dump, i + 0x08) as u64;
+                    if !(800..=1600).contains(&value) {
+                        continue;
+                    }
+                    offsets.pawn.velocity = value;
                 }
                 "m_aimPunchCache" => {
                     if !network_enable || offsets.pawn.aim_punch_cache != 0 {
