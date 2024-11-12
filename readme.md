@@ -18,4 +18,3 @@ a very simple cs2 aimbot, for linux only.
 - completely in user-space
 - does not write anything to game memory
 - does not need root permissions
-- reads from a symlink to game memory
