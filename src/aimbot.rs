@@ -6,6 +6,7 @@ use crate::{
     config::{Config, SLEEP_DURATION},
     cs2::CS2,
     message::{Game, MouseStatus},
+    mouse::mouse_valid,
 };
 
 use crate::{
@@ -49,31 +50,42 @@ impl AimbotManager {
         }
     }
 
+    fn send_message(&mut self, message: Message) {
+        self.tx.send(message).unwrap();
+    }
+
     pub fn run(&mut self) {
-        self.tx
-            .send(Message::Status(AimbotStatus::GameNotStarted))
-            .unwrap();
+        self.send_message(Message::Status(AimbotStatus::GameNotStarted));
         let mut previous_status = AimbotStatus::GameNotStarted;
         loop {
             let start = Instant::now();
+            let mut mouse_valid = mouse_valid(&mut self.mouse);
             while let Ok(message) = self.rx.try_recv() {
                 self.parse_message(message);
             }
 
+            if !mouse_valid {
+                self.send_message(Message::MouseStatus(MouseStatus::Disconnected));
+                if let Some((mouse, path)) = open_mouse() {
+                    mouse_valid = true;
+                    if path == "/dev/null" {
+                        self.send_message(Message::MouseStatus(MouseStatus::PermissionsRequired));
+                    }
+                    self.send_message(Message::MouseStatus(MouseStatus::Working));
+                    self.mouse = mouse;
+                }
+            }
+
             if !self.aimbot.is_valid() {
                 if previous_status == AimbotStatus::Working {
-                    self.tx
-                        .send(Message::Status(AimbotStatus::GameNotStarted))
-                        .unwrap();
+                    self.send_message(Message::Status(AimbotStatus::GameNotStarted));
                     previous_status = AimbotStatus::GameNotStarted;
                 }
                 self.aimbot.setup();
             }
-            if self.aimbot.is_valid() {
+            if mouse_valid && self.aimbot.is_valid() {
                 if previous_status == AimbotStatus::GameNotStarted {
-                    self.tx
-                        .send(Message::Status(AimbotStatus::Working))
-                        .unwrap();
+                    self.send_message(Message::Status(AimbotStatus::Working));
                     previous_status = AimbotStatus::Working;
                 }
                 if let Some(coords) = self.aimbot.run(&self.config) {
@@ -81,7 +93,7 @@ impl AimbotManager {
                 }
             }
 
-            if self.aimbot.is_valid() {
+            if self.aimbot.is_valid() && mouse_valid {
                 let elapsed = start.elapsed();
                 if elapsed < LOOP_DURATION {
                     sleep(LOOP_DURATION - elapsed);

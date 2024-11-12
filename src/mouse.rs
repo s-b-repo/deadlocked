@@ -115,3 +115,20 @@ pub fn move_mouse(mouse: &mut File, coords: Vec2) {
     mouse.write_all(&y.bytes()).unwrap();
     mouse.write_all(&syn.bytes()).unwrap();
 }
+
+const SYN: InputEvent = InputEvent {
+    time: Timeval {
+        seconds: 0,
+        microseconds: 0,
+    },
+    event_type: EV_SYN,
+    code: SYN_REPORT,
+    value: 0,
+};
+
+pub fn mouse_valid(mouse: &mut File) -> bool {
+    if mouse.write_all(&SYN.bytes()).is_ok() {
+        return true;
+    }
+    false
+}

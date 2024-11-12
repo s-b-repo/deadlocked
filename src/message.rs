@@ -29,6 +29,7 @@ impl Game {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum MouseStatus {
     Working,
+    Disconnected,
     PermissionsRequired,
 }
 

@@ -180,7 +180,6 @@ impl CS2 {
             return None;
         }
 
-        // todo: why is this busted?
         if config.visibility_check {
             let spotted_mask = self.get_spotted_mask(process, self.target.pawn);
             if (spotted_mask & (1 << local_pawn_index)) == 0 {

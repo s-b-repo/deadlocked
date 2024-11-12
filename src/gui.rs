@@ -144,11 +144,17 @@ impl Gui {
                 },
             ));
 
-            if self.mouse_status == MouseStatus::PermissionsRequired {
-                ui.label(
-                    egui::RichText::new("mouse input only works when user is in input group")
-                        .color(Colors::YELLOW),
-                );
+            match self.mouse_status {
+                MouseStatus::PermissionsRequired => {
+                    ui.label(
+                        egui::RichText::new("mouse input only works when user is in input group")
+                            .color(Colors::YELLOW),
+                    );
+                }
+                MouseStatus::Disconnected => {
+                    ui.label(egui::RichText::new("mouse was disconnected").color(Colors::YELLOW));
+                }
+                _ => {}
             }
         });
     }
@@ -162,10 +168,16 @@ impl Gui {
 
 impl eframe::App for Gui {
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
-        match self.rx.try_recv() {
-            Ok(Message::Status(status)) => self.status = status,
-            Ok(Message::MouseStatus(status)) => self.mouse_status = status,
-            _ => {}
+        // makes it more inefficient to force draw 60fps, but else the mouse disconnect message does not show up
+        // todo: when update is split into tick and show, put message parsing into tick and force update the ui when message are received
+        ctx.request_repaint();
+
+        while let Ok(message) = self.rx.try_recv() {
+            match message {
+                Message::Status(status) => self.status = status,
+                Message::MouseStatus(status) => self.mouse_status = status,
+                _ => {}
+            }
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
