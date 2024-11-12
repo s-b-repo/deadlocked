@@ -97,7 +97,6 @@ impl CS2 {
                 return None;
             }
         };
-        dbg!(process.read_vec3(local_pawn + self.offsets.pawn.velocity));
 
         let team = self.get_team(process, local_pawn);
         if team != Constants::TEAM_CT && team != Constants::TEAM_T {
