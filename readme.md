@@ -11,3 +11,11 @@ a very simple cs2 aimbot, for linux only.
 
 - if you got the source code from github, run with cargo: `cargo run --release`
 - if you got a standalone binary, just run that
+
+## security
+
+- should be "undetectable", as far as user-space externals go
+- completely in user-space
+- does not write anything to game memory
+- does not need root permissions
+- reads from a symlink to game memory
