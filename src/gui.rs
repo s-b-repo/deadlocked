@@ -1,11 +1,15 @@
 use eframe::egui::{self, Layout, Ui};
-use std::sync::mpsc;
+use std::{
+    fs::{exists, remove_file},
+    sync::mpsc,
+};
 use strum::IntoEnumIterator;
 
 use crate::{
     colors::Colors,
     config::{parse_config, write_config, AimbotConfig, AimbotStatus, Config},
     key_codes::KeyCode,
+    memory::exe_path,
     message::{Game, Message, MouseStatus},
 };
 
@@ -193,5 +197,14 @@ impl eframe::App for Gui {
                     self.add_game_status(ui);
                 });
         });
+    }
+}
+
+impl Drop for Gui {
+    fn drop(&mut self) {
+        let path = format!("{}/mem", exe_path());
+        if exists(path.as_str()).is_ok() {
+            remove_file(path.as_str()).unwrap();
+        }
     }
 }

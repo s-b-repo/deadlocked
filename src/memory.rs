@@ -1,5 +1,5 @@
 use std::{
-    fs::{read_dir, read_link, File, OpenOptions},
+    fs::{exists, read_dir, read_link, remove_file, File, OpenOptions},
     io::{BufRead, BufReader},
     path::Path,
 };
@@ -44,10 +44,12 @@ pub fn open_process(pid: u64) -> Option<ProcessHandle> {
         return None;
     }
 
-    let memory = OpenOptions::new()
-        .read(true)
-        .write(true)
-        .open(format!("/proc/{pid}/mem"));
+    let path = format!("{}/mem", exe_path());
+    if exists(path.as_str()).is_ok() {
+        remove_file(path.as_str()).unwrap();
+    }
+    std::os::unix::fs::symlink(format!("/proc/{pid}/mem"), path.as_str()).unwrap();
+    let memory = OpenOptions::new().read(true).open("mem");
     match memory {
         Ok(mem) => Some(ProcessHandle::new(pid, mem)),
         _ => None,
@@ -161,4 +163,14 @@ pub fn read_string_vec(data: &[u8], address: u64) -> String {
         i += 1;
     }
     string
+}
+
+pub fn exe_path() -> String {
+    std::env::current_exe()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string()
 }
