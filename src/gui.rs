@@ -99,7 +99,12 @@ impl Gui {
                 ui.label("FOV")
                     .on_hover_text("how much around the crosshair the aimbot should \"see\"");
                 if ui
-                    .add(egui::Slider::new(&mut game_config.fov, 0.1..=10.0).suffix("°"))
+                    .add(
+                        egui::Slider::new(&mut game_config.fov, 0.1..=360.0)
+                            .suffix("°")
+                            .logarithmic(true)
+                            .step_by(0.1),
+                    )
                     .changed()
                 {
                     self.send_message(Message::ConfigFOV(game_config.fov));
