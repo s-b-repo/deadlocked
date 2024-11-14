@@ -1,5 +1,7 @@
 # deadlocked
 
+![downloads](https://img.shields.io/github/downloads/avitran0/deadlocked/total?color=blue)
+
 a very simple cs2 aimbot, for linux only.
 
 ## setup

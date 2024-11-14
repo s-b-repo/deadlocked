@@ -21,6 +21,7 @@ mod weapon_class;
 compile_error!("only linux is supported.");
 
 fn main() {
+    // todo: this runs as x11 for now, because wayland decorations for winit are not good
     std::env::remove_var("WAYLAND_DISPLAY");
 
     let username = std::env::var("USER")
