@@ -100,9 +100,8 @@ impl Gui {
                     .on_hover_text("how much around the crosshair the aimbot should \"see\"");
                 if ui
                     .add(
-                        egui::Slider::new(&mut game_config.fov, 0.1..=360.0)
+                        egui::Slider::new(&mut game_config.fov, 0.1..=10.0)
                             .suffix("°")
-                            .logarithmic(true)
                             .step_by(0.1),
                     )
                     .changed()
