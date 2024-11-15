@@ -1,4 +1,4 @@
-use eframe::egui::{self, Layout, Ui};
+use eframe::egui::{self, Align2, Layout, Ui};
 use std::sync::mpsc;
 use strum::IntoEnumIterator;
 
@@ -210,5 +210,26 @@ impl eframe::App for Gui {
                     self.add_game_status(ui);
                 });
         });
+
+        let version = format!(
+            "version: {}",
+            option_env!("CARGO_PKG_VERSION").unwrap_or("unknown")
+        );
+        let font = egui::FontId::proportional(12.0);
+        let text_size = ctx.fonts(|fonts| {
+            fonts
+                .layout_no_wrap(version.clone(), font.clone(), egui::Color32::WHITE)
+                .size()
+        });
+
+        ctx.layer_painter(egui::LayerId::background()).text(
+            Align2::RIGHT_BOTTOM
+                .align_size_within_rect(text_size, ctx.screen_rect().shrink(4.0))
+                .max,
+            Align2::RIGHT_BOTTOM,
+            version,
+            font,
+            egui::Color32::GRAY,
+        );
     }
 }
