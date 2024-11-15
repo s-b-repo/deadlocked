@@ -758,6 +758,7 @@ checksum = "96a6ac251f4a2aca6b3f91340350eab87ae57c3f127ffeb585e92bd336717991"
 name = "deadlocked"
 version = "0.1.0"
 dependencies = [
+ "bytemuck",
  "eframe",
  "glam",
  "serde",
@@ -1199,6 +1200,9 @@ name = "glam"
 version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c28091a37a5d09b555cb6628fd954da299b536433834f5b8e59eba78e0cbbf8a"
+dependencies = [
+ "bytemuck",
+]
 
 [[package]]
 name = "glow"

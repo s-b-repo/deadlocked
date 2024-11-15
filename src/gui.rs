@@ -187,10 +187,10 @@ impl eframe::App for Gui {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::ComboBox::new("game", "Current Game")
-                .selected_text(self.config.current_game.upper_string())
+                .selected_text(self.config.current_game.string())
                 .show_ui(ui, |ui| {
                     for game in Game::iter() {
-                        let text = game.upper_string();
+                        let text = game.string();
                         if ui
                             .selectable_value(&mut self.config.current_game, game, text)
                             .clicked()

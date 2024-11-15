@@ -4,6 +4,8 @@ use std::{
     path::Path,
 };
 
+use bytemuck::{Pod, Zeroable};
+
 use crate::process_handle::ProcessHandle;
 
 pub fn get_pid(process_name: &str) -> Option<u64> {
@@ -71,81 +73,16 @@ pub fn check_elf_header(data: Vec<u8>) -> bool {
     data.len() >= 4 && data[0..4] == [0x7f, b'E', b'L', b'F']
 }
 
-#[allow(unused)]
-pub fn read_i8_vec(data: &[u8], address: u64) -> i8 {
-    let adr = address as usize;
-    let buffer = [data[adr]];
-    i8::from_ne_bytes(buffer)
+pub fn read_vec<T: Pod + Zeroable + Default>(data: &[u8], address: u64) -> T {
+    let size = std::mem::size_of::<T>();
+    if address as usize + size > data.len() {
+        return T::default();
+    }
+
+    let slice = &data[address as usize..address as usize + size];
+    bytemuck::try_from_bytes(slice).copied().unwrap_or_default()
 }
 
-#[allow(unused)]
-pub fn read_u8_vec(data: &[u8], address: u64) -> u8 {
-    let adr = address as usize;
-    let buffer = [data[adr]];
-    u8::from_ne_bytes(buffer)
-}
-
-#[allow(unused)]
-pub fn read_i16_vec(data: &[u8], address: u64) -> i16 {
-    let adr = address as usize;
-    let buffer = [data[adr], data[adr + 1]];
-    i16::from_ne_bytes(buffer)
-}
-
-#[allow(unused)]
-pub fn read_u16_vec(data: &[u8], address: u64) -> u16 {
-    let adr = address as usize;
-    let buffer = [data[adr], data[adr + 1]];
-    u16::from_ne_bytes(buffer)
-}
-
-#[allow(unused)]
-pub fn read_i32_vec(data: &[u8], address: u64) -> i32 {
-    let adr = address as usize;
-    let buffer = [data[adr], data[adr + 1], data[adr + 2], data[adr + 3]];
-    i32::from_ne_bytes(buffer)
-}
-
-#[allow(unused)]
-pub fn read_u32_vec(data: &[u8], address: u64) -> u32 {
-    let adr = address as usize;
-    let buffer = [data[adr], data[adr + 1], data[adr + 2], data[adr + 3]];
-    u32::from_ne_bytes(buffer)
-}
-
-#[allow(unused)]
-pub fn read_i64_vec(data: &[u8], address: u64) -> i64 {
-    let adr = address as usize;
-    let buffer = [
-        data[adr],
-        data[adr + 1],
-        data[adr + 2],
-        data[adr + 3],
-        data[adr + 4],
-        data[adr + 5],
-        data[adr + 6],
-        data[adr + 7],
-    ];
-    i64::from_ne_bytes(buffer)
-}
-
-#[allow(unused)]
-pub fn read_u64_vec(data: &[u8], address: u64) -> u64 {
-    let adr = address as usize;
-    let buffer = [
-        data[adr],
-        data[adr + 1],
-        data[adr + 2],
-        data[adr + 3],
-        data[adr + 4],
-        data[adr + 5],
-        data[adr + 6],
-        data[adr + 7],
-    ];
-    u64::from_ne_bytes(buffer)
-}
-
-#[allow(unused)]
 pub fn read_string_vec(data: &[u8], address: u64) -> String {
     let mut string = String::new();
     let mut i = address;
