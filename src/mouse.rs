@@ -92,7 +92,6 @@ pub fn open_mouse() -> (File, MouseStatus) {
         }
         let device_name =
             fs::read_to_string(format!("/sys/class/input/{}/device/name", name)).unwrap();
-        println!("mouse found: {device_name}");
 
         let path = format!("/dev/input/{}", name);
         let file = OpenOptions::new().write(true).open(path);
