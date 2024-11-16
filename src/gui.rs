@@ -6,7 +6,8 @@ use crate::{
     colors::Colors,
     config::{parse_config, write_config, AimbotConfig, AimbotStatus, Config},
     key_codes::KeyCode,
-    message::{Game, Message, MouseStatus},
+    message::{Game, Message},
+    mouse::MouseStatus,
 };
 
 pub struct Gui {
@@ -27,7 +28,7 @@ impl Gui {
             rx,
             config,
             status,
-            mouse_status: MouseStatus::Working,
+            mouse_status: MouseStatus::NoMouseFound,
         };
         write_config(&out.config);
         out
@@ -148,18 +149,20 @@ impl Gui {
                 },
             ));
 
-            match self.mouse_status {
+            let mouse_text = match &self.mouse_status {
+                MouseStatus::Working(name) => name,
                 MouseStatus::PermissionsRequired => {
-                    ui.label(
-                        egui::RichText::new("mouse input only works when user is in input group")
-                            .color(Colors::YELLOW),
-                    );
+                    "mouse input only works when user is in input group"
                 }
-                MouseStatus::Disconnected => {
-                    ui.label(egui::RichText::new("mouse was disconnected").color(Colors::YELLOW));
-                }
-                _ => {}
-            }
+                MouseStatus::Disconnected => "mouse was disconnected",
+                MouseStatus::NoMouseFound => "no mouse was found",
+            };
+            let color = if let MouseStatus::Working(_) = &self.mouse_status {
+                egui::Color32::PLACEHOLDER
+            } else {
+                Colors::YELLOW
+            };
+            ui.label(egui::RichText::new(mouse_text).color(color));
         });
     }
 
@@ -191,10 +194,12 @@ impl eframe::App for Gui {
                     for game in Game::iter() {
                         let text = game.string();
                         if ui
-                            .selectable_value(&mut self.config.current_game, game, text)
+                            .selectable_value(&mut self.config.current_game, game.clone(), text)
                             .clicked()
                         {
-                            self.send_message(Message::ChangeGame(self.config.current_game));
+                            self.send_message(Message::ChangeGame(
+                                self.config.current_game.clone(),
+                            ));
                             write_config(&self.config);
                         }
                     }

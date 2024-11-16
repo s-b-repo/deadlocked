@@ -9,7 +9,7 @@ use crate::{
     cs2::{offsets::Offsets, target::Target},
     key_codes::KeyCode,
     math::{angles_from_vector, angles_to_fov, vec2_clamp},
-    memory::{
+    proc::{
         get_module_base_address, get_pid, open_process, read_string_vec, read_vec, validate_pid,
     },
     process_handle::ProcessHandle,

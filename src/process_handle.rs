@@ -5,7 +5,7 @@ use bytemuck::{Pod, Zeroable};
 use crate::{
     constants::Constants,
     cs2::offsets::InterfaceOffsets,
-    memory::{check_elf_header, read_vec},
+    proc::{check_elf_header, read_vec},
 };
 
 #[derive(Debug)]

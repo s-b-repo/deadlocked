@@ -1,5 +1,6 @@
 use std::{sync::mpsc, thread};
 
+use colors::Colors;
 use config::ZOOM;
 use eframe::egui::{self, FontData, FontDefinitions, Style};
 
@@ -11,7 +12,7 @@ mod cs2;
 mod gui;
 mod key_codes;
 mod math;
-mod memory;
+mod proc;
 mod message;
 mod mouse;
 mod process_handle;
@@ -21,7 +22,8 @@ mod weapon_class;
 compile_error!("only linux is supported.");
 
 fn main() {
-    // todo: this runs as x11 for now, because wayland decorations for winit are not good
+    // this runs as x11 for now, because wayland decorations for winit are not good
+    // and don't support disabling the maximize button
     std::env::remove_var("WAYLAND_DISPLAY");
 
     let username = std::env::var("USER")
@@ -84,4 +86,5 @@ fn main() {
 
 fn no_label_interaction(style: &mut Style) {
     style.interaction.selectable_labels = false;
+    style.visuals.override_text_color = Some(Colors::TEXT);
 }

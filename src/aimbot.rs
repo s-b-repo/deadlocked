@@ -5,8 +5,8 @@ use glam::Vec2;
 use crate::{
     config::{Config, SLEEP_DURATION},
     cs2::CS2,
-    message::{Game, MouseStatus},
-    mouse::mouse_valid,
+    message::Game,
+    mouse::{mouse_valid, MouseStatus},
 };
 
 use crate::{
@@ -31,23 +31,24 @@ pub struct AimbotManager {
 
 impl AimbotManager {
     pub fn new(tx: mpsc::Sender<Message>, rx: mpsc::Receiver<Message>) -> Self {
-        let (mouse, path) = open_mouse().unwrap();
-        if path == "/dev/null" {
-            tx.send(Message::MouseStatus(MouseStatus::PermissionsRequired))
-                .unwrap();
-        }
+        let (mouse, status) = open_mouse();
+
         let config = parse_config();
         let aimbot = Box::new(match config.current_game {
             Game::CS2 => CS2::new(),
             Game::Deadlock => CS2::new(),
         });
-        Self {
+        let mut aimbot = Self {
             tx,
             rx,
             config,
             mouse,
             aimbot,
-        }
+        };
+
+        aimbot.send_message(Message::MouseStatus(status));
+
+        aimbot
     }
 
     fn send_message(&mut self, message: Message) {
@@ -66,14 +67,10 @@ impl AimbotManager {
 
             if !mouse_valid {
                 self.send_message(Message::MouseStatus(MouseStatus::Disconnected));
-                if let Some((mouse, path)) = open_mouse() {
-                    mouse_valid = true;
-                    if path == "/dev/null" {
-                        self.send_message(Message::MouseStatus(MouseStatus::PermissionsRequired));
-                    }
-                    self.send_message(Message::MouseStatus(MouseStatus::Working));
-                    self.mouse = mouse;
-                }
+                let (mouse, status) = open_mouse();
+                mouse_valid = true;
+                self.send_message(Message::MouseStatus(status));
+                self.mouse = mouse;
             }
 
             if !self.aimbot.is_valid() {

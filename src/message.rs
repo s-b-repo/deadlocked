@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 use strum::EnumIter;
 
-use crate::{config::AimbotStatus, key_codes::KeyCode};
+use crate::{config::AimbotStatus, key_codes::KeyCode, mouse::MouseStatus};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, EnumIter)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, EnumIter)]
 pub enum Game {
     CS2,
     Deadlock,
@@ -26,14 +26,7 @@ impl Game {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum MouseStatus {
-    Working,
-    Disconnected,
-    PermissionsRequired,
-}
-
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub enum Message {
     ConfigHotkey(KeyCode),
     ConfigStartBullet(i32),
