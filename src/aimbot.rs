@@ -3,7 +3,7 @@ use std::{fs::File, sync::mpsc, thread::sleep, time::Instant};
 use glam::Vec2;
 
 use crate::{
-    config::{Config, SLEEP_DURATION},
+    config::{Config, DEBUG_WITHOUT_MOUSE, SLEEP_DURATION},
     cs2::CS2,
     message::Game,
     mouse::{mouse_valid, MouseStatus},
@@ -26,6 +26,7 @@ pub struct AimbotManager {
     rx: mpsc::Receiver<Message>,
     config: Config,
     mouse: File,
+    mouse_status: MouseStatus,
     aimbot: Box<dyn Aimbot>,
 }
 
@@ -43,6 +44,7 @@ impl AimbotManager {
             rx,
             config,
             mouse,
+            mouse_status: status.clone(),
             aimbot,
         };
 
@@ -65,12 +67,14 @@ impl AimbotManager {
                 self.parse_message(message);
             }
 
-            if !mouse_valid {
-                self.send_message(Message::MouseStatus(MouseStatus::Disconnected));
-                let (mouse, status) = open_mouse();
-                mouse_valid = true;
-                self.send_message(Message::MouseStatus(status));
-                self.mouse = mouse;
+            if !mouse_valid || self.mouse_status == MouseStatus::NoMouseFound {
+                mouse_valid = self.find_mouse();
+            }
+            // todo: refactor to an if let chain when that is stabilized
+            if let MouseStatus::Working(path) = &self.mouse_status {
+                if path == "/dev/null" && !DEBUG_WITHOUT_MOUSE {
+                    mouse_valid = self.find_mouse();
+                }
             }
 
             if !self.aimbot.is_valid() {
@@ -124,5 +128,21 @@ impl AimbotManager {
             Message::ConfigMultibone(multibone) => config.multibone = multibone,
             _ => {}
         }
+    }
+
+    fn find_mouse(&mut self) -> bool {
+        let mut mouse_valid = false;
+        self.send_message(Message::MouseStatus(MouseStatus::Disconnected));
+        self.mouse_status = MouseStatus::Disconnected;
+        let (mouse, status) = open_mouse();
+        if let MouseStatus::Working(path) = &status {
+            if path != "/dev/null" {
+                mouse_valid = true;
+            }
+        }
+        self.send_message(Message::MouseStatus(status.clone()));
+        self.mouse_status = status;
+        self.mouse = mouse;
+        mouse_valid
     }
 }
