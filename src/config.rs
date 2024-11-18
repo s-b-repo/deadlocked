@@ -37,6 +37,7 @@ pub struct AimbotConfig {
     pub fov: f32,
     pub smooth: f32,
     pub multibone: bool,
+    pub rcs: bool,
 }
 
 impl Default for AimbotConfig {
@@ -49,6 +50,7 @@ impl Default for AimbotConfig {
             fov: 2.5,
             smooth: 5.0,
             multibone: true,
+            rcs: true,
         }
     }
 }

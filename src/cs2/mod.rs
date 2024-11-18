@@ -1,3 +1,5 @@
+use std::fs::File;
+
 use bones::Bones;
 use glam::{Vec2, Vec3};
 use strum::IntoEnumIterator;
@@ -9,6 +11,7 @@ use crate::{
     cs2::{offsets::Offsets, target::Target},
     key_codes::KeyCode,
     math::{angles_from_vector, angles_to_fov, vec2_clamp},
+    mouse::move_mouse,
     proc::{
         get_module_base_address, get_pid, open_process, read_string_vec, read_vec, validate_pid,
     },
@@ -27,6 +30,8 @@ pub struct CS2 {
     offsets: Offsets,
     target: Target,
     pid: u64,
+
+    previous_aim_punch: Vec2,
 }
 
 impl Aimbot for CS2 {
@@ -63,8 +68,13 @@ impl Aimbot for CS2 {
         self.is_valid = true;
     }
 
-    fn run(&mut self, config: &Config) -> Option<Vec2> {
-        self.aimbot(config)
+    fn run(&mut self, config: &Config, mouse: &mut File) {
+        if let Some(coords) = self.rcs(config) {
+            move_mouse(mouse, coords);
+        }
+        if let Some(coords) = self.aimbot(config) {
+            move_mouse(mouse, coords);
+        }
     }
 }
 impl CS2 {
@@ -75,7 +85,68 @@ impl CS2 {
             offsets: Offsets::default(),
             target: Target::default(),
             pid: 0,
+
+            previous_aim_punch: Vec2::ZERO,
         }
+    }
+
+    fn rcs(&mut self, config: &Config) -> Option<Vec2> {
+        let process = match &self.process {
+            Some(process) => process,
+            None => {
+                self.is_valid = false;
+                return None;
+            }
+        };
+        let config = config.games.get(&config.current_game).unwrap().clone();
+        if !config.rcs {
+            return None;
+        }
+
+        let local_controller = self.get_local_controller(process);
+        let local_pawn = match self.get_pawn(process, local_controller) {
+            Some(pawn) => pawn,
+            None => {
+                self.target = Target::default();
+                return None;
+            }
+        };
+
+        let weapon_class = self.get_weapon_class(process, local_pawn);
+        if [
+            WeaponClass::Unknown,
+            WeaponClass::Knife,
+            WeaponClass::Grenade,
+        ]
+        .contains(&weapon_class)
+        {
+            return None;
+        }
+        let aim_punch = if weapon_class == WeaponClass::Sniper {
+            Vec2::ZERO
+        } else {
+            self.get_aim_punch(process, local_pawn) * 2.0
+        };
+
+        if self.get_shots_fired(process, local_pawn) <= 1 {
+            self.previous_aim_punch = aim_punch;
+            return None;
+        }
+        let sensitivity =
+            self.get_sensitivity(process) * self.get_fov_multiplier(process, local_pawn);
+        let xy = (aim_punch - self.previous_aim_punch) * -1.0;
+
+        let mouse_angle = Vec2::new(
+            ((xy.y * 2.0) / sensitivity) / -0.022,
+            ((xy.x * 2.0) / sensitivity) / 0.022,
+        );
+
+        // only if the aimbot is not active
+        if !self.is_button_down(process, &config.hotkey) {
+            self.previous_aim_punch = aim_punch;
+            return Some(mouse_angle);
+        }
+        None
     }
 
     fn aimbot(&mut self, config: &Config) -> Option<Vec2> {

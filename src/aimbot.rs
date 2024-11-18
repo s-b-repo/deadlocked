@@ -1,7 +1,5 @@
 use std::{fs::File, sync::mpsc, thread::sleep, time::Instant};
 
-use glam::Vec2;
-
 use crate::{
     config::{Config, DEBUG_WITHOUT_MOUSE, SLEEP_DURATION},
     cs2::CS2,
@@ -12,13 +10,13 @@ use crate::{
 use crate::{
     config::{parse_config, AimbotStatus, LOOP_DURATION},
     message::Message,
-    mouse::{move_mouse, open_mouse},
+    mouse::open_mouse,
 };
 
 pub trait Aimbot: std::fmt::Debug {
     fn is_valid(&self) -> bool;
     fn setup(&mut self);
-    fn run(&mut self, config: &Config) -> Option<Vec2>;
+    fn run(&mut self, config: &Config, mouse: &mut File);
 }
 
 pub struct AimbotManager {
@@ -89,9 +87,7 @@ impl AimbotManager {
                     self.send_message(Message::Status(AimbotStatus::Working));
                     previous_status = AimbotStatus::Working;
                 }
-                if let Some(coords) = self.aimbot.run(&self.config) {
-                    move_mouse(&mut self.mouse, coords);
-                }
+                self.aimbot.run(&self.config, &mut self.mouse);
             }
 
             if self.aimbot.is_valid() && mouse_valid {

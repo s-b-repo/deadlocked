@@ -131,6 +131,14 @@ impl Gui {
                     self.write_game_config(&game_config);
                 }
                 ui.end_row();
+
+                ui.label("RCS").on_hover_text(
+                    "whether recoil should be compensated when the aimbot is not active",
+                );
+                if ui.checkbox(&mut game_config.rcs, "").changed() {
+                    self.send_message(Message::ConfigMultibone(game_config.rcs));
+                    self.write_game_config(&game_config);
+                }
             });
 
         *self
