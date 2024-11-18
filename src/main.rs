@@ -47,7 +47,7 @@ fn main() {
         Err(_) => return,
     };
 
-    let default_size = [460.0 * ZOOM, 220.0 * ZOOM];
+    let default_size = [460.0 * ZOOM, 240.0 * ZOOM];
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size(default_size)

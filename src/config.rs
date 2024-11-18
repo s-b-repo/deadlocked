@@ -30,6 +30,7 @@ impl AimbotStatus {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AimbotConfig {
+    pub aimbot: bool,
     pub hotkey: KeyCode,
     pub start_bullet: i32,
     pub aim_lock: bool,
@@ -43,6 +44,7 @@ pub struct AimbotConfig {
 impl Default for AimbotConfig {
     fn default() -> Self {
         Self {
+            aimbot: true,
             hotkey: KeyCode::MouseLeft,
             start_bullet: 2,
             aim_lock: false,

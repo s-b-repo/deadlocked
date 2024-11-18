@@ -113,6 +113,7 @@ impl AimbotManager {
             .get_mut(&self.config.current_game)
             .unwrap();
         match message {
+            Message::ConfigEnableAimbot(aimbot) => config.aimbot = aimbot,
             Message::ConfigHotkey(hotkey) => config.hotkey = hotkey,
             Message::ConfigStartBullet(start_bullet) => config.start_bullet = start_bullet,
             Message::ConfigAimLock(aim_lock) => config.aim_lock = aim_lock,
@@ -122,6 +123,7 @@ impl AimbotManager {
             Message::ConfigFOV(fov) => config.fov = fov,
             Message::ConfigSmooth(smooth) => config.smooth = smooth,
             Message::ConfigMultibone(multibone) => config.multibone = multibone,
+            Message::ConfigEnableRCS(rcs) => config.rcs = rcs,
             _ => {}
         }
     }

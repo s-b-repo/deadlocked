@@ -52,6 +52,14 @@ impl Gui {
             .num_columns(2)
             .min_col_width(75.0)
             .show(ui, |ui| {
+                ui.label("Enable Aimbot")
+                    .on_hover_text("general aimbot enable");
+                if ui.checkbox(&mut game_config.aimbot, "").changed() {
+                    self.send_message(Message::ConfigEnableAimbot(game_config.aimbot));
+                    self.write_game_config(&game_config);
+                }
+                ui.end_row();
+
                 ui.label("Hotkey")
                     .on_hover_text("which key or mouse button should activate the aimbot");
                 egui::ComboBox::new("cs2_hotkey", "")
@@ -132,11 +140,11 @@ impl Gui {
                 }
                 ui.end_row();
 
-                ui.label("RCS").on_hover_text(
+                ui.label("Enable RCS").on_hover_text(
                     "whether recoil should be compensated when the aimbot is not active",
                 );
                 if ui.checkbox(&mut game_config.rcs, "").changed() {
-                    self.send_message(Message::ConfigMultibone(game_config.rcs));
+                    self.send_message(Message::ConfigEnableRCS(game_config.rcs));
                     self.write_game_config(&game_config);
                 }
             });

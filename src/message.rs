@@ -28,6 +28,7 @@ impl Game {
 
 #[derive(Clone, Debug)]
 pub enum Message {
+    ConfigEnableAimbot(bool),
     ConfigHotkey(KeyCode),
     ConfigStartBullet(i32),
     ConfigAimLock(bool),
@@ -35,6 +36,7 @@ pub enum Message {
     ConfigFOV(f32),
     ConfigSmooth(f32),
     ConfigMultibone(bool),
+    ConfigEnableRCS(bool),
     Status(AimbotStatus),
     ChangeGame(Game),
     MouseStatus(MouseStatus),
