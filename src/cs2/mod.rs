@@ -32,6 +32,7 @@ pub struct CS2 {
     pid: u64,
 
     previous_aim_punch: Vec2,
+    unaccounted_aim_punch: Vec2,
 }
 
 impl Aimbot for CS2 {
@@ -69,11 +70,15 @@ impl Aimbot for CS2 {
     }
 
     fn run(&mut self, config: &Config, mouse: &mut File) {
-        if let Some(coords) = self.rcs(config) {
+        let aimbot_coords = self.aimbot(config);
+        if let Some(coords) = aimbot_coords {
             move_mouse(mouse, coords);
         }
-        if let Some(coords) = self.aimbot(config) {
-            move_mouse(mouse, coords);
+        if aimbot_coords.is_none() {
+            let rcs_coords = self.rcs(config);
+            if let Some(coords) = rcs_coords {
+                move_mouse(mouse, coords);
+            }
         }
     }
 }
@@ -87,6 +92,7 @@ impl CS2 {
             pid: 0,
 
             previous_aim_punch: Vec2::ZERO,
+            unaccounted_aim_punch: Vec2::ZERO,
         }
     }
 
@@ -122,14 +128,17 @@ impl CS2 {
         {
             return None;
         }
-        let aim_punch = if weapon_class == WeaponClass::Sniper {
-            Vec2::ZERO
-        } else {
-            self.get_aim_punch(process, local_pawn) * 2.0
+
+        let shots_fired = self.get_shots_fired(process, local_pawn);
+        let aim_punch = match (weapon_class, self.get_aim_punch(process, local_pawn)) {
+            (WeaponClass::Sniper, _) => Vec2::ZERO,
+            (_, punch) if punch.length() == 0.0 && shots_fired > 1 => self.previous_aim_punch,
+            (_, punch) => punch,
         };
 
-        if self.get_shots_fired(process, local_pawn) <= 1 {
+        if shots_fired <= 1 {
             self.previous_aim_punch = aim_punch;
+            self.unaccounted_aim_punch = Vec2::ZERO;
             return None;
         }
         let sensitivity =
@@ -139,14 +148,18 @@ impl CS2 {
         let mouse_angle = Vec2::new(
             ((xy.y * 2.0) / sensitivity) / -0.022,
             ((xy.x * 2.0) / sensitivity) / 0.022,
-        );
+        ) + self.unaccounted_aim_punch;
+        self.unaccounted_aim_punch = Vec2::ZERO;
 
         // only if the aimbot is not active
-        if !self.is_button_down(process, &config.hotkey) {
-            self.previous_aim_punch = aim_punch;
-            return Some(mouse_angle);
+        self.previous_aim_punch = aim_punch;
+        if (0.0..1.0).contains(&mouse_angle.x) {
+            self.unaccounted_aim_punch.x = mouse_angle.x;
         }
-        None
+        if (0.0..1.0).contains(&mouse_angle.y) {
+            self.unaccounted_aim_punch.y = mouse_angle.y;
+        }
+        Some(mouse_angle)
     }
 
     fn aimbot(&mut self, config: &Config) -> Option<Vec2> {
@@ -189,10 +202,11 @@ impl CS2 {
         let aimbot_active = self.is_button_down(process, &config.hotkey);
         let view_angles = self.get_view_angles(process, local_pawn);
         let ffa = self.is_ffa(process);
-        let aim_punch = if weapon_class == WeaponClass::Sniper {
-            Vec2::ZERO
-        } else {
-            self.get_aim_punch(process, local_pawn) * 2.0
+        let shots_fired = self.get_shots_fired(process, local_pawn);
+        let aim_punch = match (weapon_class, self.get_aim_punch(process, local_pawn)) {
+            (WeaponClass::Sniper, _) => Vec2::ZERO,
+            (_, punch) if punch.length() == 0.0 && shots_fired > 1 => self.previous_aim_punch,
+            (_, punch) => punch,
         };
 
         let mut pawns = Vec::with_capacity(64);
@@ -296,7 +310,7 @@ impl CS2 {
             return None;
         }
 
-        if self.get_shots_fired(process, local_pawn) < config.start_bullet {
+        if shots_fired < config.start_bullet {
             return None;
         }
 
