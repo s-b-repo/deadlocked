@@ -4,7 +4,7 @@ use crate::{
     config::{Config, DEBUG_WITHOUT_MOUSE, SLEEP_DURATION},
     cs2::CS2,
     message::Game,
-    mouse::{mouse_valid, MouseStatus},
+    mouse::{mouse_valid, MouseStatus}, sys_info,
 };
 
 use crate::{
@@ -58,6 +58,7 @@ impl AimbotManager {
     pub fn run(&mut self) {
         self.send_message(Message::Status(AimbotStatus::GameNotStarted));
         let mut previous_status = AimbotStatus::GameNotStarted;
+        sys_info::get();
         loop {
             let start = Instant::now();
             let mut mouse_valid = mouse_valid(&mut self.mouse);

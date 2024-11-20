@@ -12,10 +12,11 @@ mod cs2;
 mod gui;
 mod key_codes;
 mod math;
-mod proc;
 mod message;
 mod mouse;
+mod proc;
 mod process_handle;
+mod sys_info;
 mod weapon_class;
 
 #[cfg(not(target_os = "linux"))]
@@ -26,9 +27,7 @@ fn main() {
     // and don't support disabling the maximize button
     std::env::remove_var("WAYLAND_DISPLAY");
 
-    let username = std::env::var("USER")
-        .or_else(|_| std::env::var("USERNAME"))
-        .unwrap_or_default();
+    let username = std::env::var("USER").unwrap_or_default();
     if username == "root" {
         println!("start without sudo, and add your user to the input group.");
         std::process::exit(0);
