@@ -233,6 +233,12 @@ impl eframe::App for Gui {
                 if ui.button("System Info").clicked() {
                     self.show_sysinfo.store(true, Ordering::Relaxed);
                 }
+                if ui.button("Report Issues").clicked() {
+                    ctx.open_url(egui::OpenUrl {
+                        url: String::from("https://github.com/avitran0/deadlocked/issues"),
+                        new_tab: false,
+                    });
+                }
             });
 
             ui.separator();
