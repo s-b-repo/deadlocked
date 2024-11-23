@@ -47,6 +47,7 @@ impl InputEvent {
 }
 
 const EV_SYN: u16 = 0x00;
+const EV_KEY: u16 = 0x01;
 const EV_REL: u16 = 0x02;
 const SYN_REPORT: u16 = 0x00;
 const AXIS_X: u16 = 0x00;
@@ -112,7 +113,7 @@ pub fn open_mouse() -> (File, MouseStatus) {
     (file, MouseStatus::NoMouseFound)
 }
 
-pub fn move_mouse(mouse: &mut File, coords: Vec2) {
+pub fn mouse_move(mouse: &mut File, coords: Vec2) {
     let coords = IVec2::new(coords.x as i32, coords.y as i32);
     if DEBUG_WITHOUT_MOUSE {
         println!("moving mouse: ({} / {})", coords.x, coords.y);
@@ -150,6 +151,68 @@ pub fn move_mouse(mouse: &mut File, coords: Vec2) {
     mouse.write_all(&syn.bytes()).unwrap();
 
     mouse.write_all(&y.bytes()).unwrap();
+    mouse.write_all(&syn.bytes()).unwrap();
+}
+
+#[allow(unused)]
+fn mouse_left_press(mouse: &mut File) {
+    if DEBUG_WITHOUT_MOUSE {
+        println!("pressing left mouse");
+        return;
+    }
+
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+    let time = Timeval {
+        seconds: now.as_secs(),
+        microseconds: now.subsec_micros() as u64,
+    };
+
+    let key = InputEvent {
+        time,
+        event_type: EV_KEY,
+        code: 0x110,
+        value: 1,
+    };
+
+    let syn = InputEvent {
+        time,
+        event_type: EV_SYN,
+        code: SYN_REPORT,
+        value: 0,
+    };
+
+    mouse.write_all(&key.bytes()).unwrap();
+    mouse.write_all(&syn.bytes()).unwrap();
+}
+
+#[allow(unused)]
+fn mouse_left_release(mouse: &mut File) {
+    if DEBUG_WITHOUT_MOUSE {
+        println!("releasing left mouse");
+        return;
+    }
+
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+    let time = Timeval {
+        seconds: now.as_secs(),
+        microseconds: now.subsec_micros() as u64,
+    };
+
+    let key = InputEvent {
+        time,
+        event_type: EV_KEY,
+        code: 0x110,
+        value: 0,
+    };
+
+    let syn = InputEvent {
+        time,
+        event_type: EV_SYN,
+        code: SYN_REPORT,
+        value: 0,
+    };
+
+    mouse.write_all(&key.bytes()).unwrap();
     mouse.write_all(&syn.bytes()).unwrap();
 }
 

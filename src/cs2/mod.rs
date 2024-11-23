@@ -11,7 +11,7 @@ use crate::{
     cs2::{offsets::Offsets, target::Target},
     key_codes::KeyCode,
     math::{angles_from_vector, angles_to_fov, vec2_clamp},
-    mouse::move_mouse,
+    mouse::mouse_move,
     proc::{
         get_module_base_address, get_pid, open_process, read_string_vec, read_vec, validate_pid,
     },
@@ -72,12 +72,12 @@ impl Aimbot for CS2 {
     fn run(&mut self, config: &Config, mouse: &mut File) {
         let aimbot_coords = self.aimbot(config);
         if let Some(coords) = aimbot_coords {
-            move_mouse(mouse, coords);
+            mouse_move(mouse, coords);
         }
         if aimbot_coords.is_none() {
             let rcs_coords = self.rcs(config);
             if let Some(coords) = rcs_coords {
-                move_mouse(mouse, coords);
+                mouse_move(mouse, coords);
             }
         }
     }
