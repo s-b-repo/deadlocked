@@ -35,7 +35,7 @@ impl Gui {
             config,
             status,
             mouse_status: MouseStatus::NoMouseFound,
-            sysinfo: SysInfo::new(),
+            sysinfo: SysInfo::new(0),
             show_sysinfo: Arc::new(false.into()),
         };
         write_config(&out.config);

