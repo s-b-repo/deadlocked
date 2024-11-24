@@ -1,10 +1,10 @@
-use std::{fs::File, sync::mpsc, thread::sleep, time::Instant};
+use std::{fs::File, io::Write, sync::mpsc, thread::sleep, time::Instant};
 
 use crate::{
     config::{Config, DEBUG_WITHOUT_MOUSE, SLEEP_DURATION},
     cs2::CS2,
     message::Game,
-    mouse::{mouse_valid, MouseStatus}, sys_info,
+    mouse::{mouse_valid, MouseStatus},
 };
 
 use crate::{
@@ -30,6 +30,11 @@ pub struct AimbotManager {
 
 impl AimbotManager {
     pub fn new(tx: mpsc::Sender<Message>, rx: mpsc::Receiver<Message>) -> Self {
+        env_logger::builder()
+            .format(|buf, record| writeln!(buf, "{}: {}", record.level(), record.args()))
+            .filter_level(log::LevelFilter::Info)
+            .init();
+
         let (mouse, status) = open_mouse();
 
         let config = parse_config();
@@ -58,7 +63,6 @@ impl AimbotManager {
     pub fn run(&mut self) {
         self.send_message(Message::Status(AimbotStatus::GameNotStarted));
         let mut previous_status = AimbotStatus::GameNotStarted;
-        sys_info::get();
         loop {
             let start = Instant::now();
             let mut mouse_valid = mouse_valid(&mut self.mouse);

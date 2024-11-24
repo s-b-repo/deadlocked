@@ -1,8 +1,5 @@
-use eframe::egui::{self, Align2, Layout, Ui, ViewportBuilder};
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    mpsc, Arc,
-};
+use eframe::egui::{self, Align2, Layout, Ui};
+use std::sync::mpsc;
 use strum::IntoEnumIterator;
 
 use crate::{
@@ -11,7 +8,6 @@ use crate::{
     key_codes::KeyCode,
     message::{Game, Message},
     mouse::MouseStatus,
-    sys_info::SysInfo,
 };
 
 pub struct Gui {
@@ -20,8 +16,6 @@ pub struct Gui {
     config: Config,
     status: AimbotStatus,
     mouse_status: MouseStatus,
-    sysinfo: SysInfo,
-    show_sysinfo: Arc<AtomicBool>,
 }
 
 impl Gui {
@@ -35,8 +29,6 @@ impl Gui {
             config,
             status,
             mouse_status: MouseStatus::NoMouseFound,
-            sysinfo: SysInfo::new(0),
-            show_sysinfo: Arc::new(false.into()),
         };
         write_config(&out.config);
         out
@@ -230,9 +222,6 @@ impl eframe::App for Gui {
                         }
                     });
 
-                if ui.button("System Info").clicked() {
-                    self.show_sysinfo.store(true, Ordering::Relaxed);
-                }
                 if ui.button("Report Issues").clicked() {
                     ctx.open_url(egui::OpenUrl {
                         url: String::from("https://github.com/avitran0/deadlocked/issues"),
@@ -250,31 +239,6 @@ impl eframe::App for Gui {
                     self.add_grid(ui);
                     self.add_game_status(ui);
                 });
-            if self.show_sysinfo.load(Ordering::Relaxed) {
-                let sys = self.sysinfo.clone();
-                let show_sysinfo = self.show_sysinfo.clone();
-                ctx.show_viewport_deferred(
-                    egui::ViewportId::from_hash_of("sysinfo"),
-                    ViewportBuilder::default()
-                        .with_inner_size([400.0, 200.0])
-                        .with_resizable(false)
-                        .with_maximize_button(false),
-                    move |ctx, _class| {
-                        egui::CentralPanel::default().show(ctx, |ui| {
-                            ui.label(format!("OS: {}", sys.os));
-                            ui.label(format!("Kernel Version: {}", sys.kernel));
-                            ui.label(format!("Hostname: {}", sys.hostname));
-                            ui.label(format!("Desktop Environment: {}", sys.de));
-                            ui.label(format!("CPU: {}", sys.cpu));
-                            ui.label(format!("Core Count: {}", sys.core_count));
-                            ui.label(format!("Total Memory: {} MB", sys.memory));
-                        });
-                        if ctx.input(|i| i.viewport().close_requested()) {
-                            show_sysinfo.store(false, Ordering::Relaxed);
-                        }
-                    },
-                );
-            }
         });
 
         let version = format!(

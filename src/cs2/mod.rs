@@ -2,6 +2,7 @@ use std::fs::File;
 
 use bones::Bones;
 use glam::{Vec2, Vec3};
+use log::warn;
 use strum::IntoEnumIterator;
 
 use crate::{
@@ -389,6 +390,9 @@ impl CS2 {
 
         let resource_offset =
             process.get_interface_offset(offsets.library.engine, "GameResourceServiceClientV0");
+        if resource_offset.is_none() {
+            warn!("could not get offset for GameResourceServiceClient");
+        }
         offsets.interface.resource = resource_offset?;
 
         offsets.interface.entity = process.read(offsets.interface.resource + 0x50);
@@ -407,6 +411,9 @@ impl CS2 {
             "xxx????xxxxx".as_bytes(),
             offsets.library.client,
         );
+        if local_player.is_none() {
+            warn!("could not find local player offset");
+        }
         offsets.direct.local_player = process.get_relative_address(local_player?, 0x03, 0x08);
         offsets.direct.button_state = process
             .read::<u32>(process.get_interface_function(offsets.interface.input, 19) + 0x14)
@@ -587,6 +594,7 @@ impl CS2 {
                 return Some(offsets);
             }
         }
+        warn!("{:?}", offsets);
         None
     }
 

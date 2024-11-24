@@ -16,7 +16,6 @@ mod message;
 mod mouse;
 mod proc;
 mod process_handle;
-mod sys_info;
 mod weapon_class;
 
 #[cfg(not(target_os = "linux"))]
