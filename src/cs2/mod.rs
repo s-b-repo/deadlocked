@@ -398,10 +398,17 @@ impl CS2 {
         offsets.interface.entity = process.read(offsets.interface.resource + 0x50);
         offsets.interface.player = offsets.interface.entity + 0x10;
 
-        offsets.interface.cvar =
-            process.get_interface_offset(offsets.library.tier0, "VEngineCvar0")?;
-        offsets.interface.input =
-            process.get_interface_offset(offsets.library.input, "InputSystemVersion0")?;
+        let cvar_address = process.get_interface_offset(offsets.library.tier0, "VEngineCvar0");
+        if cvar_address.is_none() {
+            warn!("could not get convar interface offset");
+        }
+        offsets.interface.cvar = cvar_address?;
+        let input_address =
+            process.get_interface_offset(offsets.library.input, "InputSystemVersion0");
+        if input_address.is_none() {
+            warn!("could not get input interface offset");
+        }
+        offsets.interface.input = input_address?;
 
         // seems to be in .text section (executable instructions)
         let local_player = process.scan_pattern(
@@ -419,8 +426,16 @@ impl CS2 {
             .read::<u32>(process.get_interface_function(offsets.interface.input, 19) + 0x14)
             as u64;
 
-        offsets.convar.ffa = process.get_convar(&offsets.interface, "mp_teammates_are_enemies")?;
-        offsets.convar.sensitivity = process.get_convar(&offsets.interface, "sensitivity")?;
+        let ffa_address = process.get_convar(&offsets.interface, "mp_teammates_are_enemies");
+        if ffa_address.is_none() {
+            warn!("could not get mp_tammates_are_enemies convar offset");
+        }
+        offsets.convar.ffa = ffa_address?;
+        let sensitivity_address = process.get_convar(&offsets.interface, "sensitivity");
+        if sensitivity_address.is_none() {
+            warn!("could not get sensitivity convar offset");
+        }
+        offsets.convar.sensitivity = sensitivity_address?;
 
         let client_module_size = process.module_size(offsets.library.client);
         let client_dump = process.dump_module(offsets.library.client);
