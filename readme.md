@@ -6,8 +6,6 @@ a very simple cs2 aimbot, for linux only
 
 deadlock support will happen once that gets a native linux client
 
-![demo](docs/demo.png)
-
 ## setup
 
 - add your user to the `input` group: `sudo usermod -aG input USERNAME` (replace USERNAME with your actual username)
@@ -17,6 +15,20 @@ deadlock support will happen once that gets a native linux client
 
 - if you got the source code from github, run with cargo: `cargo run --release`
 - if you got a standalone binary, just run that
+
+## images
+
+### aimbot settings
+
+![demo](docs/demo_aimbot.png)
+
+### visuals settings
+
+![demo](docs/demo_visuals.png)
+
+### ingame demo
+
+![demo](docs/demo_ingame.png)
 
 ## security
 
