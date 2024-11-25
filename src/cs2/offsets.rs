@@ -20,6 +20,8 @@ pub struct InterfaceOffsets {
 pub struct DirectOffsets {
     pub local_player: u64,
     pub button_state: u64,
+    pub view_matrix: u64,
+    pub sdl_window: u64,
 }
 
 #[derive(Debug, Default)]
@@ -30,22 +32,24 @@ pub struct ConvarOffsets {
 
 #[derive(Debug, Default)]
 pub struct PlayerControllerOffsets {
+    pub name: u64, // Pointer -> String (m_sSanitizedPlayerName)
     pub pawn: u64, // Pointer -> Pawn (m_hPawn)
 }
 
 impl PlayerControllerOffsets {
     pub fn all_found(&self) -> bool {
-        self.pawn != 0
+        self.name != 0 && self.pawn != 0
     }
 }
 
 #[derive(Debug, Default)]
 pub struct PawnOffsets {
     pub health: u64,            // i32 (m_iHealth)
+    pub armor: u64,             // i32 (m_ArmorValue)
     pub team: u64,              // i32 (m_iTeamNum)
     pub life_state: u64,        // i32 (m_lifeState)
     pub weapon: u64,            // Pointer -> WeaponBase (m_pClippingWeapon)
-    pub fov_multiplier: u64,    //f32 (m_flFOVSensitivityAdjust)
+    pub fov_multiplier: u64,    // f32 (m_flFOVSensitivityAdjust)
     pub game_scene_node: u64,   // Pointer -> GameSceneNode (m_pGameSceneNode)
     pub eye_offset: u64,        // Vec3 (m_vecViewOffset)
     pub velocity: u64,          // Vec3 (m_vecVelocity)
@@ -59,6 +63,7 @@ pub struct PawnOffsets {
 impl PawnOffsets {
     pub fn all_found(&self) -> bool {
         self.health != 0
+            && self.armor != 0
             && self.team != 0
             && self.life_state != 0
             && self.weapon != 0

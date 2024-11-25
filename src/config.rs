@@ -3,7 +3,12 @@ use std::{collections::HashMap, fs::read_to_string, time::Duration};
 use serde::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
 
-use crate::{key_codes::KeyCode, message::Game};
+use crate::{
+    color::Color,
+    colors::Colors,
+    key_codes::KeyCode,
+    message::{DrawStyle, Game},
+};
 
 pub const DEBUG_WITHOUT_MOUSE: bool = false;
 
@@ -30,7 +35,7 @@ impl AimbotStatus {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AimbotConfig {
-    pub aimbot: bool,
+    pub enabled: bool,
     pub hotkey: KeyCode,
     pub start_bullet: i32,
     pub aim_lock: bool,
@@ -44,7 +49,7 @@ pub struct AimbotConfig {
 impl Default for AimbotConfig {
     fn default() -> Self {
         Self {
-            aimbot: true,
+            enabled: true,
             hotkey: KeyCode::MouseLeft,
             start_bullet: 2,
             aim_lock: false,
@@ -58,8 +63,49 @@ impl Default for AimbotConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VisualsConfig {
+    pub enabled: bool,
+    pub draw_box: DrawStyle,
+    pub box_color: Color,
+    pub draw_skeleton: DrawStyle,
+    pub skeleton_color: Color,
+    pub draw_name: DrawStyle,
+    pub name_color: Color,
+    pub draw_health: bool,
+    pub draw_armor: bool,
+    pub draw_weapon: bool,
+    pub visibility_check: bool,
+    pub fps: u64,
+}
+
+impl Default for VisualsConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            draw_box: DrawStyle::Color,
+            box_color: Color::from_egui_color(Colors::TEXT),
+            draw_skeleton: DrawStyle::Health,
+            skeleton_color: Color::from_egui_color(Colors::TEXT),
+            draw_name: DrawStyle::Color,
+            name_color: Color::from_egui_color(Colors::TEXT),
+            draw_health: true,
+            draw_armor: true,
+            draw_weapon: true,
+            visibility_check: true,
+            fps: 60,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct GameConfig {
+    pub aimbot: AimbotConfig,
+    pub visuals: VisualsConfig,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
-    pub games: HashMap<Game, AimbotConfig>,
+    pub games: HashMap<Game, GameConfig>,
     pub current_game: Game,
 }
 
@@ -67,7 +113,7 @@ impl Default for Config {
     fn default() -> Self {
         let mut games = HashMap::new();
         for game in Game::iter() {
-            games.insert(game, AimbotConfig::default());
+            games.insert(game, GameConfig::default());
         }
         Self {
             games,

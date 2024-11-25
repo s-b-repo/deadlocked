@@ -1,15 +1,18 @@
-use std::{fs::File, io::Write, sync::mpsc, thread::sleep, time::Instant};
+use std::{fs::File, sync::mpsc, thread::sleep, time::Instant};
+
+use glam::{IVec4, Mat4};
+use log::warn;
 
 use crate::{
     config::{Config, DEBUG_WITHOUT_MOUSE, SLEEP_DURATION},
     cs2::CS2,
-    message::Game,
+    message::{Game, PlayerInfo, VisualsMessage},
     mouse::{mouse_valid, MouseStatus},
 };
 
 use crate::{
     config::{parse_config, AimbotStatus, LOOP_DURATION},
-    message::Message,
+    message::AimbotMessage,
     mouse::open_mouse,
 };
 
@@ -17,24 +20,28 @@ pub trait Aimbot: std::fmt::Debug {
     fn is_valid(&self) -> bool;
     fn setup(&mut self);
     fn run(&mut self, config: &Config, mouse: &mut File);
+    fn get_player_info(&mut self) -> Option<Vec<PlayerInfo>>;
+    fn get_view_matrix(&mut self) -> Mat4;
+    fn get_window_size(&mut self) -> IVec4;
 }
 
 pub struct AimbotManager {
-    tx: mpsc::Sender<Message>,
-    rx: mpsc::Receiver<Message>,
+    tx_gui: mpsc::Sender<AimbotMessage>,
+    tx_visuals: mpsc::Sender<VisualsMessage>,
+    rx: mpsc::Receiver<AimbotMessage>,
     config: Config,
     mouse: File,
     mouse_status: MouseStatus,
     aimbot: Box<dyn Aimbot>,
+    should_quit: bool,
 }
 
 impl AimbotManager {
-    pub fn new(tx: mpsc::Sender<Message>, rx: mpsc::Receiver<Message>) -> Self {
-        env_logger::builder()
-            .format(|buf, record| writeln!(buf, "{}: {}", record.level(), record.args()))
-            .filter_level(log::LevelFilter::Info)
-            .init();
-
+    pub fn new(
+        tx_gui: mpsc::Sender<AimbotMessage>,
+        tx_visuals: mpsc::Sender<VisualsMessage>,
+        rx: mpsc::Receiver<AimbotMessage>,
+    ) -> Self {
         let (mouse, status) = open_mouse();
 
         let config = parse_config();
@@ -43,27 +50,36 @@ impl AimbotManager {
             Game::Deadlock => CS2::new(),
         });
         let mut aimbot = Self {
-            tx,
+            tx_gui,
+            tx_visuals,
             rx,
             config,
             mouse,
             mouse_status: status.clone(),
             aimbot,
+            should_quit: false,
         };
 
-        aimbot.send_message(Message::MouseStatus(status));
+        aimbot.send_message(AimbotMessage::MouseStatus(status));
 
         aimbot
     }
 
-    fn send_message(&mut self, message: Message) {
-        self.tx.send(message).unwrap();
+    fn send_message(&mut self, message: AimbotMessage) {
+        self.tx_gui.send(message).unwrap();
+    }
+
+    fn send_visuals_message(&mut self, message: VisualsMessage) {
+        self.tx_visuals.send(message).unwrap();
     }
 
     pub fn run(&mut self) {
-        self.send_message(Message::Status(AimbotStatus::GameNotStarted));
+        self.send_message(AimbotMessage::Status(AimbotStatus::GameNotStarted));
         let mut previous_status = AimbotStatus::GameNotStarted;
         loop {
+            if self.should_quit {
+                break;
+            }
             let start = Instant::now();
             let mut mouse_valid = mouse_valid(&mut self.mouse);
             while let Ok(message) = self.rx.try_recv() {
@@ -82,33 +98,41 @@ impl AimbotManager {
 
             if !self.aimbot.is_valid() {
                 if previous_status == AimbotStatus::Working {
-                    self.send_message(Message::Status(AimbotStatus::GameNotStarted));
+                    self.send_message(AimbotMessage::Status(AimbotStatus::GameNotStarted));
                     previous_status = AimbotStatus::GameNotStarted;
                 }
                 self.aimbot.setup();
             }
             if mouse_valid && self.aimbot.is_valid() {
                 if previous_status == AimbotStatus::GameNotStarted {
-                    self.send_message(Message::Status(AimbotStatus::Working));
+                    self.send_message(AimbotMessage::Status(AimbotStatus::Working));
                     previous_status = AimbotStatus::Working;
                 }
                 self.aimbot.run(&self.config, &mut self.mouse);
+                let players = self.aimbot.get_player_info();
+                self.send_visuals_message(VisualsMessage::PlayerInfo(players));
+                let view_matrix = self.aimbot.get_view_matrix();
+                self.send_visuals_message(VisualsMessage::ViewMatrix(view_matrix));
+                let window_info = self.aimbot.get_window_size();
+                self.send_visuals_message(VisualsMessage::WindowSize(window_info));
             }
 
             if self.aimbot.is_valid() && mouse_valid {
                 let elapsed = start.elapsed();
                 if elapsed < LOOP_DURATION {
                     sleep(LOOP_DURATION - elapsed);
+                } else {
+                    warn!("aimbot loop took {}ms", elapsed.as_millis());
+                    sleep(LOOP_DURATION);
                 }
-                sleep(LOOP_DURATION);
             } else {
                 sleep(SLEEP_DURATION);
             }
         }
     }
 
-    fn parse_message(&mut self, message: Message) {
-        if let Message::ChangeGame(game) = message {
+    fn parse_message(&mut self, message: AimbotMessage) {
+        if let AimbotMessage::ChangeGame(game) = message {
             self.config.current_game = game;
             return;
         }
@@ -118,24 +142,27 @@ impl AimbotManager {
             .get_mut(&self.config.current_game)
             .unwrap();
         match message {
-            Message::ConfigEnableAimbot(aimbot) => config.aimbot = aimbot,
-            Message::ConfigHotkey(hotkey) => config.hotkey = hotkey,
-            Message::ConfigStartBullet(start_bullet) => config.start_bullet = start_bullet,
-            Message::ConfigAimLock(aim_lock) => config.aim_lock = aim_lock,
-            Message::ConfigVisibilityCheck(visibility_check) => {
-                config.visibility_check = visibility_check
+            AimbotMessage::ConfigEnableAimbot(aimbot) => config.aimbot.enabled = aimbot,
+            AimbotMessage::ConfigHotkey(hotkey) => config.aimbot.hotkey = hotkey,
+            AimbotMessage::ConfigStartBullet(start_bullet) => {
+                config.aimbot.start_bullet = start_bullet
             }
-            Message::ConfigFOV(fov) => config.fov = fov,
-            Message::ConfigSmooth(smooth) => config.smooth = smooth,
-            Message::ConfigMultibone(multibone) => config.multibone = multibone,
-            Message::ConfigEnableRCS(rcs) => config.rcs = rcs,
+            AimbotMessage::ConfigAimLock(aim_lock) => config.aimbot.aim_lock = aim_lock,
+            AimbotMessage::ConfigVisibilityCheck(visibility_check) => {
+                config.aimbot.visibility_check = visibility_check
+            }
+            AimbotMessage::ConfigFOV(fov) => config.aimbot.fov = fov,
+            AimbotMessage::ConfigSmooth(smooth) => config.aimbot.smooth = smooth,
+            AimbotMessage::ConfigMultibone(multibone) => config.aimbot.multibone = multibone,
+            AimbotMessage::ConfigEnableRCS(rcs) => config.aimbot.rcs = rcs,
+            AimbotMessage::Quit => self.should_quit = true,
             _ => {}
         }
     }
 
     fn find_mouse(&mut self) -> bool {
         let mut mouse_valid = false;
-        self.send_message(Message::MouseStatus(MouseStatus::Disconnected));
+        self.send_message(AimbotMessage::MouseStatus(MouseStatus::Disconnected));
         self.mouse_status = MouseStatus::Disconnected;
         let (mouse, status) = open_mouse();
         if let MouseStatus::Working(path) = &status {
@@ -143,7 +170,7 @@ impl AimbotManager {
                 mouse_valid = true;
             }
         }
-        self.send_message(Message::MouseStatus(status.clone()));
+        self.send_message(AimbotMessage::MouseStatus(status.clone()));
         self.mouse_status = status;
         self.mouse = mouse;
         mouse_valid

@@ -1,10 +1,12 @@
-use std::{sync::mpsc, thread};
+use std::{io::Write, sync::mpsc, thread};
 
 use colors::Colors;
 use config::ZOOM;
 use eframe::egui::{self, FontData, FontDefinitions, Style};
+use visuals::visuals;
 
 mod aimbot;
+mod color;
 mod colors;
 mod config;
 mod constants;
@@ -16,12 +18,18 @@ mod message;
 mod mouse;
 mod proc;
 mod process_handle;
+mod visuals;
 mod weapon_class;
 
 #[cfg(not(target_os = "linux"))]
 compile_error!("only linux is supported.");
 
 fn main() {
+    env_logger::builder()
+        .format(|buf, record| writeln!(buf, "{}: {}", record.level(), record.args()))
+        .filter_level(log::LevelFilter::Info)
+        .init();
+
     // this runs as x11 for now, because wayland decorations for winit are not good
     // and don't support disabling the maximize button
     std::env::remove_var("WAYLAND_DISPLAY");
@@ -32,20 +40,27 @@ fn main() {
         std::process::exit(0);
     }
 
-    let (tx_aimbot, rx_gui) = mpsc::channel();
-    let (tx_gui, rx_aimbot) = mpsc::channel();
+    let (tx_aimbot_to_gui, rx_gui_from_aimbot) = mpsc::channel();
+    let (tx_gui_to_aimbot, rx_aimbot_from_gui) = mpsc::channel();
+    let (tx_aimbot_to_visuals, rx_visuals_from_aimbot) = mpsc::channel();
+    let (tx_gui_to_visuals, rx_visuals_from_gui) = mpsc::channel();
 
-    #[allow(unused)]
-    let aimbot_thread = match thread::Builder::new()
+    thread::Builder::new()
         .name(String::from("deadlocked"))
         .spawn(move || {
-            aimbot::AimbotManager::new(tx_aimbot, rx_aimbot).run();
-        }) {
-        Ok(thread) => thread,
-        Err(_) => return,
-    };
+            aimbot::AimbotManager::new(tx_aimbot_to_gui, tx_aimbot_to_visuals, rx_aimbot_from_gui)
+                .run();
+        })
+        .unwrap();
 
-    let default_size = [460.0 * ZOOM, 240.0 * ZOOM];
+    thread::Builder::new()
+        .name(String::from("deadlocked"))
+        .spawn(move || {
+            visuals(rx_visuals_from_aimbot, rx_visuals_from_gui);
+        })
+        .unwrap();
+
+    let default_size = [550.0 * ZOOM, 330.0 * ZOOM];
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size(default_size)
@@ -76,7 +91,11 @@ fn main() {
             cc.egui_ctx
                 .style_mut_of(egui::Theme::Dark, no_label_interaction);
 
-            Ok(Box::new(gui::Gui::new(tx_gui, rx_gui)))
+            Ok(Box::new(gui::Gui::new(
+                tx_gui_to_aimbot,
+                tx_gui_to_visuals,
+                rx_gui_from_aimbot,
+            )))
         }),
     )
     .unwrap();
