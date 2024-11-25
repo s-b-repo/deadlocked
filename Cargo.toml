@@ -1,6 +1,6 @@
 [package]
 name = "deadlocked"
-version = "3.0.0"
+version = "3.0.1"
 edition = "2021"
 
 [dependencies]
@@ -9,7 +9,7 @@ eframe = "0.29"
 env_logger = "0.11"
 glam = { version = "0.29", features = ["bytemuck"] }
 log = "0.4"
-sdl3 = { version = "0.11" ,features = ["build-from-source-static"]}
+sdl3 = { version = "0.11" ,features = ["build-from-source"]}
 serde = { version = "1.0", features = ["derive"] }
 strum = { version = "0.26", features = ["derive"] }
 toml = "0.8"

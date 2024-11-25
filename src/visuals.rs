@@ -191,17 +191,16 @@ fn draw_box(
         None => return,
     };
 
-    let head_position = match world_to_screen(
-        draw_info.window_size,
-        draw_info.view_matrix,
-        player.position + glam::vec3(0.0, 0.0, 75.0),
-    ) {
-        Some(pos) => FPoint::new(
-            pos.x as f32 + screen_position.x,
-            pos.y as f32 + screen_position.y,
-        ),
-        None => return,
-    };
+    let mut head_vec = player.position;
+    head_vec.z += (player.head.z - player.position.z).abs() + 8.0;
+    let head_position =
+        match world_to_screen(draw_info.window_size, draw_info.view_matrix, head_vec) {
+            Some(pos) => FPoint::new(
+                pos.x as f32 + screen_position.x,
+                pos.y as f32 + screen_position.y,
+            ),
+            None => return,
+        };
 
     let height = (head_position.y - position.y).abs();
     let width = height / 2.0;
@@ -274,18 +273,28 @@ fn draw_box(
     if config.draw_health {
         canvas.set_draw_color(health_color);
         let bottom_left = FPoint::new(bottom_left.x - bar_width * 1.5, bottom_left.y);
-        let height = height * (player.health as f32 / 100.0);
+        let bar_height = height * (player.health as f32 / 100.0);
         canvas
-            .fill_rect(FRect::new(bottom_left.x, bottom_left.y, bar_width, -height))
+            .draw_rect(FRect::new(
+                bottom_left.x,
+                bottom_left.y,
+                bar_width,
+                -bar_height,
+            ))
             .unwrap();
     }
 
     if config.draw_armor && player.armor > 0 {
         canvas.set_draw_color(Color::RGB(0, 0, 255));
         let bottom_left = FPoint::new(bottom_left.x - bar_width * 2.5, bottom_left.y);
-        let height = height * (player.armor as f32 / 100.0);
+        let bar_height = height * (player.armor as f32 / 100.0);
         canvas
-            .fill_rect(FRect::new(bottom_left.x, bottom_left.y, bar_width, -height))
+            .draw_rect(FRect::new(
+                bottom_left.x,
+                bottom_left.y,
+                bar_width,
+                -bar_height,
+            ))
             .unwrap();
     }
 }

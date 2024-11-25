@@ -370,6 +370,7 @@ impl Gui {
                     self.send_visuals_message(VisualsMessage::DrawWeaponName(
                         game_config.visuals.draw_weapon,
                     ));
+                    self.write_game_config(&game_config);
                 }
                 ui.end_row();
 
@@ -382,6 +383,7 @@ impl Gui {
                     self.send_visuals_message(VisualsMessage::VisibilityCheck(
                         game_config.visuals.visibility_check,
                     ));
+                    self.write_game_config(&game_config);
                 }
                 ui.end_row();
 
