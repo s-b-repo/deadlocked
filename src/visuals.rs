@@ -23,6 +23,7 @@ struct DrawInfo {
 pub fn visuals(rx: Receiver<VisualsMessage>) {
     let context = sdl3::init().unwrap();
     let video = context.video().unwrap();
+    video.gl_set_swap_interval(0).unwrap();
 
     let gl_attr = video.gl_attr();
     gl_attr.set_context_profile(sdl3::video::GLProfile::Core);
