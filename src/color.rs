@@ -6,6 +6,7 @@ pub struct Color {
     pub r: u8,
     pub b: u8,
     pub g: u8,
+    pub a: u8,
 }
 
 impl Color {
@@ -14,23 +15,15 @@ impl Color {
             r: color.r(),
             g: color.g(),
             b: color.b(),
-        }
-    }
-
-    #[allow(unused)]
-    pub fn from_sdl_color(color: sdl3::pixels::Color) -> Self {
-        Self {
-            r: color.r,
-            g: color.g,
-            b: color.b,
+            a: color.a(),
         }
     }
 
     pub fn egui_color(&self) -> Color32 {
-        Color32::from_rgb(self.r, self.g, self.b)
+        Color32::from_rgba_premultiplied(self.r, self.g, self.b, self.a)
     }
 
-    pub fn sdl_color(&self) -> sdl3::pixels::Color {
-        sdl3::pixels::Color::RGB(self.r, self.g, self.b)
+    pub fn femtovg_color(&self) -> femtovg::Color {
+        femtovg::Color::rgba(self.r, self.g, self.b, self.a)
     }
 }

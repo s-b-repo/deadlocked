@@ -1,5 +1,4 @@
 use glam::{IVec4, Mat4, Vec2, Vec3};
-use sdl3::rect::Point;
 
 pub fn angles_from_vector(forward: Vec3) -> Vec2 {
     let mut yaw;
@@ -53,7 +52,7 @@ pub fn vec2_clamp(vec: &mut Vec2) {
     vec.y = (vec.y + 180.0) % 360.0 - 180.0;
 }
 
-pub fn world_to_screen(screen_size: IVec4, view_matrix: Mat4, position: Vec3) -> Option<Point> {
+pub fn world_to_screen(screen_size: IVec4, view_matrix: Mat4, position: Vec3) -> Option<Vec2> {
     let mut screen_position = Vec2::new(
         view_matrix.x_axis.x * position.x
             + view_matrix.x_axis.y * position.y
@@ -83,8 +82,5 @@ pub fn world_to_screen(screen_size: IVec4, view_matrix: Mat4, position: Vec3) ->
     screen_position.x = x + 0.5 * screen_position.x * screen_size.z as f32 + 0.5;
     screen_position.y = y - 0.5 * screen_position.y * screen_size.w as f32 + 0.5;
 
-    Some(Point::new(
-        screen_position.x as i32,
-        screen_position.y as i32,
-    ))
+    Some(screen_position)
 }

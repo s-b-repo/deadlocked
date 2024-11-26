@@ -40,8 +40,8 @@ fn main() {
 
     let (tx_aimbot_to_gui, rx_gui_from_aimbot) = mpsc::channel();
     let (tx_gui_to_aimbot, rx_aimbot_from_gui) = mpsc::channel();
-    let (tx_aimbot_to_visuals, rx_visuals_from_aimbot) = mpsc::channel();
-    let (tx_gui_to_visuals, rx_visuals_from_gui) = mpsc::channel();
+    let (tx_aimbot_to_visuals, rx_visuals) = mpsc::channel();
+    let tx_gui_to_visuals = tx_aimbot_to_visuals.clone();
 
     thread::Builder::new()
         .name(String::from("deadlocked"))
@@ -54,7 +54,7 @@ fn main() {
     thread::Builder::new()
         .name(String::from("deadlocked"))
         .spawn(move || {
-            visuals(rx_visuals_from_aimbot, rx_visuals_from_gui);
+            visuals(rx_visuals);
         })
         .unwrap();
 

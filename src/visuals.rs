@@ -3,14 +3,10 @@ use std::{
     time::{Duration, Instant},
 };
 
-use glam::{IVec4, Mat4};
+use femtovg::{renderer::OpenGl, Canvas, Color, LineCap, Paint, Path};
+use glam::{vec2, IVec4, Mat4, Vec2};
 use log::warn;
-use sdl3::{
-    pixels::Color,
-    rect::Point,
-    render::{Canvas, FPoint},
-    video::Window,
-};
+use sdl3::{rect::Point, render::FPoint, video::Window};
 
 use crate::{
     config::VisualsConfig,
@@ -24,9 +20,13 @@ struct DrawInfo {
     window_size: IVec4,
 }
 
-pub fn visuals(rx_aimbot: Receiver<VisualsMessage>, rx_gui: Receiver<VisualsMessage>) {
+pub fn visuals(rx: Receiver<VisualsMessage>) {
     let context = sdl3::init().unwrap();
     let video = context.video().unwrap();
+
+    let gl_attr = video.gl_attr();
+    gl_attr.set_context_profile(sdl3::video::GLProfile::Core);
+    gl_attr.set_context_version(3, 3);
 
     let mut size = Point::new(0, 0);
     for i in 0..video.num_video_drivers().unwrap() {
@@ -66,31 +66,31 @@ pub fn visuals(rx_aimbot: Receiver<VisualsMessage>, rx_gui: Receiver<VisualsMess
         sdl3::video::WindowPos::Positioned(0),
         sdl3::video::WindowPos::Positioned(-50),
     );
+    window.set_opacity(0.0).unwrap();
 
-    let mut canvas = window.into_canvas();
+    let gl_context = window.gl_create_context().unwrap();
+    window.gl_make_current(&gl_context).unwrap();
 
-    canvas.set_blend_mode(sdl3::render::BlendMode::Blend);
-    canvas.set_draw_color(Color::RGB(255, 128, 0));
-    canvas.clear();
-    canvas.present();
+    let renderer = unsafe {
+        OpenGl::new_from_function(|s| video.gl_get_proc_address(s).unwrap() as *const _).unwrap()
+    };
+    let mut canvas = Canvas::new(renderer).unwrap();
+    let size = glam::uvec2(size.x as u32, size.y as u32);
+    canvas.set_size(size.x, size.y, 1.0);
 
     let mut event_pump = context.event_pump().unwrap();
     let mut player_info = vec![];
     let mut draw_info = DrawInfo::default();
     let mut config = VisualsConfig::default();
+    let transparent = Color::rgba(0, 0, 0, 0);
     'running: loop {
         let start = Instant::now();
-        while let Ok(message) = rx_aimbot.try_recv() {
+        while let Ok(message) = rx.try_recv() {
             match message {
                 VisualsMessage::PlayerInfo(info) => player_info = info,
                 VisualsMessage::ViewMatrix(matrix) => draw_info.view_matrix = matrix,
                 VisualsMessage::WindowSize(size) => draw_info.window_size = size,
-                _ => {}
-            }
-        }
 
-        while let Ok(message) = rx_gui.try_recv() {
-            match message {
                 VisualsMessage::EnableVisuals(enabled) => config.enabled = enabled,
                 VisualsMessage::DrawBox(draw_box) => config.draw_box = draw_box,
                 VisualsMessage::BoxColor(color) => config.box_color = color,
@@ -108,21 +108,16 @@ pub fn visuals(rx_aimbot: Receiver<VisualsMessage>, rx_gui: Receiver<VisualsMess
                 VisualsMessage::VisualsFps(fps) => config.fps = fps,
                 VisualsMessage::Config(c) => config = c,
                 VisualsMessage::Quit => break 'running,
-
-                _ => {}
             }
         }
 
-        canvas.set_draw_color(Color::RGBA(0, 0, 0, 0));
-        canvas.clear();
+        canvas.clear_rect(0, 0, size.x, size.y, transparent);
         for _ in event_pump.poll_iter() {}
 
         if !config.enabled {
-            end(&mut canvas, start, Duration::from_millis(30));
+            end(&mut canvas, &window, start, Duration::from_millis(30));
             continue;
         }
-
-        canvas.set_draw_color(Color::RGB(0, 0, 255));
 
         for player in &player_info {
             if !player.visible && config.visibility_check {
@@ -135,6 +130,7 @@ pub fn visuals(rx_aimbot: Receiver<VisualsMessage>, rx_gui: Receiver<VisualsMess
 
         end(
             &mut canvas,
+            &window,
             start,
             Duration::from_micros(1_000_000 / config.fps),
         );
@@ -142,7 +138,7 @@ pub fn visuals(rx_aimbot: Receiver<VisualsMessage>, rx_gui: Receiver<VisualsMess
 }
 
 fn draw_box(
-    canvas: &mut Canvas<Window>,
+    canvas: &mut Canvas<OpenGl>,
     config: &VisualsConfig,
     draw_info: &DrawInfo,
     player: &PlayerInfo,
@@ -151,14 +147,13 @@ fn draw_box(
         return;
     }
 
-    let color = match config.draw_box {
+    let box_color = match config.draw_box {
         DrawStyle::None => return,
-        DrawStyle::Color => config.box_color.sdl_color(),
+        DrawStyle::Color => config.box_color.femtovg_color(),
         DrawStyle::Health => get_health_color(player.health),
     };
-    canvas.set_draw_color(color);
 
-    let screen_position = FPoint::new(
+    let screen_position = vec2(
         draw_info.window_size.x as f32,
         draw_info.window_size.y as f32,
     );
@@ -168,10 +163,7 @@ fn draw_box(
         draw_info.view_matrix,
         player.position,
     ) {
-        Some(pos) => FPoint::new(
-            pos.x as f32 + screen_position.x,
-            pos.y as f32 + screen_position.y,
-        ),
+        Some(pos) => pos + screen_position,
         None => return,
     };
 
@@ -179,7 +171,7 @@ fn draw_box(
     head_vec.z += (player.head.z - player.position.z).abs() + 8.0;
     let head_position =
         match world_to_screen(draw_info.window_size, draw_info.view_matrix, head_vec) {
-            Some(pos) => FPoint::new(position.x, pos.y as f32 + screen_position.y),
+            Some(pos) => vec2(position.x, pos.y + screen_position.y),
             None => return,
         };
 
@@ -189,165 +181,142 @@ fn draw_box(
     let line_width = width / 4.0;
     let line_height = height / 4.0;
 
-    let top_left = FPoint::new(head_position.x - width / 2.0, head_position.y);
-    let top_right = FPoint::new(head_position.x + width / 2.0, head_position.y);
-    let bottom_left = FPoint::new(position.x - width / 2.0, position.y);
-    let bottom_right = FPoint::new(position.x + width / 2.0, position.y);
+    let top_left = vec2(head_position.x - width / 2.0, head_position.y);
+    let top_right = vec2(head_position.x + width / 2.0, head_position.y);
+    let bottom_left = vec2(position.x - width / 2.0, position.y);
+    let bottom_right = vec2(position.x + width / 2.0, position.y);
 
     let draw_box = config.draw_box != DrawStyle::None;
+    let mut path = Path::new();
 
-    if draw_box && is_fpoint_on_screen(top_left, draw_info) {
-        canvas
-            .draw_line(top_left, FPoint::new(top_left.x + line_width, top_left.y))
-            .unwrap();
-        canvas
-            .draw_line(top_left, FPoint::new(top_left.x, top_left.y + line_height))
-            .unwrap();
+    if draw_box && is_on_screen(top_left, draw_info) {
+        path.move_to(top_left.x, top_left.y);
+        path.line_to(top_left.x + line_width, top_left.y);
+
+        path.move_to(top_left.x, top_left.y);
+        path.line_to(top_left.x, top_left.y + line_height);
     }
 
-    if draw_box && is_fpoint_on_screen(top_right, draw_info) {
-        canvas
-            .draw_line(
-                top_right,
-                FPoint::new(top_right.x - line_width, top_right.y),
-            )
-            .unwrap();
-        canvas
-            .draw_line(
-                top_right,
-                FPoint::new(top_right.x, top_right.y + line_height),
-            )
-            .unwrap();
+    if draw_box && is_on_screen(top_right, draw_info) {
+        path.move_to(top_right.x, top_right.y);
+        path.line_to(top_right.x - line_width, top_right.y);
+
+        path.move_to(top_right.x, top_right.y);
+        path.line_to(top_right.x, top_right.y + line_height);
     }
 
-    if draw_box && is_fpoint_on_screen(bottom_left, draw_info) {
-        canvas
-            .draw_line(
-                bottom_left,
-                FPoint::new(bottom_left.x + line_width, bottom_left.y),
-            )
-            .unwrap();
-        canvas
-            .draw_line(
-                bottom_left,
-                FPoint::new(bottom_left.x, bottom_left.y - line_height),
-            )
-            .unwrap();
+    if draw_box && is_on_screen(bottom_left, draw_info) {
+        path.move_to(bottom_left.x, bottom_left.y);
+        path.line_to(bottom_left.x + line_width, bottom_left.y);
+
+        path.move_to(bottom_left.x, bottom_left.y);
+        path.line_to(bottom_left.x, bottom_left.y - line_height);
     }
 
-    if draw_box && is_fpoint_on_screen(bottom_right, draw_info) {
-        canvas
-            .draw_line(
-                bottom_right,
-                FPoint::new(bottom_right.x - line_width, bottom_right.y),
-            )
-            .unwrap();
-        canvas
-            .draw_line(
-                bottom_right,
-                FPoint::new(bottom_right.x, bottom_right.y - line_height),
-            )
-            .unwrap();
-    }
+    if draw_box && is_on_screen(bottom_right, draw_info) {
+        path.move_to(bottom_right.x, bottom_right.y);
+        path.line_to(bottom_right.x - line_width, bottom_right.y);
 
-    let bar_width = line_width / 8.0;
-    let bar_width = bar_width.clamp(1.0, 3.0) as i32;
+        path.move_to(bottom_right.x, bottom_right.y);
+        path.line_to(bottom_right.x, bottom_right.y - line_height);
+    }
+    canvas.stroke_path(
+        &path,
+        &Paint::color(box_color)
+            .with_anti_alias(true)
+            .with_line_cap(LineCap::Round)
+            .with_line_width(2.0),
+    );
+
+    let bar_width = (line_width / 8.0).clamp(1.0, 3.0);
     if config.draw_health
-        && is_fpoint_on_screen(bottom_left, draw_info)
-        && is_fpoint_on_screen(top_left, draw_info)
+        && is_on_screen(bottom_left, draw_info)
+        && is_on_screen(top_left, draw_info)
     {
-        canvas.set_draw_color(get_health_color(player.health));
+        let mut path = Path::new();
         let bottom_left = FPoint::new(bottom_left.x - bar_width as f32 * 2.0, bottom_left.y);
         let bar_height = height * (player.health as f32 / 100.0);
-        for i in 0..bar_width {
-            canvas
-                .draw_line(
-                    FPoint::new(bottom_left.x + i as f32, bottom_left.y),
-                    FPoint::new(bottom_left.x + i as f32, bottom_left.y - bar_height),
-                )
-                .unwrap();
-        }
-        // todo: when canvas.fill_rect works, use that
-        /*canvas
-        .draw_rect(FRect::new(
-            bottom_left.x,
-            bottom_left.y,
-            bar_width,
-            -bar_height,
-        ))
-        .unwrap();*/
+
+        path.rounded_rect(bottom_left.x, bottom_left.y, bar_width, -bar_height, 2.0);
+        canvas.fill_path(
+            &path,
+            &Paint::color(get_health_color(player.health))
+                .with_anti_alias(true)
+                .with_line_cap(LineCap::Round),
+        );
     }
 
     if config.draw_armor
         && player.armor > 0
-        && is_fpoint_on_screen(bottom_left, draw_info)
-        && is_fpoint_on_screen(top_left, draw_info)
+        && is_on_screen(bottom_left, draw_info)
+        && is_on_screen(top_left, draw_info)
     {
-        canvas.set_draw_color(config.armor_color.sdl_color());
+        let mut path = Path::new();
         let bottom_left = FPoint::new(bottom_left.x - bar_width as f32 * 3.0, bottom_left.y);
         let bar_height = height * (player.armor as f32 / 100.0);
-        for i in 0..bar_width {
-            canvas
-                .draw_line(
-                    FPoint::new(bottom_left.x + i as f32, bottom_left.y),
-                    FPoint::new(bottom_left.x + i as f32, bottom_left.y - bar_height),
-                )
-                .unwrap();
-        }
-        /*canvas
-        .draw_rect(FRect::new(
-            bottom_left.x,
-            bottom_left.y,
-            bar_width,
-            -bar_height,
-        ))
-        .unwrap();*/
+
+        path.rounded_rect(bottom_left.x, bottom_left.y, bar_width, -bar_height, 2.0);
+        canvas.fill_path(
+            &path,
+            &Paint::color(config.armor_color.femtovg_color())
+                .with_anti_alias(true)
+                .with_line_cap(LineCap::Round),
+        );
     }
 }
 
 fn draw_skeleton(
-    canvas: &mut Canvas<Window>,
+    canvas: &mut Canvas<OpenGl>,
     config: &VisualsConfig,
     draw_info: &DrawInfo,
     player: &PlayerInfo,
 ) {
-    let color = match config.draw_skeleton {
+    let skeleton_color = match config.draw_skeleton {
         DrawStyle::None => return,
-        DrawStyle::Color => config.skeleton_color.sdl_color(),
+        DrawStyle::Color => config.skeleton_color.femtovg_color(),
         DrawStyle::Health => get_health_color(player.health),
     };
+    let screen_position = vec2(
+        draw_info.window_size.x as f32,
+        draw_info.window_size.y as f32,
+    );
+    let mut path = Path::new();
     for connection in &player.bones {
-        let bone1 = world_to_screen(draw_info.window_size, draw_info.view_matrix, connection.0);
-        let bone2 = world_to_screen(draw_info.window_size, draw_info.view_matrix, connection.1);
+        let bone1 =
+            match world_to_screen(draw_info.window_size, draw_info.view_matrix, connection.0) {
+                Some(pos) => pos + screen_position,
+                None => continue,
+            };
+        let bone2 =
+            match world_to_screen(draw_info.window_size, draw_info.view_matrix, connection.1) {
+                Some(pos) => pos + screen_position,
+                None => continue,
+            };
 
-        if bone1.is_none() || bone2.is_none() {
+        if bone1.x < 1.0 && bone1.y < 1.0 {
+            continue;
+        }
+        if bone2.x < 1.0 && bone2.y < 1.0 {
             continue;
         }
 
-        let screen_position = Point::new(draw_info.window_size.x, draw_info.window_size.y);
-        let bone1 = bone1.unwrap() + screen_position;
-        let bone2 = bone2.unwrap() + screen_position;
-
-        if bone1.x == 0 && bone1.y == 0 {
-            continue;
+        if is_on_screen(bone1, draw_info) && is_on_screen(bone2, draw_info) {
+            path.move_to(bone1.x, bone1.y);
+            path.line_to(bone2.x, bone2.y);
         }
-        if bone2.x == 0 && bone2.y == 0 {
-            continue;
-        }
-
-        if !is_point_on_screen(bone1, draw_info) {
-            continue;
-        }
-        if !is_point_on_screen(bone2, draw_info) {
-            continue;
-        }
-        canvas.set_draw_color(color);
-        canvas.draw_line(bone1, bone2).unwrap();
     }
+    canvas.stroke_path(
+        &path,
+        &Paint::color(skeleton_color)
+            .with_anti_alias(true)
+            .with_line_cap(LineCap::Round)
+            .with_line_width(2.0),
+    );
 }
 
-fn end(canvas: &mut Canvas<Window>, start: Instant, dur: Duration) {
-    canvas.present();
+fn end(canvas: &mut Canvas<OpenGl>, window: &Window, start: Instant, dur: Duration) {
+    canvas.flush();
+    window.gl_swap_window();
     let elapsed = start.elapsed();
     if elapsed < dur {
         std::thread::sleep(dur - elapsed);
@@ -357,24 +326,8 @@ fn end(canvas: &mut Canvas<Window>, start: Instant, dur: Duration) {
     }
 }
 
-fn is_point_on_screen(point: Point, draw_info: &DrawInfo) -> bool {
-    if point.x < draw_info.window_size.x
-        || point.y < draw_info.window_size.y
-        || point.x > draw_info.window_size.x + draw_info.window_size.z
-        || point.y > draw_info.window_size.y + draw_info.window_size.w
-    {
-        return false;
-    }
-    true
-}
-
-fn is_fpoint_on_screen(point: FPoint, draw_info: &DrawInfo) -> bool {
-    let window_size = glam::vec4(
-        draw_info.window_size.x as f32,
-        draw_info.window_size.y as f32,
-        draw_info.window_size.z as f32,
-        draw_info.window_size.w as f32,
-    );
+fn is_on_screen(point: Vec2, draw_info: &DrawInfo) -> bool {
+    let window_size = draw_info.window_size.as_vec4();
     if point.x < window_size.x
         || point.y < window_size.y
         || point.x > window_size.x + window_size.z
@@ -396,5 +349,5 @@ fn get_health_color(health: i32) -> Color {
         ((255.0 * (1.0 - factor)) as u8, 255, 0)
     };
 
-    Color::RGB(r, g, b)
+    Color::rgb(r, g, b)
 }
