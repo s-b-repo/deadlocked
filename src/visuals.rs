@@ -69,12 +69,13 @@ pub fn visuals(rx_aimbot: Receiver<VisualsMessage>, rx_gui: Receiver<VisualsMess
 
     let mut canvas = window.into_canvas();
 
+    canvas.set_blend_mode(sdl3::render::BlendMode::Blend);
     canvas.set_draw_color(Color::RGB(255, 128, 0));
     canvas.clear();
     canvas.present();
 
     let mut event_pump = context.event_pump().unwrap();
-    let mut player_info = None;
+    let mut player_info = vec![];
     let mut draw_info = DrawInfo::default();
     let mut config = VisualsConfig::default();
     'running: loop {
@@ -99,6 +100,7 @@ pub fn visuals(rx_aimbot: Receiver<VisualsMessage>, rx_gui: Receiver<VisualsMess
                 VisualsMessage::NameColor(color) => config.name_color = color,
                 VisualsMessage::DrawHealth(draw_health) => config.draw_health = draw_health,
                 VisualsMessage::DrawArmor(draw_armor) => config.draw_armor = draw_armor,
+                VisualsMessage::ArmorColor(color) => config.armor_color = color,
                 VisualsMessage::DrawWeaponName(draw_weapon) => config.draw_weapon = draw_weapon,
                 VisualsMessage::VisibilityCheck(visibility_check) => {
                     config.visibility_check = visibility_check
@@ -122,22 +124,13 @@ pub fn visuals(rx_aimbot: Receiver<VisualsMessage>, rx_gui: Receiver<VisualsMess
 
         canvas.set_draw_color(Color::RGB(0, 0, 255));
 
-        if let Some(player_info) = &player_info {
-            for player in player_info {
-                if !player.visible && config.visibility_check {
-                    continue;
-                }
-
-                draw_box(&mut canvas, &config, &draw_info, player);
-                draw_skeleton(&mut canvas, &config, &draw_info, player);
+        for player in &player_info {
+            if !player.visible && config.visibility_check {
+                continue;
             }
-        } else {
-            end(
-                &mut canvas,
-                start,
-                Duration::from_micros(1_000_000 / config.fps),
-            );
-            continue;
+
+            draw_box(&mut canvas, &config, &draw_info, player);
+            draw_skeleton(&mut canvas, &config, &draw_info, player);
         }
 
         end(
@@ -161,17 +154,8 @@ fn draw_box(
     let color = match config.draw_box {
         DrawStyle::None => return,
         DrawStyle::Color => config.box_color.sdl_color(),
-        DrawStyle::Health => Color::RGB(
-            (255.0 * (100.0 - player.health as f32) / 100.0) as u8,
-            (255.0 * player.health as f32 / 100.0) as u8,
-            0,
-        ),
+        DrawStyle::Health => get_health_color(player.health),
     };
-    let health_color = Color::RGB(
-        (255.0 * (100.0 - player.health as f32) / 100.0) as u8,
-        (255.0 * player.health as f32 / 100.0) as u8,
-        0,
-    );
     canvas.set_draw_color(color);
 
     let screen_position = FPoint::new(
@@ -195,10 +179,7 @@ fn draw_box(
     head_vec.z += (player.head.z - player.position.z).abs() + 8.0;
     let head_position =
         match world_to_screen(draw_info.window_size, draw_info.view_matrix, head_vec) {
-            Some(pos) => FPoint::new(
-                pos.x as f32 + screen_position.x,
-                pos.y as f32 + screen_position.y,
-            ),
+            Some(pos) => FPoint::new(position.x, pos.y as f32 + screen_position.y),
             None => return,
         };
 
@@ -270,8 +251,8 @@ fn draw_box(
     }
 
     let bar_width = line_width / 4.0;
-    if config.draw_health {
-        canvas.set_draw_color(health_color);
+    if config.draw_health && is_fpoint_on_screen(bottom_left, draw_info) {
+        canvas.set_draw_color(get_health_color(player.health));
         let bottom_left = FPoint::new(bottom_left.x - bar_width * 1.5, bottom_left.y);
         let bar_height = height * (player.health as f32 / 100.0);
         canvas
@@ -284,8 +265,8 @@ fn draw_box(
             .unwrap();
     }
 
-    if config.draw_armor && player.armor > 0 {
-        canvas.set_draw_color(Color::RGB(0, 0, 255));
+    if config.draw_armor && player.armor > 0 && is_fpoint_on_screen(bottom_left, draw_info) {
+        canvas.set_draw_color(config.armor_color.sdl_color());
         let bottom_left = FPoint::new(bottom_left.x - bar_width * 2.5, bottom_left.y);
         let bar_height = height * (player.armor as f32 / 100.0);
         canvas
@@ -308,11 +289,7 @@ fn draw_skeleton(
     let color = match config.draw_skeleton {
         DrawStyle::None => return,
         DrawStyle::Color => config.skeleton_color.sdl_color(),
-        DrawStyle::Health => Color::RGB(
-            (255.0 * (100.0 - player.health as f32) / 100.0) as u8,
-            (255.0 * player.health as f32 / 100.0) as u8,
-            0,
-        ),
+        DrawStyle::Health => get_health_color(player.health),
     };
     for connection in &player.bones {
         let bone1 = world_to_screen(draw_info.window_size, draw_info.view_matrix, connection.0);
@@ -381,4 +358,18 @@ fn is_fpoint_on_screen(point: FPoint, draw_info: &DrawInfo) -> bool {
         return false;
     }
     true
+}
+
+fn get_health_color(health: i32) -> Color {
+    let health = health.clamp(0, 100);
+
+    let (r, g, b) = if health <= 50 {
+        let factor = health as f32 / 50.0;
+        (255, (255.0 * factor) as u8, 0)
+    } else {
+        let factor = (health as f32 - 50.0) / 50.0;
+        ((255.0 * (1.0 - factor)) as u8, 255, 0)
+    };
+
+    Color::RGB(r, g, b)
 }

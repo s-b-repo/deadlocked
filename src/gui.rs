@@ -1,10 +1,9 @@
-use eframe::egui::{self, Align2, Layout, Ui};
+use eframe::egui::{self, Align2, Color32, Layout, Ui};
 use std::{cmp::Ordering, sync::mpsc};
 use strum::IntoEnumIterator;
 
 use crate::{
     color::Color,
-    colors::Colors,
     config::{parse_config, write_config, AimbotStatus, Config, GameConfig},
     key_codes::KeyCode,
     message::{AimbotMessage, DrawStyle, Game, VisualsMessage},
@@ -224,7 +223,7 @@ impl Gui {
                 }
                 ui.end_row();
 
-                ui.label("Draw Box")
+                ui.label("Box")
                     .on_hover_text("whether to draw a box, and if so, in which color");
                 egui::ComboBox::new("visuals_draw_box", "")
                     .selected_text(format!("{:?}", game_config.visuals.draw_box))
@@ -261,7 +260,7 @@ impl Gui {
                 }
                 ui.end_row();
 
-                ui.label("Draw Skeleton")
+                ui.label("Skeleton")
                     .on_hover_text("whether to draw player skeletons, and if so, in which color");
                 egui::ComboBox::new("visuals_draw_skeleton", "")
                     .selected_text(format!("{:?}", game_config.visuals.draw_skeleton))
@@ -299,7 +298,7 @@ impl Gui {
                 }
                 ui.end_row();
 
-                ui.label(egui::RichText::new("Draw Name").strikethrough())
+                ui.label(egui::RichText::new("Name").strikethrough())
                     .on_hover_text("not implemented yet");
                 egui::ComboBox::new("visuals_draw_name", "")
                     .selected_text(format!("{:?}", game_config.visuals.draw_name))
@@ -335,8 +334,8 @@ impl Gui {
                 }
                 ui.end_row();
 
-                ui.label("Draw Health Bar")
-                    .on_hover_text("whether to draw player health");
+                ui.label("Health Bar")
+                    .on_hover_text("whether to draw player health\nalways fades from green to red");
                 if ui
                     .checkbox(&mut game_config.visuals.draw_health, "")
                     .changed()
@@ -348,7 +347,7 @@ impl Gui {
                 }
                 ui.end_row();
 
-                ui.label("Draw Armor Bar")
+                ui.label("Armor Bar")
                     .on_hover_text("whether to draw player armor");
                 if ui
                     .checkbox(&mut game_config.visuals.draw_armor, "")
@@ -361,7 +360,20 @@ impl Gui {
                 }
                 ui.end_row();
 
-                ui.label(egui::RichText::new("Draw Weapon Names").strikethrough())
+                ui.label("Armor Bar Color")
+                    .on_hover_text("what color to draw the player armor bar in");
+                let mut armor_color = game_config.visuals.armor_color.egui_color();
+                if ui.color_edit_button_srgba(&mut armor_color).changed() {
+                    game_config.visuals.armor_color =
+                        Color::from_egui_color(armor_color.to_opaque());
+                    self.send_visuals_message(VisualsMessage::ArmorColor(
+                        game_config.visuals.armor_color,
+                    ));
+                    self.write_game_config(&game_config);
+                }
+                ui.end_row();
+
+                ui.label(egui::RichText::new("Weapon Names").strikethrough())
                     .on_hover_text("not implemented yet");
                 if ui
                     .checkbox(&mut game_config.visuals.draw_weapon, "")
@@ -410,8 +422,8 @@ impl Gui {
         ui.with_layout(Layout::top_down(egui::Align::Center), |ui| {
             ui.label(egui::RichText::new(self.status.string()).heading().color(
                 match self.status {
-                    AimbotStatus::Working => Colors::GREEN,
-                    AimbotStatus::GameNotStarted => Colors::YELLOW,
+                    AimbotStatus::Working => Color32::GREEN,
+                    AimbotStatus::GameNotStarted => Color32::YELLOW,
                 },
             ));
 
@@ -424,9 +436,9 @@ impl Gui {
                 MouseStatus::NoMouseFound => "no mouse was found",
             };
             let color = if let MouseStatus::Working(_) = &self.mouse_status {
-                egui::Color32::PLACEHOLDER
+                Color32::PLACEHOLDER
             } else {
-                Colors::YELLOW
+                Color32::YELLOW
             };
             ui.label(egui::RichText::new(mouse_text).color(color));
         });
@@ -527,7 +539,7 @@ impl eframe::App for Gui {
         let font = egui::FontId::proportional(12.0);
         let text_size = ctx.fonts(|fonts| {
             fonts
-                .layout_no_wrap(version.clone(), font.clone(), egui::Color32::WHITE)
+                .layout_no_wrap(version.clone(), font.clone(), Color32::WHITE)
                 .size()
         });
 
@@ -538,7 +550,7 @@ impl eframe::App for Gui {
             Align2::RIGHT_BOTTOM,
             version,
             font,
-            egui::Color32::GRAY,
+            Color32::GRAY,
         );
     }
 }

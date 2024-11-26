@@ -1,11 +1,11 @@
 use std::{collections::HashMap, fs::read_to_string, time::Duration};
 
+use eframe::egui::Color32;
 use serde::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
 
 use crate::{
     color::Color,
-    colors::Colors,
     key_codes::KeyCode,
     message::{DrawStyle, Game},
 };
@@ -73,6 +73,7 @@ pub struct VisualsConfig {
     pub name_color: Color,
     pub draw_health: bool,
     pub draw_armor: bool,
+    pub armor_color: Color,
     pub draw_weapon: bool,
     pub visibility_check: bool,
     pub fps: u64,
@@ -81,17 +82,18 @@ pub struct VisualsConfig {
 impl Default for VisualsConfig {
     fn default() -> Self {
         Self {
-            enabled: false,
+            enabled: true,
             draw_box: DrawStyle::Color,
-            box_color: Color::from_egui_color(Colors::TEXT),
+            box_color: Color::from_egui_color(Color32::WHITE),
             draw_skeleton: DrawStyle::Health,
-            skeleton_color: Color::from_egui_color(Colors::TEXT),
+            skeleton_color: Color::from_egui_color(Color32::WHITE),
             draw_name: DrawStyle::Color,
-            name_color: Color::from_egui_color(Colors::TEXT),
+            name_color: Color::from_egui_color(Color32::WHITE),
             draw_health: true,
             draw_armor: true,
+            armor_color: Color::from_egui_color(Color32::BLUE),
             draw_weapon: true,
-            visibility_check: true,
+            visibility_check: false,
             fps: 60,
         }
     }

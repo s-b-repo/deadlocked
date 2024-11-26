@@ -20,7 +20,7 @@ pub trait Aimbot: std::fmt::Debug {
     fn is_valid(&self) -> bool;
     fn setup(&mut self);
     fn run(&mut self, config: &Config, mouse: &mut File);
-    fn get_player_info(&mut self) -> Option<Vec<PlayerInfo>>;
+    fn get_player_info(&mut self) -> Vec<PlayerInfo>;
     fn get_view_matrix(&mut self) -> Mat4;
     fn get_window_size(&mut self) -> IVec4;
 }

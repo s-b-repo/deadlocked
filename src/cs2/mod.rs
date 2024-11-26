@@ -84,7 +84,7 @@ impl Aimbot for CS2 {
         }
     }
 
-    fn get_player_info(&mut self) -> Option<Vec<PlayerInfo>> {
+    fn get_player_info(&mut self) -> Vec<PlayerInfo> {
         self.player_info()
     }
 
@@ -132,12 +132,12 @@ impl CS2 {
         }
     }
 
-    fn player_info(&mut self) -> Option<Vec<PlayerInfo>> {
+    fn player_info(&mut self) -> Vec<PlayerInfo> {
         let process = match &self.process {
             Some(process) => process,
             None => {
                 self.is_valid = false;
-                return None;
+                return vec![];
             }
         };
 
@@ -153,13 +153,13 @@ impl CS2 {
             }
             None => {
                 self.target = Target::default();
-                return None;
+                return vec![];
             }
         };
 
         let team = self.get_team(process, local_pawn);
         if team != Constants::TEAM_CT && team != Constants::TEAM_T {
-            return None;
+            return vec![];
         }
 
         let mut controllers = Vec::with_capacity(64);
@@ -212,10 +212,7 @@ impl CS2 {
             players.push(info);
         }
 
-        if players.is_empty() {
-            return None;
-        }
-        Some(players)
+        players
     }
 
     fn rcs(&mut self, config: &Config) -> Option<Vec2> {
@@ -397,7 +394,7 @@ impl CS2 {
         }
 
         // update target angle
-        if self.target.pawn != 0 && config.aimbot.multibone && !config.aimbot.aim_lock {
+        if self.target.pawn != 0 && config.aimbot.multibone {
             let mut smallest_fov = 360.0;
             for bone in Bones::iter() {
                 let bone_position = self.get_bone_position(process, self.target.pawn, bone.u64());

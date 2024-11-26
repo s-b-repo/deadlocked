@@ -1,13 +1,11 @@
 use std::{io::Write, sync::mpsc, thread};
 
-use colors::Colors;
 use config::ZOOM;
-use eframe::egui::{self, FontData, FontDefinitions, Style};
+use eframe::egui::{self, Color32, FontData, FontDefinitions, Style};
 use visuals::visuals;
 
 mod aimbot;
 mod color;
-mod colors;
 mod config;
 mod constants;
 mod cs2;
@@ -103,5 +101,5 @@ fn main() {
 
 fn no_label_interaction(style: &mut Style) {
     style.interaction.selectable_labels = false;
-    style.visuals.override_text_color = Some(Colors::TEXT);
+    style.visuals.override_text_color = Some(Color32::WHITE);
 }

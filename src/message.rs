@@ -59,7 +59,7 @@ pub enum DrawStyle {
 
 #[derive(Clone, Debug)]
 pub enum VisualsMessage {
-    PlayerInfo(Option<Vec<PlayerInfo>>),
+    PlayerInfo(Vec<PlayerInfo>),
     ViewMatrix(Mat4),
     WindowSize(IVec4),
     EnableVisuals(bool),
@@ -71,6 +71,7 @@ pub enum VisualsMessage {
     NameColor(Color),
     DrawHealth(bool),
     DrawArmor(bool),
+    ArmorColor(Color),
     DrawWeaponName(bool),
     VisibilityCheck(bool),
 
