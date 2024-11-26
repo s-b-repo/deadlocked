@@ -8,7 +8,7 @@ use log::warn;
 use sdl3::{
     pixels::Color,
     rect::Point,
-    render::{Canvas, FPoint, FRect},
+    render::{Canvas, FPoint},
     video::Window,
 };
 
@@ -250,33 +250,58 @@ fn draw_box(
             .unwrap();
     }
 
-    let bar_width = line_width / 4.0;
-    if config.draw_health && is_fpoint_on_screen(bottom_left, draw_info) {
+    let bar_width = line_width / 8.0;
+    let bar_width = bar_width.clamp(1.0, 3.0) as i32;
+    if config.draw_health
+        && is_fpoint_on_screen(bottom_left, draw_info)
+        && is_fpoint_on_screen(top_left, draw_info)
+    {
         canvas.set_draw_color(get_health_color(player.health));
-        let bottom_left = FPoint::new(bottom_left.x - bar_width * 1.5, bottom_left.y);
+        let bottom_left = FPoint::new(bottom_left.x - bar_width as f32 * 2.0, bottom_left.y);
         let bar_height = height * (player.health as f32 / 100.0);
-        canvas
-            .draw_rect(FRect::new(
-                bottom_left.x,
-                bottom_left.y,
-                bar_width,
-                -bar_height,
-            ))
-            .unwrap();
+        for i in 0..bar_width {
+            canvas
+                .draw_line(
+                    FPoint::new(bottom_left.x + i as f32, bottom_left.y),
+                    FPoint::new(bottom_left.x + i as f32, bottom_left.y - bar_height),
+                )
+                .unwrap();
+        }
+        // todo: when canvas.fill_rect works, use that
+        /*canvas
+        .draw_rect(FRect::new(
+            bottom_left.x,
+            bottom_left.y,
+            bar_width,
+            -bar_height,
+        ))
+        .unwrap();*/
     }
 
-    if config.draw_armor && player.armor > 0 && is_fpoint_on_screen(bottom_left, draw_info) {
+    if config.draw_armor
+        && player.armor > 0
+        && is_fpoint_on_screen(bottom_left, draw_info)
+        && is_fpoint_on_screen(top_left, draw_info)
+    {
         canvas.set_draw_color(config.armor_color.sdl_color());
-        let bottom_left = FPoint::new(bottom_left.x - bar_width * 2.5, bottom_left.y);
+        let bottom_left = FPoint::new(bottom_left.x - bar_width as f32 * 3.0, bottom_left.y);
         let bar_height = height * (player.armor as f32 / 100.0);
-        canvas
-            .draw_rect(FRect::new(
-                bottom_left.x,
-                bottom_left.y,
-                bar_width,
-                -bar_height,
-            ))
-            .unwrap();
+        for i in 0..bar_width {
+            canvas
+                .draw_line(
+                    FPoint::new(bottom_left.x + i as f32, bottom_left.y),
+                    FPoint::new(bottom_left.x + i as f32, bottom_left.y - bar_height),
+                )
+                .unwrap();
+        }
+        /*canvas
+        .draw_rect(FRect::new(
+            bottom_left.x,
+            bottom_left.y,
+            bar_width,
+            -bar_height,
+        ))
+        .unwrap();*/
     }
 }
 
