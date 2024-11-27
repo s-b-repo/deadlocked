@@ -7,7 +7,6 @@ pub struct Color {
     pub r: u8,
     pub b: u8,
     pub g: u8,
-    pub a: u8,
 }
 
 impl Color {
@@ -16,16 +15,15 @@ impl Color {
             r: color.r(),
             g: color.g(),
             b: color.b(),
-            a: color.a(),
         }
     }
 
     pub fn egui_color(&self) -> Color32 {
-        Color32::from_rgba_premultiplied(self.r, self.g, self.b, self.a)
+        Color32::from_rgb(self.r, self.g, self.b)
     }
 
     pub fn femtovg_color(&self) -> femtovg::Color {
-        femtovg::Color::rgba(self.r, self.g, self.b, self.a)
+        femtovg::Color::rgb(self.r, self.g, self.b)
     }
 }
 

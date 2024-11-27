@@ -81,11 +81,11 @@ impl AimbotManager {
                 break;
             }
             let start = Instant::now();
-            let mut mouse_valid = mouse_valid(&mut self.mouse);
             while let Ok(message) = self.rx.try_recv() {
                 self.parse_message(message);
             }
 
+            let mut mouse_valid = mouse_valid(&mut self.mouse);
             if !mouse_valid || self.mouse_status == MouseStatus::NoMouseFound {
                 mouse_valid = self.find_mouse();
             }

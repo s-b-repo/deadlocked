@@ -69,14 +69,11 @@ pub struct VisualsConfig {
     pub box_color: Color,
     pub draw_skeleton: DrawStyle,
     pub skeleton_color: Color,
-    pub draw_name: DrawStyle,
-    pub name_color: Color,
     pub draw_health: bool,
     pub draw_armor: bool,
     pub armor_color: Color,
     pub draw_weapon: bool,
     pub visibility_check: bool,
-    pub draw_example: bool,
     pub fps: u64,
 }
 
@@ -88,14 +85,11 @@ impl Default for VisualsConfig {
             box_color: Color::from_egui_color(Color32::WHITE),
             draw_skeleton: DrawStyle::Health,
             skeleton_color: Color::from_egui_color(Color32::WHITE),
-            draw_name: DrawStyle::Color,
-            name_color: Color::from_egui_color(Color32::WHITE),
             draw_health: true,
             draw_armor: true,
             armor_color: Color::from_egui_color(Color32::BLUE),
-            draw_weapon: true,
+            draw_weapon: false,
             visibility_check: false,
-            draw_example: false,
             fps: 60,
         }
     }

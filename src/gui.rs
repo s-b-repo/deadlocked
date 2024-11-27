@@ -1,4 +1,4 @@
-use eframe::egui::{self, Align2, Color32, Layout, Ui};
+use eframe::egui::{self, Align2, Color32, Ui};
 use std::{cmp::Ordering, sync::mpsc};
 use strum::IntoEnumIterator;
 
@@ -61,11 +61,11 @@ impl Gui {
     }
 
     fn send_message(&self, message: AimbotMessage) {
-        let _ = self.tx_aimbot.send(message);
+        self.tx_aimbot.send(message).unwrap();
     }
 
     fn send_visuals_message(&self, message: VisualsMessage) {
-        let _ = self.tx_visuals.send(message);
+        self.tx_visuals.send(message).unwrap();
     }
 
     fn aimbot_grid(&mut self, ui: &mut Ui) {
@@ -210,7 +210,7 @@ impl Gui {
             .clone();
 
         egui::Grid::new("visuals")
-            .num_columns(2)
+            .num_columns(3)
             .min_col_width(100.0)
             .show(ui, |ui| {
                 ui.label("Enable Visuals")
@@ -245,18 +245,16 @@ impl Gui {
                             }
                         }
                     });
-                ui.end_row();
-
-                ui.label("Box Color").on_hover_text(
-                    "what color to draw the player box in\nhealth will go from green to red",
-                );
-                let mut box_color = game_config.visuals.box_color.egui_color();
-                if ui.color_edit_button_srgba(&mut box_color).changed() {
-                    game_config.visuals.box_color = Color::from_egui_color(box_color.to_opaque());
-                    self.send_visuals_message(VisualsMessage::BoxColor(
-                        game_config.visuals.box_color,
-                    ));
-                    self.write_game_config(&game_config);
+                if game_config.visuals.draw_box == DrawStyle::Color {
+                    let mut box_color = game_config.visuals.box_color.egui_color();
+                    if ui.color_edit_button_srgba(&mut box_color).changed() {
+                        game_config.visuals.box_color =
+                            Color::from_egui_color(box_color.to_opaque());
+                        self.send_visuals_message(VisualsMessage::BoxColor(
+                            game_config.visuals.box_color,
+                        ));
+                        self.write_game_config(&game_config);
+                    }
                 }
                 ui.end_row();
 
@@ -282,55 +280,16 @@ impl Gui {
                             }
                         }
                     });
-                ui.end_row();
-
-                ui.label("Skeleton Color").on_hover_text(
-                    "what color to draw the player skeleton in\nhealth will go from green to red",
-                );
-                let mut skeleton_color = game_config.visuals.skeleton_color.egui_color();
-                if ui.color_edit_button_srgba(&mut skeleton_color).changed() {
-                    game_config.visuals.skeleton_color =
-                        Color::from_egui_color(skeleton_color.to_opaque());
-                    self.send_visuals_message(VisualsMessage::SkeletonColor(
-                        game_config.visuals.skeleton_color,
-                    ));
-                    self.write_game_config(&game_config);
-                }
-                ui.end_row();
-
-                ui.label(egui::RichText::new("Name").strikethrough())
-                    .on_hover_text("not implemented yet");
-                egui::ComboBox::new("visuals_draw_name", "")
-                    .selected_text(format!("{:?}", game_config.visuals.draw_name))
-                    .show_ui(ui, |ui| {
-                        for draw_style in DrawStyle::iter() {
-                            let text = format!("{:?}", &draw_style);
-                            if ui
-                                .selectable_value(
-                                    &mut game_config.visuals.draw_name,
-                                    draw_style,
-                                    text,
-                                )
-                                .clicked()
-                            {
-                                self.send_visuals_message(VisualsMessage::DrawName(
-                                    game_config.visuals.draw_name,
-                                ));
-                                self.write_game_config(&game_config);
-                            }
-                        }
-                    });
-                ui.end_row();
-
-                ui.label(egui::RichText::new("Name Color").strikethrough())
-                    .on_hover_text("not implemented yet");
-                let mut name_color = game_config.visuals.name_color.egui_color();
-                if ui.color_edit_button_srgba(&mut name_color).changed() {
-                    game_config.visuals.name_color = Color::from_egui_color(name_color.to_opaque());
-                    self.send_visuals_message(VisualsMessage::NameColor(
-                        game_config.visuals.name_color,
-                    ));
-                    self.write_game_config(&game_config);
+                if game_config.visuals.draw_skeleton == DrawStyle::Color {
+                    let mut skeleton_color = game_config.visuals.skeleton_color.egui_color();
+                    if ui.color_edit_button_srgba(&mut skeleton_color).changed() {
+                        game_config.visuals.skeleton_color =
+                            Color::from_egui_color(skeleton_color.to_opaque());
+                        self.send_visuals_message(VisualsMessage::SkeletonColor(
+                            game_config.visuals.skeleton_color,
+                        ));
+                        self.write_game_config(&game_config);
+                    }
                 }
                 ui.end_row();
 
@@ -358,28 +317,26 @@ impl Gui {
                     ));
                     self.write_game_config(&game_config);
                 }
-                ui.end_row();
-
-                ui.label("Armor Bar Color")
-                    .on_hover_text("what color to draw the player armor bar in");
-                let mut armor_color = game_config.visuals.armor_color.egui_color();
-                if ui.color_edit_button_srgba(&mut armor_color).changed() {
-                    game_config.visuals.armor_color =
-                        Color::from_egui_color(armor_color.to_opaque());
-                    self.send_visuals_message(VisualsMessage::ArmorColor(
-                        game_config.visuals.armor_color,
-                    ));
-                    self.write_game_config(&game_config);
+                if game_config.visuals.draw_armor {
+                    let mut armor_color = game_config.visuals.armor_color.egui_color();
+                    if ui.color_edit_button_srgba(&mut armor_color).changed() {
+                        game_config.visuals.armor_color =
+                            Color::from_egui_color(armor_color.to_opaque());
+                        self.send_visuals_message(VisualsMessage::ArmorColor(
+                            game_config.visuals.armor_color,
+                        ));
+                        self.write_game_config(&game_config);
+                    }
                 }
                 ui.end_row();
 
-                ui.label(egui::RichText::new("Weapon Names").strikethrough())
-                    .on_hover_text("not implemented yet");
+                ui.label("Weapon Icons")
+                    .on_hover_text("whether to show player weapon icons");
                 if ui
                     .checkbox(&mut game_config.visuals.draw_weapon, "")
                     .changed()
                 {
-                    self.send_visuals_message(VisualsMessage::DrawWeaponName(
+                    self.send_visuals_message(VisualsMessage::DrawWeapon(
                         game_config.visuals.draw_weapon,
                     ));
                     self.write_game_config(&game_config);
@@ -398,20 +355,6 @@ impl Gui {
                     self.write_game_config(&game_config);
                 }
                 ui.end_row();
-
-                ui.label("Show Example")
-                    .on_hover_text("whether to draw an example player");
-                if ui
-                    .checkbox(&mut game_config.visuals.draw_example, "")
-                    .changed()
-                {
-                    self.send_visuals_message(VisualsMessage::DrawExample(
-                        game_config.visuals.draw_example,
-                    ));
-                    self.write_game_config(&game_config);
-                }
-                ui.end_row();
-
 
                 ui.label("Overlay FPS")
                     .on_hover_text("what fps the overlay should run at");
@@ -433,13 +376,15 @@ impl Gui {
     }
 
     fn add_game_status(&mut self, ui: &mut Ui) {
-        ui.with_layout(Layout::top_down(egui::Align::Center), |ui| {
-            ui.label(egui::RichText::new(self.status.string()).heading().color(
-                match self.status {
-                    AimbotStatus::Working => Colors::GREEN,
-                    AimbotStatus::GameNotStarted => Colors::YELLOW,
-                },
-            ));
+        ui.horizontal_top(|ui| {
+            ui.label(
+                egui::RichText::new(self.status.string())
+                    .line_height(Some(8.0))
+                    .color(match self.status {
+                        AimbotStatus::Working => Colors::GREEN,
+                        AimbotStatus::GameNotStarted => Colors::YELLOW,
+                    }),
+            );
 
             let mouse_text = match &self.mouse_status {
                 MouseStatus::Working(name) => name,
@@ -450,11 +395,15 @@ impl Gui {
                 MouseStatus::NoMouseFound => "no mouse was found",
             };
             let color = if let MouseStatus::Working(_) = &self.mouse_status {
-                Color32::PLACEHOLDER
+                Colors::SUBTEXT
             } else {
                 Colors::YELLOW
             };
-            ui.label(egui::RichText::new(mouse_text).color(color));
+            ui.label(
+                egui::RichText::new(mouse_text)
+                    .line_height(Some(8.0))
+                    .color(color),
+            );
         });
     }
 
@@ -492,7 +441,8 @@ impl eframe::App for Gui {
 
         // todo: different layout
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.with_layout(egui::Layout::left_to_right(egui::Align::Min), |ui| {
+            ui.spacing_mut().item_spacing = egui::vec2(6.0, 4.0);
+            ui.horizontal_top(|ui| {
                 egui::ComboBox::new("game", "Current Game")
                     .selected_text(self.config.current_game.string())
                     .show_ui(ui, |ui| {
@@ -534,17 +484,13 @@ impl eframe::App for Gui {
             });
 
             ui.separator();
+            self.add_game_status(ui);
+            ui.separator();
 
-            egui::Grid::new("main_grid")
-                .num_columns(2)
-                .spacing([20.0, 5.0])
-                .show(ui, |ui| {
-                    match self.current_tab {
-                        Tab::Aimbot => self.aimbot_grid(ui),
-                        Tab::Visuals => self.visuals_grid(ui),
-                    }
-                    self.add_game_status(ui);
-                });
+            match self.current_tab {
+                Tab::Aimbot => self.aimbot_grid(ui),
+                Tab::Visuals => self.visuals_grid(ui),
+            }
         });
 
         let version = format!(

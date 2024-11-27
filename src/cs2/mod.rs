@@ -162,7 +162,6 @@ impl CS2 {
             return vec![];
         }
 
-        let mut controllers = Vec::with_capacity(64);
         let mut pawns = Vec::with_capacity(64);
         let mut local_pawn_index = 0;
         for i in 1..=64 {
@@ -180,15 +179,11 @@ impl CS2 {
                 local_pawn_index = i - 1;
             }
 
-            controllers.push(controller);
             pawns.push(pawn);
         }
 
         let mut players = vec![];
-        for i in 0..pawns.len() {
-            let pawn = pawns[i];
-            let controller = controllers[i];
-
+        for pawn in pawns {
             if self.get_team(process, pawn) == team {
                 continue;
             }
@@ -198,10 +193,8 @@ impl CS2 {
             }
 
             let info = PlayerInfo {
-                name: self.get_player_name(process, controller),
                 health: self.get_health(process, pawn),
                 armor: self.get_armor(process, pawn),
-                weapon: self.get_weapon_name(process, pawn).replace("weapon_", ""),
                 position: self.get_position(process, pawn),
                 head: self.get_bone_position(process, pawn, Bones::Head.u64()),
                 bones: self.get_bones(process, pawn),
@@ -803,6 +796,7 @@ impl CS2 {
         Some(entity)
     }
 
+    #[allow(unused)]
     fn get_player_name(&self, process: &ProcessHandle, controller: u64) -> String {
         let name_address = process.read::<u64>(controller + self.offsets.controller.name);
         if name_address == 0 {

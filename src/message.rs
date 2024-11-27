@@ -67,14 +67,11 @@ pub enum VisualsMessage {
     BoxColor(Color),
     DrawSkeleton(DrawStyle),
     SkeletonColor(Color),
-    DrawName(DrawStyle),
-    NameColor(Color),
     DrawHealth(bool),
     DrawArmor(bool),
     ArmorColor(Color),
-    DrawWeaponName(bool),
+    DrawWeapon(bool),
     VisibilityCheck(bool),
-    DrawExample(bool),
 
     VisualsFps(u64),
     Config(VisualsConfig),
@@ -84,10 +81,8 @@ pub enum VisualsMessage {
 #[allow(unused)]
 #[derive(Clone, Debug, Default)]
 pub struct PlayerInfo {
-    pub name: String, // todo: add player name rendering
     pub health: i32,
     pub armor: i32,
-    pub weapon: String, // todo: add player weapon name rendering
     pub position: Vec3,
     pub head: Vec3,
     pub bones: Vec<(Vec3, Vec3)>,
