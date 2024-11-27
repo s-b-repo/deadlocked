@@ -490,6 +490,7 @@ impl eframe::App for Gui {
             }
         }
 
+        // todo: different layout
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.with_layout(egui::Layout::left_to_right(egui::Align::Min), |ui| {
                 egui::ComboBox::new("game", "Current Game")
