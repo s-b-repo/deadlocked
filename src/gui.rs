@@ -399,7 +399,7 @@ impl Gui {
                 }
                 ui.end_row();
 
-                ui.label("Visibility Check")
+                ui.label("Show Example")
                     .on_hover_text("whether to draw an example player");
                 if ui
                     .checkbox(&mut game_config.visuals.draw_example, "")

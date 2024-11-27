@@ -125,7 +125,7 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
         }
 
         if config.draw_example {
-            draw_sample(&mut canvas, &config);
+            draw_sample(&mut canvas, &config, &size.as_vec2());
         }
         for player in &player_info {
             if !player.visible && config.visibility_check {
@@ -359,16 +359,16 @@ fn draw_skeleton(
     );
 }
 
-fn draw_sample(canvas: &mut Canvas<OpenGl>, config: &VisualsConfig) {
+fn draw_sample(canvas: &mut Canvas<OpenGl>, config: &VisualsConfig, screen_size: &Vec2) {
     let box_color = match config.draw_box {
         DrawStyle::None => Color::white(),
         DrawStyle::Color => config.box_color.femtovg_color(),
         DrawStyle::Health => get_health_color(50),
     };
 
-    let position = vec2(100.0, 300.0);
-
-    let head_position = vec2(100.0, 100.0);
+    let offset = 100.0 + screen_size.y / 3.0;
+    let position = vec2(offset / 2.0, offset);
+    let head_position = vec2(offset / 2.0, offset / 2.0);
 
     let height = (head_position.y - position.y).abs();
     let width = height / 2.0;
