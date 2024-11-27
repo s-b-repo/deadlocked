@@ -76,6 +76,7 @@ pub struct VisualsConfig {
     pub armor_color: Color,
     pub draw_weapon: bool,
     pub visibility_check: bool,
+    pub draw_example: bool,
     pub fps: u64,
 }
 
@@ -94,6 +95,7 @@ impl Default for VisualsConfig {
             armor_color: Color::from_egui_color(Color32::BLUE),
             draw_weapon: true,
             visibility_check: false,
+            draw_example: false,
             fps: 60,
         }
     }

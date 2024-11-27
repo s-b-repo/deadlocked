@@ -74,6 +74,7 @@ pub enum VisualsMessage {
     ArmorColor(Color),
     DrawWeaponName(bool),
     VisibilityCheck(bool),
+    DrawExample(bool),
 
     VisualsFps(u64),
     Config(VisualsConfig),

@@ -23,7 +23,6 @@ struct DrawInfo {
 pub fn visuals(rx: Receiver<VisualsMessage>) {
     let context = sdl3::init().unwrap();
     let video = context.video().unwrap();
-    video.gl_set_swap_interval(0).unwrap();
 
     let gl_attr = video.gl_attr();
     gl_attr.set_context_profile(sdl3::video::GLProfile::Core);
@@ -71,6 +70,7 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
 
     let gl_context = window.gl_create_context().unwrap();
     window.gl_make_current(&gl_context).unwrap();
+    video.gl_set_swap_interval(0).unwrap();
 
     let renderer = unsafe {
         OpenGl::new_from_function(|s| video.gl_get_proc_address(s).unwrap() as *const _).unwrap()
@@ -78,6 +78,9 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
     let mut canvas = Canvas::new(renderer).unwrap();
     let size = glam::uvec2(size.x as u32, size.y as u32);
     canvas.set_size(size.x, size.y, 1.0);
+    canvas
+        .add_font_mem(include_bytes!("../resources/fonts/NunitoSemiBold.ttf"))
+        .unwrap();
 
     let mut event_pump = context.event_pump().unwrap();
     let mut player_info = vec![];
@@ -106,6 +109,7 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
                 VisualsMessage::VisibilityCheck(visibility_check) => {
                     config.visibility_check = visibility_check
                 }
+                VisualsMessage::DrawExample(example) => config.draw_example = example,
                 VisualsMessage::VisualsFps(fps) => config.fps = fps,
                 VisualsMessage::Config(c) => config = c,
                 VisualsMessage::Quit => break 'running,
@@ -120,6 +124,9 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
             continue;
         }
 
+        if config.draw_example {
+            draw_sample(&mut canvas, &config);
+        }
         for player in &player_info {
             if !player.visible && config.visibility_check {
                 continue;
@@ -229,6 +236,7 @@ fn draw_box(
             .with_line_width(2.0),
     );
 
+    // health bar
     let bar_width = (line_width / 8.0).clamp(1.0, 3.0);
     if config.draw_health
         && is_on_screen(bottom_left, draw_info)
@@ -247,13 +255,14 @@ fn draw_box(
         );
     }
 
+    // armor bar
     if config.draw_armor
         && player.armor > 0
         && is_on_screen(bottom_left, draw_info)
         && is_on_screen(top_left, draw_info)
     {
         let mut path = Path::new();
-        let bottom_left = FPoint::new(bottom_left.x - bar_width as f32 * 3.0, bottom_left.y);
+        let bottom_left = FPoint::new(bottom_left.x - bar_width as f32 * 4.0, bottom_left.y);
         let bar_height = height * (player.armor as f32 / 100.0);
 
         path.rounded_rect(bottom_left.x, bottom_left.y, bar_width, -bar_height, 2.0);
@@ -263,6 +272,41 @@ fn draw_box(
                 .with_anti_alias(true)
                 .with_line_cap(LineCap::Round),
         );
+    }
+
+    // player name
+    if config.draw_name != DrawStyle::None && is_on_screen(top_left, draw_info) {
+        let name_color = match config.draw_name {
+            DrawStyle::None => Color::white(),
+            DrawStyle::Color => config.name_color.femtovg_color(),
+            DrawStyle::Health => get_health_color(player.health),
+        };
+        canvas
+            .stroke_text(
+                top_left.x,
+                top_left.y - 4.0,
+                &player.name,
+                &Paint::color(name_color)
+                    .with_anti_alias(true)
+                    .with_line_cap(LineCap::Round)
+                    .with_font_size(height / 12.0),
+            )
+            .unwrap();
+    }
+
+    // weapon name
+    if config.draw_weapon && is_on_screen(bottom_left, draw_info) {
+        canvas
+            .stroke_text(
+                bottom_left.x,
+                bottom_left.y + 4.0 + height / 12.0,
+                &player.weapon,
+                &Paint::color(Color::white())
+                    .with_anti_alias(true)
+                    .with_line_cap(LineCap::Round)
+                    .with_font_size(height / 12.0),
+            )
+            .unwrap();
     }
 }
 
@@ -313,6 +357,131 @@ fn draw_skeleton(
             .with_line_cap(LineCap::Round)
             .with_line_width(2.0),
     );
+}
+
+fn draw_sample(canvas: &mut Canvas<OpenGl>, config: &VisualsConfig) {
+    let box_color = match config.draw_box {
+        DrawStyle::None => Color::white(),
+        DrawStyle::Color => config.box_color.femtovg_color(),
+        DrawStyle::Health => get_health_color(50),
+    };
+
+    let position = vec2(100.0, 300.0);
+
+    let head_position = vec2(100.0, 100.0);
+
+    let height = (head_position.y - position.y).abs();
+    let width = height / 2.0;
+
+    let line_width = width / 4.0;
+    let line_height = height / 4.0;
+
+    let top_left = vec2(head_position.x - width / 2.0, head_position.y);
+    let top_right = vec2(head_position.x + width / 2.0, head_position.y);
+    let bottom_left = vec2(position.x - width / 2.0, position.y);
+    let bottom_right = vec2(position.x + width / 2.0, position.y);
+
+    let draw_box = config.draw_box != DrawStyle::None;
+    let mut path = Path::new();
+
+    if draw_box {
+        path.move_to(top_left.x, top_left.y);
+        path.line_to(top_left.x + line_width, top_left.y);
+
+        path.move_to(top_left.x, top_left.y);
+        path.line_to(top_left.x, top_left.y + line_height);
+
+        path.move_to(top_right.x, top_right.y);
+        path.line_to(top_right.x - line_width, top_right.y);
+
+        path.move_to(top_right.x, top_right.y);
+        path.line_to(top_right.x, top_right.y + line_height);
+
+        path.move_to(bottom_left.x, bottom_left.y);
+        path.line_to(bottom_left.x + line_width, bottom_left.y);
+
+        path.move_to(bottom_left.x, bottom_left.y);
+        path.line_to(bottom_left.x, bottom_left.y - line_height);
+
+        path.move_to(bottom_right.x, bottom_right.y);
+        path.line_to(bottom_right.x - line_width, bottom_right.y);
+
+        path.move_to(bottom_right.x, bottom_right.y);
+        path.line_to(bottom_right.x, bottom_right.y - line_height);
+    }
+    canvas.stroke_path(
+        &path,
+        &Paint::color(box_color)
+            .with_anti_alias(true)
+            .with_line_cap(LineCap::Round)
+            .with_line_width(2.0),
+    );
+
+    // health bar
+    let bar_width = (line_width / 8.0).clamp(1.0, 3.0);
+    if config.draw_health {
+        let mut path = Path::new();
+        let bottom_left = FPoint::new(bottom_left.x - bar_width as f32 * 2.0, bottom_left.y);
+        let bar_height = height * (50.0 / 100.0);
+
+        path.rounded_rect(bottom_left.x, bottom_left.y, bar_width, -bar_height, 2.0);
+        canvas.fill_path(
+            &path,
+            &Paint::color(get_health_color(50))
+                .with_anti_alias(true)
+                .with_line_cap(LineCap::Round),
+        );
+    }
+
+    // armor bar
+    if config.draw_armor {
+        let mut path = Path::new();
+        let bottom_left = FPoint::new(bottom_left.x - bar_width as f32 * 4.0, bottom_left.y);
+        let bar_height = height * (75.0 / 100.0);
+
+        path.rounded_rect(bottom_left.x, bottom_left.y, bar_width, -bar_height, 2.0);
+        canvas.fill_path(
+            &path,
+            &Paint::color(config.armor_color.femtovg_color())
+                .with_anti_alias(true)
+                .with_line_cap(LineCap::Round),
+        );
+    }
+
+    // player name
+    if config.draw_name != DrawStyle::None {
+        let name_color = match config.draw_name {
+            DrawStyle::None => Color::white(),
+            DrawStyle::Color => config.name_color.femtovg_color(),
+            DrawStyle::Health => get_health_color(50),
+        };
+        canvas
+            .fill_text(
+                top_left.x,
+                top_left.y - 4.0,
+                "Bot Carl",
+                &Paint::color(name_color)
+                    .with_anti_alias(true)
+                    .with_line_cap(LineCap::Round)
+                    .with_font_size(height / 12.0),
+            )
+            .unwrap();
+    }
+
+    // weapon name
+    if config.draw_weapon {
+        canvas
+            .fill_text(
+                bottom_left.x,
+                bottom_left.y + 4.0 + height / 12.0,
+                "ak47",
+                &Paint::color(Color::white())
+                    .with_anti_alias(true)
+                    .with_line_cap(LineCap::Round)
+                    .with_font_size(height / 12.0),
+            )
+            .unwrap();
+    }
 }
 
 fn end(canvas: &mut Canvas<OpenGl>, window: &Window, start: Instant, dur: Duration) {

@@ -3,7 +3,7 @@ use std::{cmp::Ordering, sync::mpsc};
 use strum::IntoEnumIterator;
 
 use crate::{
-    color::Color,
+    color::{Color, Colors},
     config::{parse_config, write_config, AimbotStatus, Config, GameConfig},
     key_codes::KeyCode,
     message::{AimbotMessage, DrawStyle, Game, VisualsMessage},
@@ -61,11 +61,11 @@ impl Gui {
     }
 
     fn send_message(&self, message: AimbotMessage) {
-        self.tx_aimbot.send(message).unwrap()
+        let _ = self.tx_aimbot.send(message);
     }
 
     fn send_visuals_message(&self, message: VisualsMessage) {
-        self.tx_visuals.send(message).unwrap()
+        let _ = self.tx_visuals.send(message);
     }
 
     fn aimbot_grid(&mut self, ui: &mut Ui) {
@@ -399,6 +399,20 @@ impl Gui {
                 }
                 ui.end_row();
 
+                ui.label("Visibility Check")
+                    .on_hover_text("whether to draw an example player");
+                if ui
+                    .checkbox(&mut game_config.visuals.draw_example, "")
+                    .changed()
+                {
+                    self.send_visuals_message(VisualsMessage::DrawExample(
+                        game_config.visuals.draw_example,
+                    ));
+                    self.write_game_config(&game_config);
+                }
+                ui.end_row();
+
+
                 ui.label("Overlay FPS")
                     .on_hover_text("what fps the overlay should run at");
                 if ui
@@ -422,8 +436,8 @@ impl Gui {
         ui.with_layout(Layout::top_down(egui::Align::Center), |ui| {
             ui.label(egui::RichText::new(self.status.string()).heading().color(
                 match self.status {
-                    AimbotStatus::Working => Color32::GREEN,
-                    AimbotStatus::GameNotStarted => Color32::YELLOW,
+                    AimbotStatus::Working => Colors::GREEN,
+                    AimbotStatus::GameNotStarted => Colors::YELLOW,
                 },
             ));
 
@@ -438,7 +452,7 @@ impl Gui {
             let color = if let MouseStatus::Working(_) = &self.mouse_status {
                 Color32::PLACEHOLDER
             } else {
-                Color32::YELLOW
+                Colors::YELLOW
             };
             ui.label(egui::RichText::new(mouse_text).color(color));
         });
@@ -550,7 +564,7 @@ impl eframe::App for Gui {
             Align2::RIGHT_BOTTOM,
             version,
             font,
-            Color32::GRAY,
+            Colors::SUBTEXT,
         );
     }
 }

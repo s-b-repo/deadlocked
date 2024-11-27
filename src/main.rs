@@ -1,7 +1,8 @@
 use std::{io::Write, sync::mpsc, thread};
 
+use color::Colors;
 use config::ZOOM;
-use eframe::egui::{self, Color32, FontData, FontDefinitions, Style};
+use eframe::egui::{self, FontData, FontDefinitions, Stroke, Style};
 use visuals::visuals;
 
 mod aimbot;
@@ -72,7 +73,7 @@ fn main() {
         Box::new(|cc| {
             cc.egui_ctx.set_pixels_per_point(ZOOM);
 
-            let font = include_bytes!("../resources/Nunito.ttf");
+            let font = include_bytes!("../resources/fonts/Nunito.ttf");
             let mut font_definitions = FontDefinitions::default();
             font_definitions
                 .font_data
@@ -86,8 +87,7 @@ fn main() {
 
             cc.egui_ctx.set_fonts(font_definitions);
 
-            cc.egui_ctx
-                .style_mut_of(egui::Theme::Dark, no_label_interaction);
+            cc.egui_ctx.style_mut_of(egui::Theme::Dark, gui_style);
 
             Ok(Box::new(gui::Gui::new(
                 tx_gui_to_aimbot,
@@ -99,7 +99,41 @@ fn main() {
     .unwrap();
 }
 
-fn no_label_interaction(style: &mut Style) {
+fn gui_style(style: &mut Style) {
     style.interaction.selectable_labels = false;
-    style.visuals.override_text_color = Some(Color32::WHITE);
+    //style.visuals.override_text_color = Some(Color32::WHITE);
+
+    style.visuals.window_fill = Colors::BASE;
+    style.visuals.panel_fill = Colors::BASE;
+    style.visuals.extreme_bg_color = Colors::BACKDROP;
+
+    let bg_stroke = Stroke::new(1.0, Colors::SUBTEXT);
+    let fg_stroke = Stroke::new(1.0, Colors::TEXT);
+    let dark_stroke = Stroke::new(1.0, Colors::BASE);
+
+    style.visuals.selection.bg_fill = Colors::BLUE;
+    style.visuals.selection.stroke = dark_stroke;
+
+    style.visuals.widgets.active.bg_fill = Colors::HIGHLIGHT;
+    style.visuals.widgets.active.bg_stroke = bg_stroke;
+    style.visuals.widgets.active.fg_stroke = fg_stroke;
+    style.visuals.widgets.active.weak_bg_fill = Colors::HIGHLIGHT;
+
+    style.visuals.widgets.hovered.bg_fill = Colors::HIGHLIGHT;
+    style.visuals.widgets.hovered.bg_stroke = bg_stroke;
+    style.visuals.widgets.hovered.fg_stroke = fg_stroke;
+    style.visuals.widgets.hovered.weak_bg_fill = Colors::HIGHLIGHT;
+
+    style.visuals.widgets.inactive.bg_fill = Colors::HIGHLIGHT;
+    style.visuals.widgets.inactive.fg_stroke = fg_stroke;
+    style.visuals.widgets.inactive.weak_bg_fill = Colors::HIGHLIGHT;
+
+    style.visuals.widgets.noninteractive.bg_fill = Colors::HIGHLIGHT;
+    style.visuals.widgets.noninteractive.fg_stroke = fg_stroke;
+    style.visuals.widgets.noninteractive.weak_bg_fill = Colors::HIGHLIGHT;
+
+    style.visuals.widgets.open.bg_fill = Colors::HIGHLIGHT;
+    style.visuals.widgets.open.bg_stroke = bg_stroke;
+    style.visuals.widgets.open.fg_stroke = fg_stroke;
+    style.visuals.widgets.open.weak_bg_fill = Colors::HIGHLIGHT;
 }

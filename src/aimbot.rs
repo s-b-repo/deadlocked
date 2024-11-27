@@ -66,11 +66,11 @@ impl AimbotManager {
     }
 
     fn send_message(&mut self, message: AimbotMessage) {
-        self.tx_gui.send(message).unwrap();
+        let _ = self.tx_gui.send(message);
     }
 
     fn send_visuals_message(&mut self, message: VisualsMessage) {
-        self.tx_visuals.send(message).unwrap();
+        let _ = self.tx_visuals.send(message);
     }
 
     pub fn run(&mut self) {
