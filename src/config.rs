@@ -16,7 +16,6 @@ const REFRESH_RATE: u64 = 100;
 pub const LOOP_DURATION: Duration = Duration::from_millis(1000 / REFRESH_RATE);
 pub const SLEEP_DURATION: Duration = Duration::from_secs(1);
 pub const CONFIG_FILE_NAME: &str = "config.toml";
-pub const ZOOM: f32 = 1.5;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum AimbotStatus {

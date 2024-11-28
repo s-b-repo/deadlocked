@@ -1,7 +1,6 @@
 use std::{io::Write, sync::mpsc, thread};
 
 use color::Colors;
-use config::ZOOM;
 use eframe::egui::{self, FontData, FontDefinitions, Stroke, Style};
 use visuals::visuals;
 
@@ -59,11 +58,8 @@ fn main() {
         })
         .unwrap();
 
-    let default_size = [550.0 * ZOOM, 400.0 * ZOOM];
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size(default_size)
-            .with_resizable(false)
             .with_maximize_button(false),
         ..Default::default()
     };
@@ -71,7 +67,7 @@ fn main() {
         "deadlocked",
         options,
         Box::new(|cc| {
-            cc.egui_ctx.set_pixels_per_point(ZOOM);
+            cc.egui_ctx.set_pixels_per_point(1.5);
 
             let font = include_bytes!("../resources/fonts/Nunito.ttf");
             let mut font_definitions = FontDefinitions::default();
