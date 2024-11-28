@@ -195,6 +195,7 @@ impl CS2 {
             let info = PlayerInfo {
                 health: self.get_health(process, pawn),
                 armor: self.get_armor(process, pawn),
+                weapon: self.get_weapon_name(process, pawn).replace("weapon_", ""),
                 position: self.get_position(process, pawn),
                 head: self.get_bone_position(process, pawn, Bones::Head.u64()),
                 bones: self.get_bones(process, pawn),

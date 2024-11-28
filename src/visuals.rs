@@ -1,15 +1,17 @@
 use std::{
+    collections::HashMap,
     sync::mpsc::Receiver,
     time::{Duration, Instant},
 };
 
-use femtovg::{renderer::OpenGl, Canvas, Color, LineCap, Paint, Path};
+use femtovg::{renderer::OpenGl, Canvas, Color, ImageId, LineCap, Paint, Path};
 use glam::{vec2, IVec4, Mat4, Vec2};
 use log::warn;
 use sdl3::{rect::Point, render::FPoint, video::Window};
 
 use crate::{
     config::VisualsConfig,
+    icons,
     math::world_to_screen,
     message::{DrawStyle, PlayerInfo, VisualsMessage},
 };
@@ -82,6 +84,8 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
         .add_font_mem(include_bytes!("../resources/fonts/NunitoSemiBold.ttf"))
         .unwrap();
 
+    let icons = icons::init(&mut canvas);
+
     let mut event_pump = context.event_pump().unwrap();
     let mut player_info = vec![];
     let mut draw_info = DrawInfo::default();
@@ -126,7 +130,7 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
                 continue;
             }
 
-            let line_width = draw_box(&mut canvas, &config, &draw_info, player);
+            let line_width = draw_box(&mut canvas, &config, &draw_info, &icons, player);
             draw_skeleton(&mut canvas, &config, &draw_info, player, line_width);
         }
 
@@ -143,6 +147,7 @@ fn draw_box(
     canvas: &mut Canvas<OpenGl>,
     config: &VisualsConfig,
     draw_info: &DrawInfo,
+    icons: &HashMap<&str, ImageId>,
     player: &PlayerInfo,
 ) -> f32 {
     let box_color = match config.draw_box {
@@ -263,6 +268,33 @@ fn draw_box(
                 .with_anti_alias(true)
                 .with_line_cap(LineCap::Round),
         );
+    }
+
+    // weapon icon
+    if config.draw_weapon && is_on_screen(bottom_left, draw_info) {
+        if let Some(icon) = icons.get(player.weapon.as_str()) {
+            let (icon_width, icon_height) = canvas.image_size(*icon).unwrap();
+            let scale_factor = (height / 1200.0).clamp(0.025, 0.25);
+            let mut path = Path::new();
+            path.rect(
+                bottom_left.x,
+                bottom_left.y + 4.0,
+                icon_width as f32 * scale_factor,
+                icon_height as f32 * scale_factor,
+            );
+            canvas.fill_path(
+                &path,
+                &Paint::image(
+                    *icon,
+                    bottom_left.x,
+                    bottom_left.y + 4.0,
+                    icon_width as f32 * scale_factor,
+                    icon_height as f32 * scale_factor,
+                    0.0,
+                    1.0,
+                ),
+            );
+        }
     }
 
     (line_width / 4.0).clamp(1.0, 2.0)

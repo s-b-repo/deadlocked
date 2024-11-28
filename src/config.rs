@@ -90,7 +90,7 @@ impl Default for VisualsConfig {
             armor_color: Color::from_egui_color(Color32::BLUE),
             draw_weapon: false,
             visibility_check: false,
-            fps: 60,
+            fps: 120,
         }
     }
 }

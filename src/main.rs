@@ -11,6 +11,7 @@ mod config;
 mod constants;
 mod cs2;
 mod gui;
+mod icons;
 mod key_codes;
 mod math;
 mod message;
@@ -47,8 +48,7 @@ fn main() {
     thread::Builder::new()
         .name(String::from("deadlocked"))
         .spawn(move || {
-            aimbot::AimbotManager::new(tx_aimbot_to_gui, tx_aimbot_to_visuals, rx_aimbot)
-                .run();
+            aimbot::AimbotManager::new(tx_aimbot_to_gui, tx_aimbot_to_visuals, rx_aimbot).run();
         })
         .unwrap();
 

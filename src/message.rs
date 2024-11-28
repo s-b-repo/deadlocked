@@ -83,6 +83,7 @@ pub enum VisualsMessage {
 pub struct PlayerInfo {
     pub health: i32,
     pub armor: i32,
+    pub weapon: String,
     pub position: Vec3,
     pub head: Vec3,
     pub bones: Vec<(Vec3, Vec3)>,
