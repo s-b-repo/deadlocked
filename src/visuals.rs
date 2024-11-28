@@ -80,9 +80,6 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
     let mut canvas = Canvas::new(renderer).unwrap();
     let size = glam::uvec2(size.x as u32, size.y as u32);
     canvas.set_size(size.x, size.y, 1.0);
-    canvas
-        .add_font_mem(include_bytes!("../resources/fonts/NunitoSemiBold.ttf"))
-        .unwrap();
 
     let icons = icons::init(&mut canvas);
 

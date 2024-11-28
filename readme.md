@@ -18,6 +18,10 @@ deadlock support will happen once that gets a native linux client
 
 ## images
 
+### ingame demo
+
+![demo](docs/demo_ingame.png)
+
 ### aimbot settings
 
 ![demo](docs/demo_aimbot.png)
@@ -25,10 +29,6 @@ deadlock support will happen once that gets a native linux client
 ### visuals settings
 
 ![demo](docs/demo_visuals.png)
-
-### ingame demo
-
-![demo](docs/demo_ingame.png)
 
 ## security
 
