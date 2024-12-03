@@ -6,7 +6,7 @@ use std::{
 
 use femtovg::{renderer::OpenGl, Canvas, Color, ImageId, LineCap, Paint, Path};
 use glam::{vec2, IVec4, Mat4, Vec2};
-use log::warn;
+use log::{info, warn};
 use sdl3::{rect::Point, render::FPoint, video::Window};
 
 use crate::{
@@ -30,6 +30,7 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
     gl_attr.set_context_profile(sdl3::video::GLProfile::Core);
     gl_attr.set_context_version(3, 3);
 
+    let mut position = Point::new(i32::MAX, i32::MAX);
     let mut size = Point::new(0, 0);
     for i in 0..video.num_video_drivers().unwrap() {
         if let Ok(bounds) = video.display_bounds(i as u32) {
@@ -44,6 +45,7 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
             }
         }
     }
+    info!("screen resolution detected: {} x {} px", size.x, size.y);
 
     let w = video
         .window("deadlocked", 1, 1)
