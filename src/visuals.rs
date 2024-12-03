@@ -5,9 +5,9 @@ use std::{
 };
 
 use femtovg::{renderer::OpenGl, Canvas, Color, ImageId, LineCap, Paint, Path};
-use glam::{vec2, IVec4, Mat4, Vec2};
+use glam::{vec2, vec4, IVec4, Mat4, Vec2};
 use log::{info, warn};
-use sdl3::{rect::Point, render::FPoint, video::Window};
+use sdl3::{event::Event, rect::Point, render::FPoint, video::Window};
 
 use crate::{
     config::VisualsConfig,
@@ -30,22 +30,43 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
     gl_attr.set_context_profile(sdl3::video::GLProfile::Core);
     gl_attr.set_context_version(3, 3);
 
-    let mut position = Point::new(i32::MAX, i32::MAX);
-    let mut size = Point::new(0, 0);
+    let mut display_min = Point::new(i32::MAX, i32::MAX);
+    let mut display_max = Point::new(0, 0);
     for i in 0..video.num_video_drivers().unwrap() {
         if let Ok(bounds) = video.display_bounds(i as u32) {
             let x = bounds.x + bounds.w;
-            if x > size.x {
-                size.x = x;
+            if bounds.x < display_min.x {
+                display_min.x = bounds.x;
+            }
+            if x > display_max.x {
+                display_max.x = x;
             }
 
             let y = bounds.y + bounds.h;
-            if y > size.y {
-                size.y = y;
+            if bounds.y < display_min.y {
+                display_min.y = bounds.y;
+            }
+            if y > display_max.y {
+                display_max.y = y;
             }
         }
     }
-    info!("screen resolution detected: {} x {} px", size.x, size.y);
+    info!(
+        "screen top left corner at: {} x {} px",
+        display_min.x, display_min.y
+    );
+    info!(
+        "screen resolution detected: {} x {} px",
+        display_max.x, display_max.y
+    );
+
+    // position + size
+    let display = vec4(
+        display_min.x as f32,
+        display_min.y as f32,
+        (display_max.x - display_min.x) as f32,
+        (display_max.y - display_min.y) as f32,
+    );
 
     let w = video
         .window("deadlocked", 1, 1)
@@ -57,8 +78,11 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
         .unwrap();
     let mut window = unsafe {
         video
-            .popup_window(&w, size.x as u32, size.y as u32)
-            .set_window_flags(0x00000010) // borderless
+            .popup_window(
+                &w,
+                (display_max.x - display_min.x) as u32,
+                (display_max.y - display_min.y) as u32,
+            )
             .always_on_top()
             .tooltip()
             .transparent()
@@ -67,8 +91,8 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
             .unwrap()
     };
     window.set_position(
-        sdl3::video::WindowPos::Positioned(0),
-        sdl3::video::WindowPos::Positioned(-50),
+        sdl3::video::WindowPos::Positioned(display_min.x),
+        sdl3::video::WindowPos::Positioned(display_min.y),
     );
     window.set_opacity(0.0).expect("could not set opacity");
 
@@ -80,7 +104,10 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
         OpenGl::new_from_function(|s| video.gl_get_proc_address(s).unwrap() as *const _).unwrap()
     };
     let mut canvas = Canvas::new(renderer).unwrap();
-    let size = glam::uvec2(size.x as u32, size.y as u32);
+    let size = glam::uvec2(
+        (display_max.x - display_min.x) as u32,
+        (display_max.y - display_min.y) as u32,
+    );
     canvas.set_size(size.x, size.y, 1.0);
 
     let icons = icons::init(&mut canvas);
@@ -111,17 +138,41 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
                     config.visibility_check = visibility_check
                 }
                 VisualsMessage::VisualsFps(fps) => config.fps = fps,
+                VisualsMessage::DebugWindow(debug) => config.debug_window = debug,
                 VisualsMessage::Config(c) => config = c,
                 VisualsMessage::Quit => break 'running,
             }
         }
 
         canvas.clear_rect(0, 0, size.x, size.y, transparent);
-        for _ in event_pump.poll_iter() {}
+        for event in event_pump.poll_iter() {
+            if let Event::Quit { timestamp: _ } = event {
+                break 'running;
+            }
+        }
 
         if !config.enabled {
             end(&mut canvas, &window, start, Duration::from_millis(30));
             continue;
+        }
+
+        if config.debug_window {
+            let width = 4.0;
+            let mut debug_lines = Path::new();
+            debug_lines.rect(
+                display.x + width / 2.0,
+                display.y + width / 2.0,
+                display.z - width,
+                display.w - width,
+            );
+            debug_lines.move_to(display.x, display.y);
+            debug_lines.line_to(display.x + display.z, display.y + display.w);
+            debug_lines.move_to(display.x, display.y + display.w);
+            debug_lines.line_to(display.x + display.z, display.y);
+            canvas.stroke_path(
+                &debug_lines,
+                &Paint::color(Color::white()).with_line_width(width),
+            );
         }
 
         for player in &player_info {

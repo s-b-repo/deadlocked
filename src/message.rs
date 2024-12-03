@@ -74,6 +74,7 @@ pub enum VisualsMessage {
     VisibilityCheck(bool),
 
     VisualsFps(u64),
+    DebugWindow(bool),
     Config(VisualsConfig),
     Quit,
 }

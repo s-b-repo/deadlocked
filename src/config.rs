@@ -74,6 +74,7 @@ pub struct VisualsConfig {
     pub draw_weapon: bool,
     pub visibility_check: bool,
     pub fps: u64,
+    pub debug_window: bool,
 }
 
 impl Default for VisualsConfig {
@@ -90,6 +91,7 @@ impl Default for VisualsConfig {
             draw_weapon: false,
             visibility_check: false,
             fps: 120,
+            debug_window: false,
         }
     }
 }

@@ -366,6 +366,19 @@ impl Gui {
                     self.write_game_config(&game_config);
                 }
                 ui.end_row();
+
+                ui.label("Overlay Debugging")
+                    .on_hover_text("whether to draw a frame around the overlay window");
+                if ui
+                    .checkbox(&mut game_config.visuals.debug_window, "")
+                    .changed()
+                {
+                    self.send_visuals_message(VisualsMessage::DebugWindow(
+                        game_config.visuals.debug_window,
+                    ));
+                    self.write_game_config(&game_config);
+                }
+                ui.end_row();
             });
 
         *self
@@ -439,7 +452,6 @@ impl eframe::App for Gui {
             }
         }
 
-        // todo: different layout
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.spacing_mut().item_spacing = egui::vec2(6.0, 4.0);
             ui.horizontal_top(|ui| {
