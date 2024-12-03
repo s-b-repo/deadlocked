@@ -71,7 +71,7 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
     let w = video
         .window("deadlocked", 1, 1)
         .borderless()
-        .hidden()
+        //.hidden()
         .minimized()
         .position(0, 0)
         .build()
