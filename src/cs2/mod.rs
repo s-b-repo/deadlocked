@@ -72,15 +72,11 @@ impl Aimbot for CS2 {
     }
 
     fn run(&mut self, config: &Config, mouse: &mut File) {
-        let aimbot_coords = self.aimbot(config);
-        if let Some(coords) = aimbot_coords {
+        if let Some(coords) = self.rcs(config) {
             mouse_move(mouse, coords);
         }
-        if aimbot_coords.is_none() {
-            let rcs_coords = self.rcs(config);
-            if let Some(coords) = rcs_coords {
-                mouse_move(mouse, coords);
-            }
+        if let Some(coords) = self.aimbot(config) {
+            mouse_move(mouse, coords);
         }
     }
 
