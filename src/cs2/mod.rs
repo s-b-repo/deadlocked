@@ -481,20 +481,13 @@ impl CS2 {
     fn find_offsets(&self, process: &ProcessHandle) -> Option<Offsets> {
         let mut offsets = Offsets::default();
 
-        let client_address = get_module_base_address(process, Constants::CLIENT_LIB);
-        offsets.library.client = client_address?;
-
-        let engine_address = get_module_base_address(process, Constants::ENGINE_LIB);
-        offsets.library.engine = engine_address?;
-
-        let tier0_address = get_module_base_address(process, Constants::TIER0_LIB);
-        offsets.library.tier0 = tier0_address?;
-
-        let input_address = get_module_base_address(process, Constants::INPUT_LIB);
-        offsets.library.input = input_address?;
-
-        let sdl_address = get_module_base_address(process, Constants::SDL_LIB);
-        offsets.library.sdl = sdl_address?;
+        offsets.library.client = get_module_base_address(process, Constants::CLIENT_LIB)?;
+        offsets.library.engine = get_module_base_address(process, Constants::ENGINE_LIB)?;
+        offsets.library.tier0 = get_module_base_address(process, Constants::TIER0_LIB)?;
+        offsets.library.input = get_module_base_address(process, Constants::INPUT_LIB)?;
+        offsets.library.sdl = get_module_base_address(process, Constants::SDL_LIB)?;
+        offsets.library.matchmaking = get_module_base_address(process, Constants::MATCHMAKING_LIB)?;
+        dbg!(&offsets.library);
 
         let resource_offset =
             process.get_interface_offset(offsets.library.engine, "GameResourceServiceClientV0");
@@ -546,6 +539,23 @@ impl CS2 {
         offsets.direct.button_state = process
             .read::<u32>(process.get_interface_function(offsets.interface.input, 19) + 0x14)
             as u64;
+
+        let game_types = process
+            .scan_pattern(
+                &[
+                    0x48, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00, 0xC3, 0x0F, 0x1F, 0x84, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x48, 0x8B, 0x07,
+                ],
+                "xxx????xxxx?????xxx".as_bytes(),
+                offsets.library.matchmaking,
+            )
+            .unwrap();
+        for i in 0..512 {
+            let name = process.read_string(game_types + i);
+            if name.is_ascii() {
+                dbg!(name);
+            }
+        }
 
         let sdl_window = process.get_module_export(offsets.library.sdl, "SDL_GetKeyboardFocus");
         if sdl_window.is_none() {

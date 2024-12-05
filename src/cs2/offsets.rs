@@ -5,6 +5,7 @@ pub struct LibraryOffsets {
     pub tier0: u64,
     pub input: u64,
     pub sdl: u64,
+    pub matchmaking: u64,
 }
 
 #[derive(Debug, Default)]
