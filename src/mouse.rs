@@ -52,8 +52,8 @@ const EV_REL: u16 = 0x02;
 const SYN_REPORT: u16 = 0x00;
 const AXIS_X: u16 = 0x00;
 const AXIS_Y: u16 = 0x01;
-const BTN_LEFT: u16 = 0x110;
-const BTN_RIGHT: u16 = 0x111;
+// const BTN_LEFT: u16 = 0x110;
+// const BTN_RIGHT: u16 = 0x111;
 
 pub fn open_mouse() -> (File, MouseStatus) {
     if DEBUG_WITHOUT_MOUSE {
@@ -70,13 +70,7 @@ pub fn open_mouse() -> (File, MouseStatus) {
             continue;
         }
         // get device info from /sys/class/input
-        let keys: Vec<u32> =
-            fs::read_to_string(format!("/sys/class/input/{}/device/capabilities/key", name))
-                .unwrap()
-                .split_whitespace() // Handle multiple hex numbers
-                .filter_map(|hex| u32::from_str_radix(hex, 16).ok()) // Parse each hex number
-                .flat_map(decompose_bits) // Decompose into individual bits
-                .collect();
+        // todo: key capability handling
         let rel: Vec<u32> =
             fs::read_to_string(format!("/sys/class/input/{}/device/capabilities/rel", name))
                 .unwrap()
@@ -84,11 +78,7 @@ pub fn open_mouse() -> (File, MouseStatus) {
                 .filter_map(|hex| u32::from_str_radix(hex, 16).ok()) // Parse each hex number
                 .flat_map(decompose_bits) // Decompose into individual bits
                 .collect();
-        if !rel.contains(&(AXIS_X as u32))
-            && !rel.contains(&(AXIS_Y as u32))
-            && !keys.contains(&(BTN_LEFT as u32))
-            && !keys.contains(&(BTN_RIGHT as u32))
-        {
+        if !rel.contains(&(AXIS_X as u32)) || !rel.contains(&(AXIS_Y as u32)) {
             continue;
         }
         let device_name =

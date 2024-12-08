@@ -487,7 +487,6 @@ impl CS2 {
         offsets.library.input = get_module_base_address(process, Constants::INPUT_LIB)?;
         offsets.library.sdl = get_module_base_address(process, Constants::SDL_LIB)?;
         offsets.library.matchmaking = get_module_base_address(process, Constants::MATCHMAKING_LIB)?;
-        dbg!(&offsets.library);
 
         let resource_offset =
             process.get_interface_offset(offsets.library.engine, "GameResourceServiceClientV0");
@@ -552,7 +551,7 @@ impl CS2 {
             .unwrap();
         for i in 0..512 {
             let name = process.read_string(game_types + i);
-            if name.is_ascii() {
+            if name.is_ascii() && !name.is_empty() {
                 dbg!(name);
             }
         }
