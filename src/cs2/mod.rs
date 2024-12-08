@@ -539,6 +539,8 @@ impl CS2 {
             .read::<u32>(process.get_interface_function(offsets.interface.input, 19) + 0x14)
             as u64;
 
+        #[allow(unused)]
+        // todo: map name?
         let game_types = process
             .scan_pattern(
                 &[
@@ -549,12 +551,6 @@ impl CS2 {
                 offsets.library.matchmaking,
             )
             .unwrap();
-        for i in 0..512 {
-            let name = process.read_string(game_types + i);
-            if name.is_ascii() && !name.is_empty() {
-                dbg!(name);
-            }
-        }
 
         let sdl_window = process.get_module_export(offsets.library.sdl, "SDL_GetKeyboardFocus");
         if sdl_window.is_none() {
