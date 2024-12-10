@@ -46,6 +46,7 @@ pub enum AimbotMessage {
     Status(AimbotStatus),
     ChangeGame(Game),
     MouseStatus(MouseStatus),
+    FrameTime(f64),
     Quit,
 }
 
@@ -72,6 +73,7 @@ pub enum VisualsMessage {
     DrawArmor(bool),
     ArmorColor(Color),
     DrawWeapon(bool),
+    DroppedItems(bool),
     VisibilityCheck(bool),
 
     VisualsFps(u64),

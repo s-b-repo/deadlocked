@@ -1,4 +1,4 @@
-use eframe::egui::{self, Align2, Color32, Sense, Ui};
+use eframe::egui::{self, vec2, Align2, Color32, Sense, Ui};
 use std::{cmp::Ordering, sync::mpsc};
 use strum::IntoEnumIterator;
 
@@ -25,6 +25,9 @@ pub struct Gui {
     mouse_status: MouseStatus,
     current_tab: Tab,
     close_timer: i32,
+
+    aimbot_time: f64,
+    aimbot_times: Vec<f64>,
 }
 
 impl Gui {
@@ -55,6 +58,9 @@ impl Gui {
             mouse_status: MouseStatus::NoMouseFound,
             current_tab: Tab::Aimbot,
             close_timer: -1,
+
+            aimbot_time: 0.0,
+            aimbot_times: Vec::with_capacity(50),
         };
         write_config(&out.config);
         out
@@ -336,6 +342,19 @@ impl Gui {
             }
             ui.end_row();
 
+            ui.label("Dropped Items")
+                .on_hover_text("whether to show dropped items");
+            if ui
+                .checkbox(&mut game_config.visuals.dropped_items, "")
+                .changed()
+            {
+                self.send_visuals_message(VisualsMessage::DroppedItems(
+                    game_config.visuals.dropped_items,
+                ));
+                self.write_game_config(&game_config);
+            }
+            ui.end_row();
+
             ui.label("Visibility Check")
                 .on_hover_text("whether to draw players only when visible");
             if ui
@@ -465,6 +484,14 @@ impl eframe::App for Gui {
             match message {
                 AimbotMessage::Status(status) => self.status = status,
                 AimbotMessage::MouseStatus(status) => self.mouse_status = status,
+                AimbotMessage::FrameTime(time) => {
+                    self.aimbot_times.push(time);
+                    if self.aimbot_times.len() >= self.aimbot_times.capacity() {
+                        self.aimbot_time = self.aimbot_times.iter().sum::<f64>()
+                            / self.aimbot_times.capacity() as f64;
+                        self.aimbot_times.clear();
+                    }
+                }
                 _ => {}
             }
         }
@@ -539,6 +566,23 @@ impl eframe::App for Gui {
                 .max,
             Align2::RIGHT_BOTTOM,
             version,
+            font.clone(),
+            Colors::SUBTEXT,
+        );
+
+        let frame_time = format!("{:.2} ms", self.aimbot_time);
+        let text_size = ctx.fonts(|fonts| {
+            fonts
+                .layout_no_wrap(frame_time.clone(), font.clone(), Color32::WHITE)
+                .size()
+        });
+
+        ctx.layer_painter(egui::LayerId::background()).text(
+            Align2::RIGHT_BOTTOM
+                .align_size_within_rect(text_size, ctx.screen_rect().shrink(4.0))
+                .max - vec2(0.0, 14.0),
+            Align2::RIGHT_BOTTOM,
+            frame_time,
             font,
             Colors::SUBTEXT,
         );

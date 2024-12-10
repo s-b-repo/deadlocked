@@ -136,6 +136,7 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
                 VisualsMessage::DrawArmor(draw_armor) => config.draw_armor = draw_armor,
                 VisualsMessage::ArmorColor(color) => config.armor_color = color,
                 VisualsMessage::DrawWeapon(draw_weapon) => config.draw_weapon = draw_weapon,
+                VisualsMessage::DroppedItems(dropped_items) => config.dropped_items = dropped_items,
                 VisualsMessage::VisibilityCheck(visibility_check) => {
                     config.visibility_check = visibility_check
                 }
@@ -413,6 +414,9 @@ fn draw_entity(
     icons: &HashMap<&str, ImageId>,
     entity: &EntityInfo,
 ) {
+    if !config.dropped_items {
+        return;
+    }
     let screen_position = vec2(
         draw_info.window_size.x as f32,
         draw_info.window_size.y as f32,
@@ -431,7 +435,7 @@ fn draw_entity(
     if let Some(icon) = icons.get(entity.name.as_str()) {
         let (icon_width, icon_height) = canvas.image_size(*icon).unwrap();
         let mut path = Path::new();
-        let scale = (50.0 / entity.distance).clamp(0.05, 0.2);
+        let scale = (50.0 / entity.distance).clamp(0.1, 0.2);
         let size = vec2(icon_width as f32, icon_height as f32) * scale;
         path.rect(
             position.x - size.x / 2.0,

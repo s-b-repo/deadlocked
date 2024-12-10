@@ -43,6 +43,8 @@ pub struct AimbotConfig {
     pub smooth: f32,
     pub multibone: bool,
     pub rcs: bool,
+    pub visuals_enabled: bool,
+    pub dropped_items: bool,
 }
 
 impl Default for AimbotConfig {
@@ -57,6 +59,8 @@ impl Default for AimbotConfig {
             smooth: 5.0,
             multibone: true,
             rcs: false,
+            visuals_enabled: true,
+            dropped_items: true,
         }
     }
 }
@@ -72,6 +76,7 @@ pub struct VisualsConfig {
     pub draw_armor: bool,
     pub armor_color: Color,
     pub draw_weapon: bool,
+    pub dropped_items: bool,
     pub visibility_check: bool,
     pub fps: u64,
     pub debug_window: bool,
@@ -88,7 +93,8 @@ impl Default for VisualsConfig {
             draw_health: true,
             draw_armor: true,
             armor_color: Color::from_egui_color(Color32::BLUE),
-            draw_weapon: false,
+            draw_weapon: true,
+            dropped_items: true,
             visibility_check: false,
             fps: 120,
             debug_window: false,

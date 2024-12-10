@@ -34,6 +34,7 @@ pub struct CS2 {
 
     previous_aim_punch: Vec2,
     unaccounted_aim_punch: Vec2,
+    unused_entities: Vec<u64>,
 }
 
 impl Aimbot for CS2 {
@@ -131,6 +132,7 @@ impl CS2 {
 
             previous_aim_punch: Vec2::ZERO,
             unaccounted_aim_punch: Vec2::ZERO,
+            unused_entities: Vec::with_capacity(1024),
         }
     }
 
@@ -248,6 +250,9 @@ impl CS2 {
                 Some(controller) => controller,
                 None => continue,
             };
+            if self.unused_entities.contains(&controller) {
+                continue;
+            }
 
             if self.entity_has_owner(process, controller) {
                 continue;
@@ -341,6 +346,7 @@ impl CS2 {
             Some(process) => process,
             None => {
                 self.is_valid = false;
+                self.unused_entities.clear();
                 return None;
             }
         };
@@ -351,9 +357,14 @@ impl CS2 {
             Some(pawn) => pawn,
             None => {
                 self.target.reset();
+                self.unused_entities.clear();
                 return None;
             }
         };
+
+        if self.unused_entities.is_empty() {
+            self.unused_entities = self.cache_unused_entities();
+        }
 
         let team = self.get_team(process, local_pawn);
         if team != Constants::TEAM_CT && team != Constants::TEAM_T {
@@ -1081,10 +1092,36 @@ impl CS2 {
                 "incendiarygrenade" => return Some(String::from("incgrenade")),
                 _ => return Some(name),
             }
-        } else if name.contains("bomb") || name.contains("c4") {
-            dbg!(name);
         }
 
         None
+    }
+
+    fn cache_unused_entities(&self) -> Vec<u64> {
+        let process = match &self.process {
+            Some(process) => process,
+            None => return vec![],
+        };
+
+        let mut unused_entities = Vec::with_capacity(1024);
+        for i in 65..=1024 {
+            let entity = match self.get_client_entity(process, i) {
+                Some(entity) => entity,
+                None => continue,
+            };
+
+            let name_pointer = process.read(process.read::<u64>(entity + 0x10) + 0x20);
+            if name_pointer == 0 {
+                continue;
+            }
+
+            let name = process.read_string(name_pointer);
+
+            if !name.starts_with("weapon_") && !name.ends_with("_projectile") {
+                unused_entities.push(entity);
+            }
+        }
+
+        unused_entities
     }
 }
