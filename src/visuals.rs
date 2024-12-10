@@ -13,7 +13,7 @@ use crate::{
     config::VisualsConfig,
     icons,
     math::world_to_screen,
-    message::{DrawStyle, PlayerInfo, VisualsMessage},
+    message::{DrawStyle, EntityInfo, PlayerInfo, VisualsMessage},
 };
 
 #[derive(Debug, Default)]
@@ -114,6 +114,7 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
 
     let mut event_pump = context.event_pump().unwrap();
     let mut player_info = vec![];
+    let mut entity_info = vec![];
     let mut draw_info = DrawInfo::default();
     let mut config = VisualsConfig::default();
     let transparent = Color::rgba(0, 0, 0, 0);
@@ -122,6 +123,7 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
         while let Ok(message) = rx.try_recv() {
             match message {
                 VisualsMessage::PlayerInfo(info) => player_info = info,
+                VisualsMessage::EntityInfo(info) => entity_info = info,
                 VisualsMessage::ViewMatrix(matrix) => draw_info.view_matrix = matrix,
                 VisualsMessage::WindowSize(size) => draw_info.window_size = size,
 
@@ -182,6 +184,10 @@ pub fn visuals(rx: Receiver<VisualsMessage>) {
 
             let line_width = draw_box(&mut canvas, &config, &draw_info, &icons, player);
             draw_skeleton(&mut canvas, &config, &draw_info, player, line_width);
+        }
+
+        for entity in &entity_info {
+            draw_entity(&mut canvas, &config, &draw_info, &icons, entity);
         }
 
         end(
@@ -398,6 +404,54 @@ fn draw_skeleton(
             .with_line_cap(LineCap::Round)
             .with_line_width(line_width),
     );
+}
+
+fn draw_entity(
+    canvas: &mut Canvas<OpenGl>,
+    config: &VisualsConfig,
+    draw_info: &DrawInfo,
+    icons: &HashMap<&str, ImageId>,
+    entity: &EntityInfo,
+) {
+    let screen_position = vec2(
+        draw_info.window_size.x as f32,
+        draw_info.window_size.y as f32,
+    );
+    let position = match world_to_screen(
+        draw_info.window_size,
+        draw_info.view_matrix,
+        entity.position,
+    ) {
+        Some(pos) => pos + screen_position,
+        None => return,
+    };
+    if !is_on_screen(position, draw_info) {
+        return;
+    }
+    if let Some(icon) = icons.get(entity.name.as_str()) {
+        let (icon_width, icon_height) = canvas.image_size(*icon).unwrap();
+        let mut path = Path::new();
+        let scale = (50.0 / entity.distance).clamp(0.05, 0.5);
+        let size = vec2(icon_width as f32, icon_height as f32) * scale;
+        path.rect(
+            position.x - size.x / 2.0,
+            position.y - size.y / 2.0,
+            size.x,
+            size.y,
+        );
+        canvas.fill_path(
+            &path,
+            &Paint::image(
+                *icon,
+                position.x - size.x / 2.0,
+                position.y - size.y / 2.0,
+                size.x,
+                size.y,
+                0.0,
+                1.0,
+            ),
+        );
+    }
 }
 
 fn end(canvas: &mut Canvas<OpenGl>, window: &Window, start: Instant, dur: Duration) {

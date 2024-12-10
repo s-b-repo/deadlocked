@@ -60,6 +60,7 @@ pub enum DrawStyle {
 #[derive(Clone, Debug)]
 pub enum VisualsMessage {
     PlayerInfo(Vec<PlayerInfo>),
+    EntityInfo(Vec<EntityInfo>),
     ViewMatrix(Mat4),
     WindowSize(IVec4),
     EnableVisuals(bool),
@@ -79,7 +80,6 @@ pub enum VisualsMessage {
     Quit,
 }
 
-#[allow(unused)]
 #[derive(Clone, Debug, Default)]
 pub struct PlayerInfo {
     pub health: i32,
@@ -89,4 +89,21 @@ pub struct PlayerInfo {
     pub head: Vec3,
     pub bones: Vec<(Vec3, Vec3)>,
     pub visible: bool,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct EntityInfo {
+    pub entity_type: EntityType,
+    pub name: String,
+    pub position: Vec3,
+    pub distance: f32,
+}
+
+#[derive(Clone, Debug, Default)]
+pub enum EntityType {
+    #[default]
+    Unknown,
+    C4,
+    Weapon,
+    Projectile,
 }

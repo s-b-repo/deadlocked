@@ -23,6 +23,7 @@ pub struct DirectOffsets {
     pub button_state: u64,
     pub view_matrix: u64,
     pub sdl_window: u64,
+    pub planted_c4: u64,
 }
 
 #[derive(Debug, Default)]
@@ -33,13 +34,14 @@ pub struct ConvarOffsets {
 
 #[derive(Debug, Default)]
 pub struct PlayerControllerOffsets {
-    pub name: u64, // Pointer -> String (m_sSanitizedPlayerName)
-    pub pawn: u64, // Pointer -> Pawn (m_hPawn)
+    pub name: u64,         // Pointer -> String (m_sSanitizedPlayerName)
+    pub pawn: u64,         // Pointer -> Pawn (m_hPawn)
+    pub owner_entity: u64, // Pointer -> Entity (m_hOwnerEntity)
 }
 
 impl PlayerControllerOffsets {
     pub fn all_found(&self) -> bool {
-        self.name != 0 && self.pawn != 0
+        self.name != 0 && self.pawn != 0 && self.owner_entity != 0
     }
 }
 

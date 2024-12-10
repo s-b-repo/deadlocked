@@ -6,7 +6,7 @@ use log::warn;
 use crate::{
     config::{Config, DEBUG_WITHOUT_MOUSE, SLEEP_DURATION},
     cs2::CS2,
-    message::{Game, PlayerInfo, VisualsMessage},
+    message::{EntityInfo, Game, PlayerInfo, VisualsMessage},
     mouse::{mouse_valid, MouseStatus},
 };
 
@@ -21,6 +21,7 @@ pub trait Aimbot: std::fmt::Debug {
     fn setup(&mut self);
     fn run(&mut self, config: &Config, mouse: &mut File);
     fn get_player_info(&mut self) -> Vec<PlayerInfo>;
+    fn get_entity_info(&mut self) -> Vec<EntityInfo>;
     fn get_view_matrix(&mut self) -> Mat4;
     fn get_window_size(&mut self) -> IVec4;
 }
@@ -111,6 +112,8 @@ impl AimbotManager {
                 self.aimbot.run(&self.config, &mut self.mouse);
                 let players = self.aimbot.get_player_info();
                 self.send_visuals_message(VisualsMessage::PlayerInfo(players));
+                let entities = self.aimbot.get_entity_info();
+                self.send_visuals_message(VisualsMessage::EntityInfo(entities));
                 let view_matrix = self.aimbot.get_view_matrix();
                 self.send_visuals_message(VisualsMessage::ViewMatrix(view_matrix));
                 let window_info = self.aimbot.get_window_size();

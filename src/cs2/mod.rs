@@ -8,11 +8,10 @@ use strum::IntoEnumIterator;
 use crate::{
     aimbot::Aimbot,
     config::Config,
-    constants::Constants,
-    cs2::{offsets::Offsets, player::Target},
+    cs2::{constants::Constants, offsets::Offsets, player::Target},
     key_codes::KeyCode,
     math::{angles_from_vector, angles_to_fov, vec2_clamp},
-    message::PlayerInfo,
+    message::{EntityInfo, EntityType, PlayerInfo},
     mouse::mouse_move,
     proc::{
         get_module_base_address, get_pid, open_process, read_string_vec, read_vec, validate_pid,
@@ -22,6 +21,7 @@ use crate::{
 };
 
 mod bones;
+mod constants;
 pub mod offsets;
 mod player;
 
@@ -31,7 +31,6 @@ pub struct CS2 {
     process: Option<ProcessHandle>,
     offsets: Offsets,
     target: Target,
-    pid: u64,
 
     previous_aim_punch: Vec2,
     unaccounted_aim_punch: Vec2,
@@ -39,11 +38,15 @@ pub struct CS2 {
 
 impl Aimbot for CS2 {
     fn is_valid(&self) -> bool {
-        self.is_valid && validate_pid(self.pid)
+        if let Some(process) = &self.process {
+            self.is_valid && validate_pid(process.pid)
+        } else {
+            false
+        }
     }
 
     fn setup(&mut self) {
-        self.pid = match get_pid(Constants::PROCESS_NAME) {
+        let pid = match get_pid(Constants::PROCESS_NAME) {
             Some(pid) => pid,
             None => {
                 self.is_valid = false;
@@ -51,7 +54,7 @@ impl Aimbot for CS2 {
             }
         };
 
-        let process = match open_process(self.pid) {
+        let process = match open_process(pid) {
             Some(process) => process,
             None => {
                 self.is_valid = false;
@@ -82,6 +85,10 @@ impl Aimbot for CS2 {
 
     fn get_player_info(&mut self) -> Vec<PlayerInfo> {
         self.player_info()
+    }
+
+    fn get_entity_info(&mut self) -> Vec<EntityInfo> {
+        self.entity_info()
     }
 
     fn get_view_matrix(&mut self) -> glam::Mat4 {
@@ -121,7 +128,6 @@ impl CS2 {
             process: None,
             offsets: Offsets::default(),
             target: Target::default(),
-            pid: 0,
 
             previous_aim_punch: Vec2::ZERO,
             unaccounted_aim_punch: Vec2::ZERO,
@@ -205,6 +211,62 @@ impl CS2 {
         players
     }
 
+    fn entity_info(&mut self) -> Vec<EntityInfo> {
+        let process = match &self.process {
+            Some(process) => process,
+            None => {
+                self.is_valid = false;
+                return vec![];
+            }
+        };
+
+        let local_controller = self.get_local_controller(process);
+        let local_pawn = match self.get_pawn(process, local_controller) {
+            Some(pawn) => {
+                let spectator_target = self.get_spectator_target(process, pawn);
+                if let Some(target) = spectator_target {
+                    target
+                } else {
+                    pawn
+                }
+            }
+            None => {
+                self.target = Target::default();
+                return vec![];
+            }
+        };
+        let local_position = self.get_position(process, local_pawn);
+
+        let team = self.get_team(process, local_pawn);
+        if team != Constants::TEAM_CT && team != Constants::TEAM_T {
+            return vec![];
+        }
+
+        let mut entities = vec![];
+        for i in 65..=1024 {
+            let controller = match self.get_client_entity(process, i) {
+                Some(controller) => controller,
+                None => continue,
+            };
+
+            let (entity_type, name) = match self.get_entity_type(process, controller) {
+                Some(entity) => entity,
+                None => continue,
+            };
+            let position = self.get_position(process, controller);
+            let entity = EntityInfo {
+                entity_type,
+                name,
+                position,
+                distance: (position - local_position).length(),
+            };
+
+            entities.push(entity);
+        }
+
+        entities
+    }
+
     fn rcs(&mut self, config: &Config) -> Option<Vec2> {
         let process = match &self.process {
             Some(process) => process,
@@ -222,7 +284,7 @@ impl CS2 {
         let local_pawn = match self.get_pawn(process, local_controller) {
             Some(pawn) => pawn,
             None => {
-                self.target = Target::default();
+                self.target.reset();
                 return None;
             }
         };
@@ -285,14 +347,14 @@ impl CS2 {
         let local_pawn = match self.get_pawn(process, local_controller) {
             Some(pawn) => pawn,
             None => {
-                self.target = Target::default();
+                self.target.reset();
                 return None;
             }
         };
 
         let team = self.get_team(process, local_pawn);
         if team != Constants::TEAM_CT && team != Constants::TEAM_T {
-            self.target = Target::default();
+            self.target.reset();
             return None;
         }
 
@@ -304,7 +366,7 @@ impl CS2 {
         ]
         .contains(&weapon_class)
         {
-            self.target = Target::default();
+            self.target.reset();
             return None;
         }
 
@@ -539,18 +601,14 @@ impl CS2 {
             .read::<u32>(process.get_interface_function(offsets.interface.input, 19) + 0x14)
             as u64;
 
-        #[allow(unused)]
-        // todo: map name?
-        let game_types = process
-            .scan_pattern(
-                &[
-                    0x48, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00, 0xC3, 0x0F, 0x1F, 0x84, 0x00, 0x00,
-                    0x00, 0x00, 0x00, 0x48, 0x8B, 0x07,
-                ],
-                "xxx????xxxx?????xxx".as_bytes(),
-                offsets.library.matchmaking,
-            )
-            .unwrap();
+        offsets.direct.planted_c4 = process.scan_pattern(
+            &[
+                0x48, 0x8B, 0x05, 0x00, 0x00, 0x00, 0x00, 0x4C, 0x89, 0x24, 0xD8, 0x49, 0x8B, 0x44,
+                0x24,
+            ],
+            "xxx????xxxxxxxx".as_bytes(),
+            offsets.library.client,
+        )?;
 
         let sdl_window = process.get_module_export(offsets.library.sdl, "SDL_GetKeyboardFocus");
         if sdl_window.is_none() {
@@ -612,6 +670,13 @@ impl CS2 {
                         continue;
                     }
                     offsets.controller.pawn = read_vec::<u32>(&client_dump, i + 0x08 + 0x10) as u64;
+                }
+                "m_hOwnerEntity" => {
+                    if !network_enable || offsets.controller.owner_entity != 0 {
+                        continue;
+                    }
+                    offsets.controller.owner_entity =
+                        read_vec::<u32>(&client_dump, i + 0x08 + 0x10) as u64;
                 }
                 "m_iHealth" => {
                     if !network_enable || offsets.pawn.health != 0 {
@@ -988,5 +1053,36 @@ impl CS2 {
                 + (((button.u64() >> 5) * 4) + self.offsets.direct.button_state),
         );
         ((value >> (button.u64() & 31)) & 1) != 0
+    }
+
+    fn get_entity_type(
+        &self,
+        process: &ProcessHandle,
+        entity: u64,
+    ) -> Option<(EntityType, String)> {
+        let name_pointer = process.read(process.read::<u64>(entity + 0x10) + 0x20);
+        if name_pointer == 0 {
+            return None;
+        }
+
+        let name = process.read_string(name_pointer);
+
+        if name.starts_with("weapon_") {
+            let name = name.replace("weapon_", "");
+            match name.as_str() {
+                "c4" => return Some((EntityType::C4, name)),
+                _ => return Some((EntityType::Weapon, name)),
+            }
+        } else if name.ends_with("_projectile") {
+            let name = name.replace("_projectile", "");
+            match name.as_str() {
+                "incendiarygrenade" => {
+                    return Some((EntityType::Projectile, String::from("incgrenade")))
+                }
+                _ => return Some((EntityType::Projectile, name)),
+            }
+        }
+
+        None
     }
 }
