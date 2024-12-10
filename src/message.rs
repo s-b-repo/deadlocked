@@ -93,17 +93,7 @@ pub struct PlayerInfo {
 
 #[derive(Clone, Debug, Default)]
 pub struct EntityInfo {
-    pub entity_type: EntityType,
     pub name: String,
     pub position: Vec3,
     pub distance: f32,
-}
-
-#[derive(Clone, Debug, Default)]
-pub enum EntityType {
-    #[default]
-    Unknown,
-    C4,
-    Weapon,
-    Projectile,
 }

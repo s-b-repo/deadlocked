@@ -11,7 +11,7 @@ use crate::{
     cs2::{constants::Constants, offsets::Offsets, player::Target},
     key_codes::KeyCode,
     math::{angles_from_vector, angles_to_fov, vec2_clamp},
-    message::{EntityInfo, EntityType, PlayerInfo},
+    message::{EntityInfo, PlayerInfo},
     mouse::mouse_move,
     proc::{
         get_module_base_address, get_pid, open_process, read_string_vec, read_vec, validate_pid,
@@ -249,13 +249,16 @@ impl CS2 {
                 None => continue,
             };
 
-            let (entity_type, name) = match self.get_entity_type(process, controller) {
-                Some(entity) => entity,
+            if self.entity_has_owner(process, controller) {
+                continue;
+            }
+
+            let name = match self.get_entity_type(process, controller) {
+                Some(name) => name,
                 None => continue,
             };
             let position = self.get_position(process, controller);
             let entity = EntityInfo {
-                entity_type,
                 name,
                 position,
                 distance: (position - local_position).length(),
@@ -601,14 +604,15 @@ impl CS2 {
             .read::<u32>(process.get_interface_function(offsets.interface.input, 19) + 0x14)
             as u64;
 
-        offsets.direct.planted_c4 = process.scan_pattern(
+        let planted_c4 = process.scan_pattern(
             &[
                 0x48, 0x8B, 0x05, 0x00, 0x00, 0x00, 0x00, 0x4C, 0x89, 0x24, 0xD8, 0x49, 0x8B, 0x44,
                 0x24,
             ],
             "xxx????xxxxxxxx".as_bytes(),
             offsets.library.client,
-        )?;
+        );
+        offsets.direct.planted_c4 = process.get_relative_address(planted_c4?, 0x03, 0x07);
 
         let sdl_window = process.get_module_export(offsets.library.sdl, "SDL_GetKeyboardFocus");
         if sdl_window.is_none() {
@@ -1055,11 +1059,12 @@ impl CS2 {
         ((value >> (button.u64() & 31)) & 1) != 0
     }
 
-    fn get_entity_type(
-        &self,
-        process: &ProcessHandle,
-        entity: u64,
-    ) -> Option<(EntityType, String)> {
+    fn entity_has_owner(&self, process: &ProcessHandle, entity: u64) -> bool {
+        // h_pOwnerEntity is a handle, which is an int
+        process.read::<i32>(entity + self.offsets.controller.owner_entity) != -1
+    }
+
+    fn get_entity_type(&self, process: &ProcessHandle, entity: u64) -> Option<String> {
         let name_pointer = process.read(process.read::<u64>(entity + 0x10) + 0x20);
         if name_pointer == 0 {
             return None;
@@ -1069,18 +1074,15 @@ impl CS2 {
 
         if name.starts_with("weapon_") {
             let name = name.replace("weapon_", "");
-            match name.as_str() {
-                "c4" => return Some((EntityType::C4, name)),
-                _ => return Some((EntityType::Weapon, name)),
-            }
+            return Some(name);
         } else if name.ends_with("_projectile") {
             let name = name.replace("_projectile", "");
             match name.as_str() {
-                "incendiarygrenade" => {
-                    return Some((EntityType::Projectile, String::from("incgrenade")))
-                }
-                _ => return Some((EntityType::Projectile, name)),
+                "incendiarygrenade" => return Some(String::from("incgrenade")),
+                _ => return Some(name),
             }
+        } else if name.contains("bomb") || name.contains("c4") {
+            dbg!(name);
         }
 
         None

@@ -431,7 +431,7 @@ fn draw_entity(
     if let Some(icon) = icons.get(entity.name.as_str()) {
         let (icon_width, icon_height) = canvas.image_size(*icon).unwrap();
         let mut path = Path::new();
-        let scale = (50.0 / entity.distance).clamp(0.05, 0.5);
+        let scale = (50.0 / entity.distance).clamp(0.05, 0.2);
         let size = vec2(icon_width as f32, icon_height as f32) * scale;
         path.rect(
             position.x - size.x / 2.0,
