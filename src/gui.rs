@@ -342,8 +342,8 @@ impl Gui {
             }
             ui.end_row();
 
-            ui.label("Dropped Items")
-                .on_hover_text("whether to show dropped items");
+            ui.label("Dropped Items/Projectiles")
+                .on_hover_text("whether to show dropped items and projectiles");
             if ui
                 .checkbox(&mut game_config.visuals.dropped_items, "")
                 .changed()
