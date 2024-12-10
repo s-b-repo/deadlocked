@@ -58,9 +58,12 @@ fn main() {
         })
         .unwrap();
 
+    let size = [750.0, 450.0];
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_maximize_button(false),
+            .with_maximize_button(false)
+            .with_inner_size(size)
+            .with_resizable(false),
         ..Default::default()
     };
     eframe::run_native(

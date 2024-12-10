@@ -1,4 +1,4 @@
-use eframe::egui::{self, Align2, Color32, Ui};
+use eframe::egui::{self, Align2, Color32, Sense, Ui};
 use std::{cmp::Ordering, sync::mpsc};
 use strum::IntoEnumIterator;
 
@@ -113,10 +113,11 @@ impl Gui {
                 ui.label("Start Bullet")
                     .on_hover_text("after how many bullets fired in a row the aimbot should start");
                 if ui
-                    .add(egui::Slider::new(
-                        &mut game_config.aimbot.start_bullet,
-                        0..=5,
-                    ))
+                    .add(
+                        egui::DragValue::new(&mut game_config.aimbot.start_bullet)
+                            .range(0..=10)
+                            .speed(0.05),
+                    )
                     .changed()
                 {
                     self.send_message(AimbotMessage::ConfigStartBullet(
@@ -151,9 +152,11 @@ impl Gui {
                     .on_hover_text("how much around the crosshair the aimbot should \"see\"");
                 if ui
                     .add(
-                        egui::Slider::new(&mut game_config.aimbot.fov, 0.1..=10.0)
+                        egui::DragValue::new(&mut game_config.aimbot.fov)
+                            .range(0.1..=360.0)
                             .suffix("°")
-                            .step_by(0.1),
+                            .speed(0.02)
+                            .max_decimals(1),
                     )
                     .changed()
                 {
@@ -165,10 +168,12 @@ impl Gui {
                 ui.label("Smooth")
                     .on_hover_text("how much the aimbot input should be smoothed, higher is more");
                 if ui
-                    .add(egui::Slider::new(
-                        &mut game_config.aimbot.smooth,
-                        1.0..=10.0,
-                    ))
+                    .add(
+                        egui::DragValue::new(&mut game_config.aimbot.smooth)
+                            .range(1.0..=10.0)
+                            .speed(0.02)
+                            .max_decimals(1),
+                    )
                     .changed()
                 {
                     self.send_message(AimbotMessage::ConfigSmooth(game_config.aimbot.smooth));
@@ -209,177 +214,165 @@ impl Gui {
             .unwrap()
             .clone();
 
-        egui::Grid::new("visuals")
-            .num_columns(3)
-            .min_col_width(100.0)
-            .show(ui, |ui| {
-                ui.label("Enable Visuals")
-                    .on_hover_text("general visuals enable");
-                if ui.checkbox(&mut game_config.visuals.enabled, "").changed() {
-                    self.send_visuals_message(VisualsMessage::EnableVisuals(
-                        game_config.visuals.enabled,
-                    ));
-                    self.write_game_config(&game_config);
-                }
-                ui.end_row();
+        egui::Grid::new("visuals").show(ui, |ui| {
+            ui.label("Enable Visuals")
+                .on_hover_text("general visuals enable");
+            if ui.checkbox(&mut game_config.visuals.enabled, "").changed() {
+                self.send_visuals_message(VisualsMessage::EnableVisuals(
+                    game_config.visuals.enabled,
+                ));
+                self.write_game_config(&game_config);
+            }
+            ui.end_row();
 
-                ui.label("Box")
-                    .on_hover_text("whether to draw a box, and if so, in which color");
-                egui::ComboBox::new("visuals_draw_box", "")
-                    .selected_text(format!("{:?}", game_config.visuals.draw_box))
-                    .show_ui(ui, |ui| {
-                        for draw_style in DrawStyle::iter() {
-                            let text = format!("{:?}", &draw_style);
-                            if ui
-                                .selectable_value(
-                                    &mut game_config.visuals.draw_box,
-                                    draw_style,
-                                    text,
-                                )
-                                .clicked()
-                            {
-                                self.send_visuals_message(VisualsMessage::DrawBox(
-                                    game_config.visuals.draw_box,
-                                ));
-                                self.write_game_config(&game_config);
-                            }
+            ui.label("Box")
+                .on_hover_text("whether to draw a box, and if so, in which color");
+            egui::ComboBox::new("visuals_draw_box", "")
+                .selected_text(format!("{:?}", game_config.visuals.draw_box))
+                .show_ui(ui, |ui| {
+                    for draw_style in DrawStyle::iter() {
+                        let text = format!("{:?}", &draw_style);
+                        if ui
+                            .selectable_value(&mut game_config.visuals.draw_box, draw_style, text)
+                            .clicked()
+                        {
+                            self.send_visuals_message(VisualsMessage::DrawBox(
+                                game_config.visuals.draw_box,
+                            ));
+                            self.write_game_config(&game_config);
                         }
-                    });
-                if game_config.visuals.draw_box == DrawStyle::Color {
-                    let mut box_color = game_config.visuals.box_color.egui_color();
-                    if ui.color_edit_button_srgba(&mut box_color).changed() {
-                        game_config.visuals.box_color =
-                            Color::from_egui_color(box_color.to_opaque());
-                        self.send_visuals_message(VisualsMessage::BoxColor(
-                            game_config.visuals.box_color,
-                        ));
-                        self.write_game_config(&game_config);
                     }
+                });
+            if game_config.visuals.draw_box == DrawStyle::Color {
+                if let Some(color) = self.color_picker(ui, &mut game_config.visuals.box_color) {
+                    game_config.visuals.box_color = color;
+                    self.send_visuals_message(VisualsMessage::BoxColor(
+                        game_config.visuals.box_color,
+                    ));
+                    self.write_game_config(&game_config);
                 }
-                ui.end_row();
+            }
+            ui.end_row();
 
-                ui.label("Skeleton")
-                    .on_hover_text("whether to draw player skeletons, and if so, in which color");
-                egui::ComboBox::new("visuals_draw_skeleton", "")
-                    .selected_text(format!("{:?}", game_config.visuals.draw_skeleton))
-                    .show_ui(ui, |ui| {
-                        for draw_style in DrawStyle::iter() {
-                            let text = format!("{:?}", &draw_style);
-                            if ui
-                                .selectable_value(
-                                    &mut game_config.visuals.draw_skeleton,
-                                    draw_style,
-                                    text,
-                                )
-                                .clicked()
-                            {
-                                self.send_visuals_message(VisualsMessage::DrawSkeleton(
-                                    game_config.visuals.draw_skeleton,
-                                ));
-                                self.write_game_config(&game_config);
-                            }
+            ui.label("Skeleton")
+                .on_hover_text("whether to draw player skeletons, and if so, in which color");
+            egui::ComboBox::new("visuals_draw_skeleton", "")
+                .selected_text(format!("{:?}", game_config.visuals.draw_skeleton))
+                .show_ui(ui, |ui| {
+                    for draw_style in DrawStyle::iter() {
+                        let text = format!("{:?}", &draw_style);
+                        if ui
+                            .selectable_value(
+                                &mut game_config.visuals.draw_skeleton,
+                                draw_style,
+                                text,
+                            )
+                            .clicked()
+                        {
+                            self.send_visuals_message(VisualsMessage::DrawSkeleton(
+                                game_config.visuals.draw_skeleton,
+                            ));
+                            self.write_game_config(&game_config);
                         }
-                    });
-                if game_config.visuals.draw_skeleton == DrawStyle::Color {
-                    let mut skeleton_color = game_config.visuals.skeleton_color.egui_color();
-                    if ui.color_edit_button_srgba(&mut skeleton_color).changed() {
-                        game_config.visuals.skeleton_color =
-                            Color::from_egui_color(skeleton_color.to_opaque());
-                        self.send_visuals_message(VisualsMessage::SkeletonColor(
-                            game_config.visuals.skeleton_color,
-                        ));
-                        self.write_game_config(&game_config);
                     }
-                }
-                ui.end_row();
-
-                ui.label("Health Bar")
-                    .on_hover_text("whether to draw player health\nalways fades from green to red");
-                if ui
-                    .checkbox(&mut game_config.visuals.draw_health, "")
-                    .changed()
+                });
+            if game_config.visuals.draw_skeleton == DrawStyle::Color {
+                if let Some(color) = self.color_picker(ui, &mut game_config.visuals.skeleton_color)
                 {
-                    self.send_visuals_message(VisualsMessage::DrawHealth(
-                        game_config.visuals.draw_health,
+                    game_config.visuals.skeleton_color = color;
+                    self.send_visuals_message(VisualsMessage::SkeletonColor(
+                        game_config.visuals.skeleton_color,
                     ));
                     self.write_game_config(&game_config);
                 }
-                ui.end_row();
+            }
+            ui.end_row();
 
-                ui.label("Armor Bar")
-                    .on_hover_text("whether to draw player armor");
-                if ui
-                    .checkbox(&mut game_config.visuals.draw_armor, "")
-                    .changed()
-                {
-                    self.send_visuals_message(VisualsMessage::DrawArmor(
-                        game_config.visuals.draw_armor,
+            ui.label("Health Bar")
+                .on_hover_text("whether to draw player health\nalways fades from green to red");
+            if ui
+                .checkbox(&mut game_config.visuals.draw_health, "")
+                .changed()
+            {
+                self.send_visuals_message(VisualsMessage::DrawHealth(
+                    game_config.visuals.draw_health,
+                ));
+                self.write_game_config(&game_config);
+            }
+            ui.end_row();
+
+            ui.label("Armor Bar")
+                .on_hover_text("whether to draw player armor");
+            if ui
+                .checkbox(&mut game_config.visuals.draw_armor, "")
+                .changed()
+            {
+                self.send_visuals_message(VisualsMessage::DrawArmor(
+                    game_config.visuals.draw_armor,
+                ));
+                self.write_game_config(&game_config);
+            }
+            if game_config.visuals.draw_armor {
+                if let Some(color) = self.color_picker(ui, &mut game_config.visuals.armor_color) {
+                    game_config.visuals.armor_color = color;
+                    self.send_visuals_message(VisualsMessage::ArmorColor(
+                        game_config.visuals.armor_color,
                     ));
                     self.write_game_config(&game_config);
                 }
-                if game_config.visuals.draw_armor {
-                    let mut armor_color = game_config.visuals.armor_color.egui_color();
-                    if ui.color_edit_button_srgba(&mut armor_color).changed() {
-                        game_config.visuals.armor_color =
-                            Color::from_egui_color(armor_color.to_opaque());
-                        self.send_visuals_message(VisualsMessage::ArmorColor(
-                            game_config.visuals.armor_color,
-                        ));
-                        self.write_game_config(&game_config);
-                    }
-                }
-                ui.end_row();
+            }
+            ui.end_row();
 
-                ui.label("Weapon Icons")
-                    .on_hover_text("whether to show player weapon icons");
-                if ui
-                    .checkbox(&mut game_config.visuals.draw_weapon, "")
-                    .changed()
-                {
-                    self.send_visuals_message(VisualsMessage::DrawWeapon(
-                        game_config.visuals.draw_weapon,
-                    ));
-                    self.write_game_config(&game_config);
-                }
-                ui.end_row();
+            ui.label("Weapon Icons")
+                .on_hover_text("whether to show player weapon icons");
+            if ui
+                .checkbox(&mut game_config.visuals.draw_weapon, "")
+                .changed()
+            {
+                self.send_visuals_message(VisualsMessage::DrawWeapon(
+                    game_config.visuals.draw_weapon,
+                ));
+                self.write_game_config(&game_config);
+            }
+            ui.end_row();
 
-                ui.label("Visibility Check")
-                    .on_hover_text("whether to draw players only when visible");
-                if ui
-                    .checkbox(&mut game_config.visuals.visibility_check, "")
-                    .changed()
-                {
-                    self.send_visuals_message(VisualsMessage::VisibilityCheck(
-                        game_config.visuals.visibility_check,
-                    ));
-                    self.write_game_config(&game_config);
-                }
-                ui.end_row();
+            ui.label("Visibility Check")
+                .on_hover_text("whether to draw players only when visible");
+            if ui
+                .checkbox(&mut game_config.visuals.visibility_check, "")
+                .changed()
+            {
+                self.send_visuals_message(VisualsMessage::VisibilityCheck(
+                    game_config.visuals.visibility_check,
+                ));
+                self.write_game_config(&game_config);
+            }
+            ui.end_row();
 
-                ui.label("Overlay FPS")
-                    .on_hover_text("what fps the overlay should run at");
-                if ui
-                    .add(egui::Slider::new(&mut game_config.visuals.fps, 30..=240).step_by(5.0))
-                    .changed()
-                {
-                    self.send_visuals_message(VisualsMessage::VisualsFps(game_config.visuals.fps));
-                    self.write_game_config(&game_config);
-                }
-                ui.end_row();
+            ui.label("Overlay FPS")
+                .on_hover_text("what fps the overlay should run at");
+            if ui
+                .add(egui::DragValue::new(&mut game_config.visuals.fps).range(30..=240))
+                .changed()
+            {
+                self.send_visuals_message(VisualsMessage::VisualsFps(game_config.visuals.fps));
+                self.write_game_config(&game_config);
+            }
+            ui.end_row();
 
-                ui.label("Overlay Debugging")
-                    .on_hover_text("whether to draw a frame around the overlay window");
-                if ui
-                    .checkbox(&mut game_config.visuals.debug_window, "")
-                    .changed()
-                {
-                    self.send_visuals_message(VisualsMessage::DebugWindow(
-                        game_config.visuals.debug_window,
-                    ));
-                    self.write_game_config(&game_config);
-                }
-                ui.end_row();
-            });
+            ui.label("Overlay Debugging")
+                .on_hover_text("whether to draw a frame around the overlay window");
+            if ui
+                .checkbox(&mut game_config.visuals.debug_window, "")
+                .changed()
+            {
+                self.send_visuals_message(VisualsMessage::DebugWindow(
+                    game_config.visuals.debug_window,
+                ));
+                self.write_game_config(&game_config);
+            }
+            ui.end_row();
+        });
 
         *self
             .config
@@ -418,6 +411,30 @@ impl Gui {
                     .color(color),
             );
         });
+    }
+
+    fn color_picker(&self, ui: &mut Ui, color: &mut Color) -> Option<Color> {
+        let [mut r, mut g, mut b, _] = color.egui_color().to_array();
+        let mut changed = false;
+        if ui.add(egui::DragValue::new(&mut r).prefix("r: ")).changed() {
+            changed = true;
+        }
+        if ui.add(egui::DragValue::new(&mut g).prefix("g: ")).changed() {
+            changed = true;
+        }
+        if ui.add(egui::DragValue::new(&mut b).prefix("b: ")).changed() {
+            changed = true;
+        };
+        let (response, painter) = ui.allocate_painter(ui.spacing().interact_size, Sense::hover());
+        painter.rect_filled(
+            response.rect,
+            ui.style().visuals.widgets.inactive.rounding,
+            color.egui_color(),
+        );
+        if changed {
+            return Some(Color { r, g, b });
+        }
+        None
     }
 
     fn write_game_config(&self, game_config: &GameConfig) {

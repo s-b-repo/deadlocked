@@ -2,7 +2,7 @@
 use eframe::egui::Color32;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Color {
     pub r: u8,
     pub b: u8,
