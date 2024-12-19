@@ -6,7 +6,7 @@ use std::{
 
 use bytemuck::{Pod, Zeroable};
 
-use crate::process_handle::ProcessHandle;
+use crate::process::Process;
 
 pub fn get_pid(process_name: &str) -> Option<u64> {
     for dir in read_dir("/proc").unwrap() {
@@ -41,19 +41,19 @@ pub fn validate_pid(pid: u64) -> bool {
     Path::new(format!("/proc/{}", pid).as_str()).exists()
 }
 
-pub fn open_process(pid: u64) -> Option<ProcessHandle> {
+pub fn open_process(pid: u64) -> Option<Process> {
     if !validate_pid(pid) {
         return None;
     }
 
     let memory = File::open(format!("/proc/{pid}/mem"));
     match memory {
-        Ok(mem) => Some(ProcessHandle::new(pid, mem)),
+        Ok(mem) => Some(Process::new(pid, mem)),
         _ => None,
     }
 }
 
-pub fn get_module_base_address(process: &ProcessHandle, module_name: &str) -> Option<u64> {
+pub fn get_module_base_address(process: &Process, module_name: &str) -> Option<u64> {
     let maps = File::open(format!("/proc/{}/maps", process.pid)).unwrap();
     for line in BufReader::new(maps).lines() {
         if line.is_err() {

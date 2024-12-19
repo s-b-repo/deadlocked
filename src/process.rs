@@ -9,12 +9,12 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct ProcessHandle {
+pub struct Process {
     pub pid: u64,
     pub memory: File,
 }
 
-impl ProcessHandle {
+impl Process {
     pub fn new(pid: u64, memory: File) -> Self {
         Self { pid, memory }
     }

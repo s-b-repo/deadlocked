@@ -16,7 +16,7 @@ mod math;
 mod message;
 mod mouse;
 mod proc;
-mod process_handle;
+mod process;
 mod visuals;
 mod weapon_class;
 
