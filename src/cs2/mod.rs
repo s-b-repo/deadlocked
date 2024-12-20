@@ -500,6 +500,9 @@ impl CS2 {
         }
 
         let mut aim_angles = view_angles - self.target.angle;
+        if aim_angles.y < -180.0 {
+            aim_angles.y += 360.0;
+        }
         vec2_clamp(&mut aim_angles);
 
         let sensitivity =
