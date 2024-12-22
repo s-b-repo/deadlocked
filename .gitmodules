@@ -1,0 +1,9 @@
+[submodule "glm"]
+	path = glm
+	url = https://github.com/g-truc/glm
+[submodule "imgui"]
+	path = imgui
+	url = https://github.com/ocornut/imgui
+[submodule "glfw"]
+	path = glfw
+	url = https://github.com/glfw/glfw
