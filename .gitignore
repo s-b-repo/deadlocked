@@ -1,6 +1,4 @@
 .idea
 .vscode
 
-/target
-
-config.toml
+/build
