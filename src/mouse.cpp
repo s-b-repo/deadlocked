@@ -1,14 +1,15 @@
 #include "mouse.hpp"
 
+#include <fcntl.h>
 #include <linux/input-event-codes.h>
 #include <linux/input.h>
+#include <unistd.h>
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 
 #include "log.hpp"
-#include <fcntl.h>
 
 i32 mouse = 0;
 
@@ -64,4 +65,26 @@ void MouseInit() {
 
     mouse = open("/dev/null", O_WRONLY);
     Log(LogLevel::Warning, "no mouse was found");
+}
+
+void MouseMove(glm::ivec2 coords) {
+    struct input_event ev = {0};
+
+    // x
+    ev.type = EV_REL;
+    ev.code = REL_X;
+    ev.value = coords.x;
+    write(mouse, &ev, sizeof(ev));
+
+    // y
+    ev.type = EV_REL;
+    ev.code = REL_Y;
+    ev.value = coords.y;
+    write(mouse, &ev, sizeof(ev));
+
+    // syn
+    ev.type = EV_SYN;
+    ev.code = SYN_REPORT;
+    ev.value = 0;
+    write(mouse, &ev, sizeof(ev));
 }

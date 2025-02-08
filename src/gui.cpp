@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <format>
 #include <iostream>
+#include <log.hpp>
 #include <thread>
 
 #include "config.hpp"
@@ -97,8 +98,7 @@ void Gui() {
     glfwWindowHint(GLFW_FLOATING, true);
     glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, true);
     glfwWindowHint(GLFW_MOUSE_PASSTHROUGH, true);
-    GLFWwindow *overlay =
-        glfwCreateWindow(maxX - minX, maxY - minY, "deadlocked", nullptr, nullptr);
+    GLFWwindow *overlay = glfwCreateWindow(maxX - minX, maxY - minY, "deadlocked", nullptr, nullptr);
     if (!overlay) {
         std::cerr << "could not create overlay window\n";
         return;
@@ -152,65 +152,63 @@ void Gui() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        ImGui::Begin(
-            "deadlocked", nullptr,
-            ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+        ImGui::Begin("deadlocked", nullptr,
+                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
         glfwGetWindowSize(gui_window, &width, &height);
         ImGui::SetWindowSize(ImVec2(width, height));
         ImGui::SetWindowPos(ImVec2(0.0f, 0.0f));
 
-        ImGui::Checkbox("enable visuals", &config.visuals_enabled);
+        ImGui::Checkbox("enable visuals", &config.visuals.enabled);
 
         ImGui::Text("draw box");
         ImGui::SameLine();
         ImGui::PushID("draw_box");
-        if (ImGui::RadioButton("none", config.draw_box == DrawStyle::DrawNone)) {
-            config.draw_box = DrawStyle::DrawNone;
+        if (ImGui::RadioButton("none", config.visuals.draw_box == DrawStyle::DrawNone)) {
+            config.visuals.draw_box = DrawStyle::DrawNone;
         }
         ImGui::SameLine();
-        if (ImGui::RadioButton("color", config.draw_box == DrawStyle::DrawColor)) {
-            config.draw_box = DrawStyle::DrawColor;
+        if (ImGui::RadioButton("color", config.visuals.draw_box == DrawStyle::DrawColor)) {
+            config.visuals.draw_box = DrawStyle::DrawColor;
         }
         ImGui::SameLine();
-        if (ImGui::RadioButton("health", config.draw_box == DrawStyle::DrawHealth)) {
-            config.draw_box = DrawStyle::DrawHealth;
+        if (ImGui::RadioButton("health", config.visuals.draw_box == DrawStyle::DrawHealth)) {
+            config.visuals.draw_box = DrawStyle::DrawHealth;
         }
         ImGui::PopID();
 
-        if (config.draw_box == DrawStyle::DrawColor) {
-            ImGui::ColorEdit3("box color", &config.box_color.x);
+        if (config.visuals.draw_box == DrawStyle::DrawColor) {
+            ImGui::ColorEdit3("box color", &config.visuals.box_color.x);
         }
 
         ImGui::Text("draw skeleton");
         ImGui::SameLine();
         ImGui::PushID("draw_skeleton");
-        if (ImGui::RadioButton("none", config.draw_skeleton == DrawStyle::DrawNone)) {
-            config.draw_skeleton = DrawStyle::DrawNone;
+        if (ImGui::RadioButton("none", config.visuals.draw_skeleton == DrawStyle::DrawNone)) {
+            config.visuals.draw_skeleton = DrawStyle::DrawNone;
         }
         ImGui::SameLine();
-        if (ImGui::RadioButton("color", config.draw_skeleton == DrawStyle::DrawColor)) {
-            config.draw_skeleton = DrawStyle::DrawColor;
+        if (ImGui::RadioButton("color", config.visuals.draw_skeleton == DrawStyle::DrawColor)) {
+            config.visuals.draw_skeleton = DrawStyle::DrawColor;
         }
         ImGui::SameLine();
-        if (ImGui::RadioButton("health", config.draw_skeleton == DrawStyle::DrawHealth)) {
-            config.draw_skeleton = DrawStyle::DrawHealth;
+        if (ImGui::RadioButton("health", config.visuals.draw_skeleton == DrawStyle::DrawHealth)) {
+            config.visuals.draw_skeleton = DrawStyle::DrawHealth;
         }
         ImGui::PopID();
 
-        if (config.draw_skeleton == DrawStyle::DrawColor) {
-            ImGui::ColorEdit3("skeleton color", &config.skeleton_color.x);
+        if (config.visuals.draw_skeleton == DrawStyle::DrawColor) {
+            ImGui::ColorEdit3("skeleton color", &config.visuals.skeleton_color.x);
         }
 
-        ImGui::Checkbox("health bar", &config.draw_health);
-        ImGui::Checkbox("armor bar", &config.draw_armor);
-        if (config.draw_armor) {
-            ImGui::ColorEdit3("armor color", &config.armor_color.x);
+        ImGui::Checkbox("health bar", &config.visuals.draw_health);
+        ImGui::Checkbox("armor bar", &config.visuals.draw_armor);
+        if (config.visuals.draw_armor) {
+            ImGui::ColorEdit3("armor color", &config.visuals.armor_color.x);
         }
-        ImGui::Checkbox("draw weapon name", &config.draw_weapon);
-        ImGui::Checkbox("visibility check", &config.visibility_check);
-        ImGui::DragInt("overlay fps", &config.overlay_fps, 0.5f, 30, 240);
+        ImGui::Checkbox("draw weapon name", &config.visuals.draw_weapon);
+        ImGui::DragInt("overlay fps", &config.visuals.overlay_fps, 0.5f, 30, 240);
 
-        ImGui::Checkbox("overlay debugging", &config.debug_window);
+        ImGui::Checkbox("overlay debugging", &config.visuals.debug_window);
 
         if (ImGui::Button("reset config")) {
             ResetConfig();
@@ -221,9 +219,8 @@ void Gui() {
         std::string gui_fps = std::format("FPS: {:.0f}", gui_io.Framerate);
         const ImVec2 text_size = ImGui::CalcTextSize(gui_fps.c_str());
         const ImVec2 window_size = ImGui::GetWindowSize();
-        gui_draw_list->AddText(
-            ImVec2(window_size.x - text_size.x - 4, window_size.y - text_size.y - 4), 0xFFFFFFFF,
-            gui_fps.c_str());
+        gui_draw_list->AddText(ImVec2(window_size.x - text_size.x - 4, window_size.y - text_size.y - 4), 0xFFFFFFFF,
+                               gui_fps.c_str());
 
         ImGui::End();
 
@@ -245,9 +242,8 @@ void Gui() {
         ImGui::NewFrame();
 
         ImGui::Begin("overlay", nullptr,
-                     ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration |
-                         ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoResize |
-                         ImGuiWindowFlags_NoMove);
+                     ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs |
+                         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
         ImGui::SetWindowPos(ImVec2(minX, minY));
         ImGui::SetWindowSize(ImVec2(maxX - minX, maxY - minY));
         ImDrawList *overlay_draw_list = ImGui::GetBackgroundDrawList();
@@ -255,26 +251,19 @@ void Gui() {
         std::string overlay_fps = std::format("FPS: {:.0f}", overlay_io.Framerate);
         overlay_draw_list->AddText(ImVec2(4, 4), 0xFFFFFFFF, overlay_fps.c_str());
 
-        if (config.debug_window) {
+        if (config.visuals.debug_window) {
             // frame
-            overlay_draw_list->AddRect(ImVec2(minX, minY), ImVec2(maxX - minX, maxY - minY),
-                                       0xffffffff, 0.0f, 0, 8.0);
+            overlay_draw_list->AddRect(ImVec2(minX, minY), ImVec2(maxX - minX, maxY - minY), 0xffffffff, 0.0f, 0, 8.0);
 
             // cross
-            overlay_draw_list->AddLine(ImVec2(minX, minY), ImVec2(maxX - minX, maxY - minY),
-                                       0xffffffff, 4.0);
-            overlay_draw_list->AddLine(ImVec2(minX, maxY - minY), ImVec2(maxX - minX, minY),
-                                       0xffffffff, 4.0);
+            overlay_draw_list->AddLine(ImVec2(minX, minY), ImVec2(maxX - minX, maxY - minY), 0xffffffff, 4.0);
+            overlay_draw_list->AddLine(ImVec2(minX, maxY - minY), ImVec2(maxX - minX, minY), 0xffffffff, 4.0);
         }
 
         // todo: overlay
-        for (const auto player : player_info) {
-            if (config.visibility_check && !player.visible) {
-                continue;
-            }
-
-            const auto bottom_opt = WorldToScreen(&player.position);
-            const auto top_opt = WorldToScreen(&player.head);
+        for (auto player : player_info) {
+            const auto bottom_opt = WorldToScreen(player.position);
+            const auto top_opt = WorldToScreen(player.head);
 
             if (!bottom_opt.has_value() || !top_opt.has_value()) {
                 continue;
@@ -294,45 +283,39 @@ void Gui() {
 
             const ImU32 health_color = HealthColor(player.health);
 
-            if (config.draw_box != DrawStyle::DrawNone) {
+            if (config.visuals.draw_box != DrawStyle::DrawNone) {
                 // four corners, each a quarter of the width/height
                 // convert imvec4 to imu32
                 ImU32 color;
-                if (config.draw_box == DrawStyle::DrawColor) {
-                    color = IM_COL32(config.box_color.x * 255, config.box_color.y * 255,
-                                     config.box_color.z * 255, 255);
+                if (config.visuals.draw_box == DrawStyle::DrawColor) {
+                    color = IM_COL32(config.visuals.box_color.x * 255, config.visuals.box_color.y * 255,
+                                     config.visuals.box_color.z * 255, 255);
                 } else {
                     color = health_color;
                 }
-                overlay_draw_list->AddLine(
-                    bottom_left, ImVec2(bottom_left.x, bottom_left.y + height / 4), color, 2.0);
-                overlay_draw_list->AddLine(
-                    bottom_left, ImVec2(bottom_left.x + width / 4, bottom_left.y), color, 2.0);
-                overlay_draw_list->AddLine(
-                    bottom_right, ImVec2(bottom_right.x, bottom_right.y + height / 4), color, 2.0);
-                overlay_draw_list->AddLine(
-                    bottom_right, ImVec2(bottom_right.x - width / 4, bottom_right.y), color, 2.0);
-                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x, top_left.y - height / 4),
-                                           color, 2.0);
-                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x + width / 4, top_left.y),
-                                           color, 2.0);
-                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x, top_right.y - height / 4),
-                                           color, 2.0);
-                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x - width / 4, top_right.y),
-                                           color, 2.0);
+                overlay_draw_list->AddLine(bottom_left, ImVec2(bottom_left.x, bottom_left.y + height / 4), color, 2.0);
+                overlay_draw_list->AddLine(bottom_left, ImVec2(bottom_left.x + width / 4, bottom_left.y), color, 2.0);
+                overlay_draw_list->AddLine(bottom_right, ImVec2(bottom_right.x, bottom_right.y + height / 4), color,
+                                           2.0);
+                overlay_draw_list->AddLine(bottom_right, ImVec2(bottom_right.x - width / 4, bottom_right.y), color,
+                                           2.0);
+                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x, top_left.y - height / 4), color, 2.0);
+                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x + width / 4, top_left.y), color, 2.0);
+                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x, top_right.y - height / 4), color, 2.0);
+                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x - width / 4, top_right.y), color, 2.0);
             }
 
-            if (config.draw_skeleton != DrawStyle::DrawNone) {
+            if (config.visuals.draw_skeleton != DrawStyle::DrawNone) {
                 ImU32 color;
-                if (config.draw_skeleton == DrawStyle::DrawColor) {
-                    color = IM_COL32(config.skeleton_color.x * 255, config.skeleton_color.y * 255,
-                                     config.skeleton_color.z * 255, 255);
+                if (config.visuals.draw_skeleton == DrawStyle::DrawColor) {
+                    color = IM_COL32(config.visuals.skeleton_color.x * 255, config.visuals.skeleton_color.y * 255,
+                                     config.visuals.skeleton_color.z * 255, 255);
                 } else {
                     color = health_color;
                 }
-                for (const auto connection : player.bones) {
-                    const auto bone1 = WorldToScreen(&connection.first);
-                    const auto bone2 = WorldToScreen(&connection.second);
+                for (auto connection : player.bones) {
+                    const auto bone1 = WorldToScreen(connection.first);
+                    const auto bone2 = WorldToScreen(connection.second);
                     if (bone1.has_value() && bone2.has_value()) {
                         const ImVec2 start = ImVec2(bone1.value().x, bone1.value().y);
                         const ImVec2 end = ImVec2(bone2.value().x, bone2.value().y);
@@ -341,26 +324,24 @@ void Gui() {
                 }
             }
 
-            if (config.draw_health) {
+            if (config.visuals.draw_health) {
                 const ImVec2 health_bottom_left = ImVec2(bottom_right.x - 4, bottom_right.y);
                 // adjust height based on health
-                const ImVec2 health_top_left =
-                    ImVec2(top_right.x - 4, bottom_right.y + height * player.health / 100);
+                const ImVec2 health_top_left = ImVec2(top_right.x - 4, bottom_right.y + height * player.health / 100);
                 overlay_draw_list->AddLine(health_bottom_left, health_top_left, health_color, 2.0);
             }
 
-            if (config.draw_armor) {
+            if (config.visuals.draw_armor) {
                 const ImVec2 armor_bottom_left = ImVec2(bottom_right.x - 8, bottom_right.y);
-                const ImVec2 armor_top_left =
-                    ImVec2(top_right.x - 8, bottom_right.y + height * player.armor / 100);
+                const ImVec2 armor_top_left = ImVec2(top_right.x - 8, bottom_right.y + height * player.armor / 100);
                 overlay_draw_list->AddLine(
                     armor_bottom_left, armor_top_left,
-                    IM_COL32(config.armor_color.x * 255, config.armor_color.y * 255,
-                             config.armor_color.z * 255, 255),
+                    IM_COL32(config.visuals.armor_color.x * 255, config.visuals.armor_color.y * 255,
+                             config.visuals.armor_color.z * 255, 255),
                     2.0);
             }
 
-            if (config.draw_weapon) {
+            if (config.visuals.draw_weapon) {
                 const ImVec2 weapon_bottom_left = ImVec2(bottom_right.x, bottom_right.y + 4);
                 overlay_draw_list->AddText(weapon_bottom_left, 0xffffffff, player.weapon.c_str());
             }
@@ -382,7 +363,7 @@ void Gui() {
 
         auto end_time = std::chrono::steady_clock::now();
         auto us = std::chrono::duration_cast<std::chrono::microseconds>(end_time - clock);
-        const auto frame_time = std::chrono::microseconds(1000000 / config.overlay_fps);
+        const auto frame_time = std::chrono::microseconds(1000000 / config.visuals.overlay_fps);
         std::this_thread::sleep_for(frame_time - us);
         // glfwPollEvents();
     }

@@ -1,5 +1,7 @@
 #include "cs2/player.hpp"
 
+#include "cs2/cs2.hpp"
+
 std::optional<Player> Player::LocalPlayer() {
     const u64 controller = process.Read<u64>(offsets.direct.local_player);
     if (controller == 0) {
@@ -99,7 +101,16 @@ std::string Player::WeaponName() {
         return std::string("?");
     }
 
-    return process.ReadString(weapon_name_pointer);
+    auto name = process.ReadString(weapon_name_pointer);
+    if (name.find("weapon_") != std::string::npos) {
+        name = name.substr(7);
+    }
+    return name;
+}
+
+WeaponClass Player::GetWeaponClass() {
+    const auto name = WeaponName();
+    return WeaponClassFromString(name);
 }
 
 u64 Player::GameSceneNode() { return process.Read<u64>(pawn + offsets.pawn.game_scene_node); }
@@ -183,5 +194,5 @@ glm::vec2 Player::AimPunch() {
 
     const u64 data_address = process.Read<u64>(pawn + offsets.pawn.aim_punch_cache + 0x08);
 
-    return process.Read<glm::vec2>(data_address + (length - 1) * 12);
+    return process.Read<glm::vec2>(data_address + (length - 1) * 12) * glm::vec2(2.0);
 }

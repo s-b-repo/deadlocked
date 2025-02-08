@@ -12,6 +12,8 @@
 bool is_valid = false;
 Process process = {0};
 Offsets offsets = {0};
+Target target;
+std::vector<Player> players;
 
 extern Config config;
 extern std::vector<PlayerInfo> player_info;
@@ -56,74 +58,6 @@ void Setup() {
     offsets = offsets_opt.value();
 
     is_valid = true;
-}
-
-void Run() {
-    const auto local_player_opt = Player::LocalPlayer();
-    if (!local_player_opt.has_value()) {
-        return;
-    }
-    Player local_player = local_player_opt.value();
-
-    const u8 local_team = local_player.Team();
-    if (local_team != TEAM_CT && local_team != TEAM_T) {
-        return;
-    }
-
-    std::vector<Player> players;
-    std::vector<PlayerInfo> player_info_new;
-    u64 local_pawn_index = 0;
-    for (u64 i = 1; i <= 64; i++) {
-        const auto player_opt = Player::Index(i);
-        if (!player_opt.has_value()) {
-            continue;
-        }
-        Player player = player_opt.value();
-
-        if (!player.IsValid()) {
-            continue;
-        }
-
-        if (player.Equals(local_player)) {
-            local_pawn_index = i - 1;
-        }
-
-        const u8 team = player.Team();
-        if (team == local_team) {
-            continue;
-        }
-
-        players.push_back(player);
-    }
-
-    for (auto &player : players) {
-        PlayerInfo info = {0};
-        info.health = player.Health();
-        info.armor = player.Armor();
-        info.team = player.Team();
-        info.position = player.Position();
-        info.head = player.BonePosition(Bones::BoneHead);
-        info.weapon = player.WeaponName();
-        info.bones = player.AllBones();
-
-        const i32 spotted_mask = player.SpottedMask();
-        info.visible = spotted_mask & (1 << local_pawn_index);
-
-        player_info_new.push_back(info);
-    }
-
-    if (player_info_new.size() > 0) {
-        player_info = player_info_new;
-    } else {
-        player_info.clear();
-    }
-    view_matrix = process.Read<glm::mat4>(offsets.direct.view_matrix);
-    const u64 sdl_window = process.Read<u64>(offsets.direct.sdl_window);
-    if (sdl_window == 0) {
-        window_size = glm::ivec4(0);
-    } else {
-        window_size = process.Read<glm::ivec4>(sdl_window + 0x18);
-    }
 }
 
 std::optional<Offsets> FindOffsets() {
@@ -353,15 +287,6 @@ std::optional<Offsets> FindOffsets() {
                 continue;
             }
             offsets.pawn.eye_offset = *(i32 *)(entry + 0x08 + 0x10);
-        } else if (name == std::string("m_vecVelocity")) {
-            if (offsets.pawn.velocity != 0) {
-                continue;
-            }
-            const u64 offset = *(i32 *)(entry + 0x08);
-            if (offset < 800 || offset > 1600) {
-                continue;
-            }
-            offsets.pawn.velocity = offset;
         } else if (name == std::string("m_aimPunchCache")) {
             if (!network_enable || offsets.pawn.aim_punch_cache != 0) {
                 continue;
@@ -424,6 +349,7 @@ std::optional<Offsets> FindOffsets() {
         }
 
         if (offsets.AllFound()) {
+            target.Reset();
             return offsets;
         }
     }
@@ -462,4 +388,164 @@ std::optional<std::string> GetEntityType(const u64 entity) {
     }
 
     return std::nullopt;
+}
+
+glm::vec2 TargetAngle(Player &local_player, const glm::vec3 &eye_position, const glm::vec3 &position,
+                      const glm::vec2 &aim_punch) {
+    const auto forward = glm::normalize(position - eye_position);
+    auto angles = AnglesFromVector(forward) - aim_punch;
+    Vec2Clamp(angles);
+    return angles;
+}
+
+void FindTarget() {
+    const auto local_player_opt = Player::LocalPlayer();
+    if (!local_player_opt.has_value()) {
+        return;
+    }
+    Player local_player = local_player_opt.value();
+
+    const u8 local_team = local_player.Team();
+    if (local_team != TEAM_CT && local_team != TEAM_T) {
+        return;
+    }
+
+    // note to self: forgetting to clear this caused such a retarded memory leak
+    players.clear();
+    for (u64 i = 1; i <= 64; i++) {
+        const auto player_opt = Player::Index(i);
+        if (!player_opt.has_value()) {
+            continue;
+        }
+        Player player = player_opt.value();
+
+        if (!player.IsValid()) {
+            continue;
+        }
+
+        if (player.Equals(local_player)) {
+            target.local_pawn_index = i - 1;
+        }
+
+        const u8 team = player.Team();
+        if (team == local_team) {
+            continue;
+        }
+
+        players.push_back(player);
+    }
+
+    const WeaponClass weapon_class = local_player.GetWeaponClass();
+    if (weapon_class == WeaponClass::Unknown || weapon_class == WeaponClass::Grenade ||
+        weapon_class == WeaponClass::Grenade) {
+        target.Reset();
+        return;
+    }
+
+    const auto view_angles = local_player.ViewAngles();
+    const auto ffa = IsFfa();
+    const auto shots_fired = local_player.ShotsFired();
+    glm::vec2 aim_punch = glm::vec2(0.0);
+    if (weapon_class != WeaponClass::Sniper) {
+        const auto punch = local_player.AimPunch();
+        if (glm::length(punch) < 0.001 && shots_fired > 0) {
+            aim_punch = target.previous_aim_punch;
+        } else {
+            aim_punch = punch;
+        }
+    }
+    target.previous_aim_punch = aim_punch;
+
+    if (players.size() == 0) {
+        target.Reset();
+        return;
+    }
+
+    f32 smallest_fov = 360.0;
+    const auto eye_position = local_player.EyePosition();
+    if (target.player.has_value()) {
+        if (!target.player.value().IsValid()) {
+            target.Reset();
+        }
+    } else {
+        target.Reset();
+    }
+    for (auto player : players) {
+        if (!ffa && local_team == player.Team()) {
+            continue;
+        }
+
+        const auto head_position = player.BonePosition(Bones::BoneHead);
+        const auto distance = glm::distance(eye_position, head_position);
+        const auto angle = TargetAngle(local_player, eye_position, head_position, aim_punch);
+        const f32 fov = AnglesToFov(view_angles, angle);
+
+        if (fov < smallest_fov) {
+            smallest_fov = fov;
+
+            target.player = player;
+            target.angle = angle;
+            target.distance = distance;
+            target.bone_index = Bones::BoneHead;
+        }
+    }
+
+    if (!target.player.has_value()) {
+        return;
+    }
+
+    // update target angle
+    smallest_fov = 360.0;
+    auto target_player = target.player.value();
+    for (const auto bone : all_bones) {
+        const auto bone_position = target_player.BonePosition(bone);
+        const auto distance = glm::distance(eye_position, bone_position);
+        const auto angle = TargetAngle(local_player, eye_position, bone_position, aim_punch);
+        const auto fov = AnglesToFov(view_angles, angle);
+
+        if (fov < smallest_fov) {
+            smallest_fov = fov;
+
+            target.angle = angle;
+            target.distance = distance;
+            target.bone_index = bone;
+        }
+    }
+}
+
+void VisualInfo() {
+    std::vector<PlayerInfo> player_info_new;
+    for (auto &player : players) {
+        PlayerInfo info = {0};
+        info.health = player.Health();
+        info.armor = player.Armor();
+        info.team = player.Team();
+        info.position = player.Position();
+        info.head = player.BonePosition(Bones::BoneHead);
+        info.weapon = player.WeaponName();
+        info.bones = player.AllBones();
+
+        const i32 spotted_mask = player.SpottedMask();
+        info.visible = spotted_mask & (1 << target.local_pawn_index);
+
+        player_info_new.push_back(info);
+    }
+
+    if (player_info_new.size() > 0) {
+        player_info = player_info_new;
+    } else {
+        player_info.clear();
+    }
+    view_matrix = process.Read<glm::mat4>(offsets.direct.view_matrix);
+    const u64 sdl_window = process.Read<u64>(offsets.direct.sdl_window);
+    if (sdl_window == 0) {
+        window_size = glm::ivec4(0);
+    } else {
+        window_size = process.Read<glm::ivec4>(sdl_window + 0x18);
+    }
+}
+
+void Run() {
+    FindTarget();
+    VisualInfo();
 }

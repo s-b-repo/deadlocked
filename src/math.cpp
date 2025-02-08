@@ -2,21 +2,21 @@
 
 f32 ToDegrees(const f32 value) { return value * 180.0 / M_PI; }
 
-glm::vec2 AnglesFromVector(const glm::vec3 *forward) {
+glm::vec2 AnglesFromVector(const glm::vec3 &forward) {
     f32 yaw = 0.0;
     f32 pitch = 0.0;
 
     // forward vector points up or down
-    if (forward->x == 0.0 && forward->y == 0.0) {
+    if (forward.x == 0.0 && forward.y == 0.0) {
         yaw = 0.0;
-        pitch = forward->z > 0.0 ? 270.0 : 90.0;
+        pitch = forward.z > 0.0 ? 270.0 : 90.0;
     } else {
-        yaw = ToDegrees(atan2f(forward->y, forward->x));
+        yaw = ToDegrees(atan2f(forward.y, forward.x));
         if (yaw < 0.0) {
             yaw += 360.0;
         }
 
-        pitch = ToDegrees(atan2f(-forward->z, (glm::vec2(forward->x, forward->y).length())));
+        pitch = ToDegrees(atan2f(-forward.z, (glm::length(glm::vec2(forward.x, forward.y)))));
         if (pitch < 0.0) {
             pitch += 360.0;
         }
@@ -25,8 +25,8 @@ glm::vec2 AnglesFromVector(const glm::vec3 *forward) {
     return glm::vec2(pitch, yaw);
 }
 
-f32 AnglesToFov(const glm::vec2 *view_angles, const glm::vec2 *aim_angles) {
-    glm::vec2 delta = *view_angles - *aim_angles;
+f32 AnglesToFov(const glm::vec2 &view_angles, const glm::vec2 &aim_angles) {
+    glm::vec2 delta = view_angles - aim_angles;
 
     if (delta.x > 180.0) {
         delta.x = 360.0 - delta.x;
@@ -36,40 +36,33 @@ f32 AnglesToFov(const glm::vec2 *view_angles, const glm::vec2 *aim_angles) {
     // clamp?
     delta.y = fabsf(fmodf((delta.y + 180.0), 360.0) - 180.0);
 
-    return Vec2Length(&delta);
+    return glm::length(delta);
 }
 
-void Vec2Clamp(glm::vec2 *vec) {
-    if (vec->x > 89.0 && vec->x <= 180.0) {
-        vec->x = 89.0;
+void Vec2Clamp(glm::vec2 &vec) {
+    if (vec.x > 89.0 && vec.x <= 180.0) {
+        vec.x = 89.0;
     }
-    if (vec->x > 180.0) {
-        vec->x -= 360.0;
+    if (vec.x > 180.0) {
+        vec.x -= 360.0;
     }
-    if (vec->x < -89.0) {
-        vec->x = -89.0;
+    if (vec.x < -89.0) {
+        vec.x = -89.0;
     }
-    vec->y = fmodf((vec->y + 180.0), 360.0) - 180.0;
-}
-
-f32 Vec2Length(const glm::vec2 *vec) { return sqrtf(vec->x * vec->x + vec->y * vec->y); }
-
-f32 Vec3Length(const glm::vec3 *vec) {
-    return sqrtf(vec->x * vec->x + vec->y * vec->y + vec->z * vec->z);
+    vec.y = fmodf((vec.y + 180.0), 360.0) - 180.0;
 }
 
 extern glm::mat4 view_matrix;
 extern glm::ivec4 window_size;
 
-std::optional<glm::vec2> WorldToScreen(const glm::vec3 *position) {
-    auto screen_position =
-        glm::vec2(view_matrix[0].x * position->x + view_matrix[0].y * position->y +
-                      view_matrix[0].z * position->z + view_matrix[0].w,
-                  view_matrix[1].x * position->x + view_matrix[1].y * position->y +
-                      view_matrix[1].z * position->z + view_matrix[1].w);
+std::optional<glm::vec2> WorldToScreen(const glm::vec3 &position) {
+    auto screen_position = glm::vec2(view_matrix[0].x * position.x + view_matrix[0].y * position.y +
+                                         view_matrix[0].z * position.z + view_matrix[0].w,
+                                     view_matrix[1].x * position.x + view_matrix[1].y * position.y +
+                                         view_matrix[1].z * position.z + view_matrix[1].w);
 
-    const f32 w = view_matrix[3].x * position->x + view_matrix[3].y * position->y +
-                  view_matrix[3].z * position->z + view_matrix[3].w;
+    const f32 w = view_matrix[3].x * position.x + view_matrix[3].y * position.y + view_matrix[3].z * position.z +
+                  view_matrix[3].w;
 
     if (w < 0.01) {
         return std::nullopt;

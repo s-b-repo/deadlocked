@@ -48,7 +48,6 @@ struct PawnOffsets {
     u64 fov_multiplier = 0;     // f32 (m_flFOVSensitivityAdjust)
     u64 game_scene_node = 0;    // Pointer -> GameSceneNode (m_pGameSceneNode)
     u64 eye_offset = 0;         // Vec3 (m_vecViewOffset)
-    u64 velocity = 0;           // Vec3 (m_vecVelocity)
     u64 aim_punch_cache = 0;    // Vector<Vec3> (m_aimPunchCache)
     u64 shots_fired = 0;        // i32 (m_iShotsFired)
     u64 view_angles = 0;        // Vec2 (v_angle)

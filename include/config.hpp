@@ -4,17 +4,33 @@
 
 #include <mutex>
 
+#include "config.hpp"
+#include "key_code.hpp"
 #include "types.hpp"
 
 #define FONT "resources/JetBrainsMono.ttf"
 
-enum DrawStyle: u8 {
+enum DrawStyle : u8 {
     DrawNone,
     DrawColor,
     DrawHealth,
 };
 
-struct Config {
+struct AimbotConfig {
+    KeyCode hotkey;
+    i32 start_bullet;
+    f32 fov;
+    f32 smooth;
+
+    bool enabled;
+    bool aim_lock;
+    bool visibility_check;
+    bool multibone;
+    bool flash_check;
+    bool rcs;
+};
+
+struct VisualsConfig {
     ImVec4 box_color;
     ImVec4 skeleton_color;
     ImVec4 armor_color;
@@ -23,12 +39,25 @@ struct Config {
     DrawStyle draw_box;
     DrawStyle draw_skeleton;
 
-    bool visuals_enabled;
+    bool enabled;
     bool draw_health;
     bool draw_armor;
     bool draw_weapon;
-    bool visibility_check;
     bool debug_window;
+};
+
+struct MiscConfig {
+    f32 max_flash_alpha;
+    u32 desired_fov;
+
+    bool no_flash;
+    bool fov_changer;
+};
+
+struct Config {
+    AimbotConfig aimbot;
+    VisualsConfig visuals;
+    MiscConfig misc;
 };
 
 void SaveConfig();

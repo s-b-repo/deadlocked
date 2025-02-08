@@ -1,6 +1,11 @@
 #pragma once
 
-#include "cs2/cs2.hpp"
+// #include "cs2/cs2.hpp"
+#include <glm/glm.hpp>
+#include <optional>
+
+#include "types.hpp"
+#include "weapon_class.hpp"
 
 class Player {
   public:
@@ -17,6 +22,7 @@ class Player {
     u8 Team();
     u8 LifeState();
     std::string WeaponName();
+    WeaponClass GetWeaponClass();
     u64 GameSceneNode();
     bool IsDormant();
     glm::vec3 Position();
