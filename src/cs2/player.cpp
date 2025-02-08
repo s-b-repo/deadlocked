@@ -1,0 +1,187 @@
+#include "cs2/player.hpp"
+
+std::optional<Player> Player::LocalPlayer() {
+    const u64 controller = process.Read<u64>(offsets.direct.local_player);
+    if (controller == 0) {
+        return std::nullopt;
+    }
+
+    const auto pawn = Pawn(controller);
+    if (!pawn.has_value()) {
+        return std::nullopt;
+    }
+    return Player{.controller = controller, .pawn = pawn.value()};
+}
+
+std::optional<Player> Player::Index(u64 index) {
+    // wtf is this doing, and how?
+    const u64 v1 = process.Read<u64>(offsets.interface.entity + 0x08 * (index >> 9) + 0x10);
+    if (v1 == 0) {
+        return std::nullopt;
+    }
+    // what?
+    const u64 controller = process.Read<u64>(v1 + 120 * (index & 0x1ff));
+    if (controller == 0) {
+        return std::nullopt;
+    }
+
+    const auto pawn = Pawn(controller);
+    if (!pawn.has_value()) {
+        return std::nullopt;
+    }
+    return Player{.controller = controller, .pawn = pawn.value()};
+}
+
+std::optional<u64> Player::Pawn(u64 controller) {
+    const u64 v1 = process.Read<i32>(controller + offsets.controller.pawn);
+    if (v1 == -1) {
+        return std::nullopt;
+    }
+
+    // what the fuck is this doing?
+    const u64 v2 = process.Read<u64>(offsets.interface.player + 8 * ((v1 & 0x7fff) >> 9));
+    if (v2 == 0) {
+        return std::nullopt;
+    }
+
+    // bit-fuckery, why is this needed exactly?
+    const u64 entity = process.Read<u64>(v2 + 120 * (v1 & 0x1ff));
+    if (entity == 0) {
+        return std::nullopt;
+    }
+
+    return entity;
+}
+
+i32 Player::Health() {
+    const i32 health = process.Read<i32>(pawn + offsets.pawn.health);
+    if (health < 0 || health > 100) {
+        return 0;
+    }
+    return health;
+}
+
+i32 Player::Armor() {
+    const i32 armor = process.Read<i32>(pawn + offsets.pawn.armor);
+    if (armor < 0 || armor > 100) {
+        return 0;
+    }
+    return armor;
+}
+
+std::string Player::Name() {
+    const u64 name_address = process.Read<u64>(controller + offsets.controller.name);
+    if (name_address == 0) {
+        return std::string("?");
+    }
+
+    return process.ReadString(name_address);
+}
+
+u8 Player::Team() { return process.Read<u8>(pawn + offsets.pawn.team); }
+
+u8 Player::LifeState() { return process.Read<u8>(pawn + offsets.pawn.life_state); }
+
+std::string Player::WeaponName() {
+    // CEntityInstance
+    const u64 weapon_entity_instance = process.Read<u64>(pawn + offsets.pawn.weapon);
+    if (weapon_entity_instance == 0) {
+        return std::string("?");
+    }
+    // CEntityIdentity, 0x10 = m_pEntity
+    const u64 weapon_entity_identity = process.Read<u64>(weapon_entity_instance + 0x10);
+    if (weapon_entity_identity == 0) {
+        return std::string("?");
+    }
+    // 0x20 = m_designerName (pointer -> string)
+    const u64 weapon_name_pointer = process.Read<u64>(weapon_entity_identity + 0x20);
+    if (weapon_name_pointer == 0) {
+        return std::string("?");
+    }
+
+    return process.ReadString(weapon_name_pointer);
+}
+
+u64 Player::GameSceneNode() { return process.Read<u64>(pawn + offsets.pawn.game_scene_node); }
+
+bool Player::IsDormant() {
+    const u64 gs_node = GameSceneNode();
+    return process.Read<u8>(gs_node + offsets.game_scene_node.dormant) != 0;
+}
+
+glm::vec3 Player::Position() {
+    const u64 gs_node = GameSceneNode();
+    return process.Read<glm::vec3>(gs_node + offsets.game_scene_node.origin);
+}
+
+glm::vec3 Player::EyePosition() {
+    const glm::vec3 position = Position();
+    const glm::vec3 eye_offset = process.Read<glm::vec3>(pawn + offsets.pawn.eye_offset);
+
+    return position + eye_offset;
+}
+
+glm::vec3 Player::BonePosition(u64 bone_index) {
+    const u64 gs_node = GameSceneNode();
+    const u64 bone_data = process.Read<u64>(gs_node + offsets.game_scene_node.model_state + 0x80);
+
+    if (bone_data == 0) {
+        return glm::vec3(0.0);
+    }
+
+    return process.Read<glm::vec3>(bone_data + (bone_index * 32));
+}
+
+i32 Player::ShotsFired() { return process.Read<i32>(pawn + offsets.pawn.shots_fired); }
+
+f32 Player::FovMultiplier() { return process.Read<f32>(pawn + offsets.pawn.fov_multiplier); }
+
+u64 Player::SpottedMask() { return process.Read<u64>(pawn + offsets.pawn.spotted_state + offsets.spotted_state.mask); }
+
+std::vector<std::pair<glm::vec3, glm::vec3>> Player::AllBones() {
+    std::unordered_map<Bones, glm::vec3> bones;
+
+    for (const Bones bone : all_bones) {
+        const glm::vec3 position = BonePosition(bone);
+        bones.insert({bone, position});
+    }
+
+    std::vector<std::pair<glm::vec3, glm::vec3>> connections(bone_connections.size());
+
+    i32 i = 0;
+    for (const auto connection : bone_connections) {
+        connections[i] = {bones.at(connection.first), bones.at(connection.second)};
+        i++;
+    }
+
+    return connections;
+}
+
+bool Player::IsValid() {
+    if (IsDormant()) {
+        return false;
+    }
+
+    if (Health() <= 0) {
+        return false;
+    }
+
+    if (LifeState() != 0) {
+        return false;
+    }
+
+    return true;
+}
+
+glm::vec2 Player::ViewAngles() { return process.Read<glm::vec2>(pawn + offsets.pawn.view_angles); }
+
+glm::vec2 Player::AimPunch() {
+    const u64 length = process.Read<u64>(pawn + offsets.pawn.aim_punch_cache);
+    if (length < 1) {
+        return glm::vec2(0.0);
+    }
+
+    const u64 data_address = process.Read<u64>(pawn + offsets.pawn.aim_punch_cache + 0x08);
+
+    return process.Read<glm::vec2>(data_address + (length - 1) * 12);
+}

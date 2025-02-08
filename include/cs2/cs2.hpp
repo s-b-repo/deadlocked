@@ -8,7 +8,6 @@
 #include "cs2/offsets.hpp"
 
 struct PlayerInfo {
-    u64 pawn;
     i32 health;
     i32 armor;
     u8 team;
@@ -26,7 +25,17 @@ struct Target {
     glm::vec2 angle;
 };
 
+extern Process process;
+extern Offsets offsets;
+
 void CS2();
 bool IsValid();
 void Setup();
 void Run();
+
+std::optional<Offsets> FindOffsets();
+
+f32 GetSensitivity();
+bool IsFfa();
+bool EntityHasOwner(const u64 entity);
+std::optional<std::string> GetEntityType(const u64 entity);
