@@ -16,6 +16,7 @@ struct PlayerInfo {
     glm::vec3 position;
     glm::vec3 head;
     bool visible;
+    std::string name;
     std::string weapon;
     std::vector<std::pair<glm::vec3, glm::vec3>> bones;
 };

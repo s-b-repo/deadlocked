@@ -42,6 +42,7 @@ struct VisualsConfig {
     bool enabled;
     bool draw_health;
     bool draw_armor;
+    bool draw_name;
     bool draw_weapon;
     bool debug_window;
 };

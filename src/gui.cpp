@@ -235,7 +235,9 @@ void Gui() {
             ImGui::Checkbox("Health Bar", &config.visuals.draw_health);
             ImGui::Checkbox("Armor Bar", &config.visuals.draw_armor);
 
+            ImGui::Checkbox("Player Name", &config.visuals.draw_name);
             ImGui::Checkbox("Weapon Name", &config.visuals.draw_weapon);
+
             ImGui::DragInt("Overlay FPS", &config.visuals.overlay_fps, 0.2f, 60, 240);
 
             ImGui::Checkbox("Debug Overlay", &config.visuals.debug_window);
@@ -397,8 +399,13 @@ void Gui() {
                     2.0);
             }
 
+            if (config.visuals.draw_name) {
+                const ImVec2 name_bottom_left = ImVec2(top_right.x, top_right.y - 18);
+                overlay_draw_list->AddText(name_bottom_left, 0xffffffff, player.name.c_str());
+            }
+
             if (config.visuals.draw_weapon) {
-                const ImVec2 weapon_bottom_left = ImVec2(bottom_right.x, bottom_right.y + 4);
+                const ImVec2 weapon_bottom_left = ImVec2(bottom_right.x, bottom_right.y);
                 overlay_draw_list->AddText(weapon_bottom_left, 0xffffffff, player.weapon.c_str());
             }
         }

@@ -586,6 +586,7 @@ void VisualInfo() {
         info.team = player.Team();
         info.position = player.Position();
         info.head = player.BonePosition(Bones::BoneHead);
+        info.name = player.Name();
         info.weapon = player.WeaponName();
         info.bones = player.AllBones();
 
