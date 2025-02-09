@@ -26,7 +26,7 @@ struct Target {
     glm::vec2 angle;
     f32 distance;
     u64 local_pawn_index;
-    glm::vec2 previous_aim_punch;
+    glm::vec2 aim_punch;
 
     void Reset() {
         player = std::nullopt;
@@ -34,7 +34,7 @@ struct Target {
         angle = glm::vec2(0.0);
         distance = 0.0;
         local_pawn_index = 0;
-        previous_aim_punch = glm::vec2(0.0);
+        aim_punch = glm::vec2(0.0);
     }
 };
 

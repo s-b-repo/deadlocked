@@ -3,11 +3,16 @@
 #include <string.h>
 
 #include <iostream>
+#include <thread>
 
 #include "config.hpp"
 #include "cs2/aimbot.hpp"
 #include "cs2/constants.hpp"
+#include "cs2/fov_changer.hpp"
+#include "cs2/no_flash.hpp"
 #include "cs2/player.hpp"
+#include "cs2/rcs.hpp"
+#include "log.hpp"
 #include "math.hpp"
 
 bool is_valid = false;
@@ -16,16 +21,29 @@ Offsets offsets = {0};
 Target target;
 std::vector<Player> players;
 
+extern std::mutex config_lock;
 extern Config config;
 extern std::vector<PlayerInfo> player_info;
 extern glm::mat4 view_matrix;
 extern glm::ivec4 window_size;
 
 void CS2() {
-    if (IsValid()) {
-        Run();
-    } else {
-        Setup();
+    Log(LogLevel::Info, "game thread started");
+    while (true) {
+        const auto clock = std::chrono::steady_clock::now();
+
+        if (IsValid()) {
+            config_lock.lock();
+            Run();
+            config_lock.unlock();
+        } else {
+            Setup();
+        }
+
+        const auto end_time = std::chrono::steady_clock::now();
+        const auto us = std::chrono::duration_cast<std::chrono::microseconds>(end_time - clock);
+        const auto frame_time = std::chrono::microseconds(10000);
+        std::this_thread::sleep_for(frame_time - us);
     }
 }
 
@@ -37,12 +55,12 @@ bool IsValid() {
 }
 
 void Setup() {
-    const std::optional<u64> pid_opt = GetPid(PROCESS_NAME);
+    const std::optional<i32> pid_opt = GetPid(PROCESS_NAME);
     if (!pid_opt.has_value()) {
         is_valid = false;
         return;
     }
-    const u64 pid = pid_opt.value();
+    const i32 pid = pid_opt.value();
 
     const std::optional<Process> process_opt = OpenProcess(pid);
     if (!process_opt.has_value()) {
@@ -50,6 +68,7 @@ void Setup() {
         return;
     }
     process = process_opt.value();
+    Log(LogLevel::Info, "game started, pid: " + std::to_string(pid));
 
     const std::optional<Offsets> offsets_opt = FindOffsets();
     if (!offsets_opt.has_value()) {
@@ -105,7 +124,7 @@ std::optional<Offsets> FindOffsets() {
     // used for player interface offset
     const auto resource_offset = process.GetInterfaceOffset(offsets.library.engine, "GameResourceServiceClientV0");
     if (!resource_offset.has_value()) {
-        std::cerr << "failed to get resource offset\n";
+        Log(LogLevel::Error, "failed to get resource offset");
         return std::nullopt;
     }
     offsets.interface.resource = resource_offset.value();
@@ -116,21 +135,21 @@ std::optional<Offsets> FindOffsets() {
         {0x48, 0x83, 0x3D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x95, 0xC0, 0xC3},
         {true, true, true, false, false, false, false, true, true, true, true, true}, 12, offsets.library.client);
     if (!local_player.has_value()) {
-        std::cerr << "failed to get local player offset\n";
+        Log(LogLevel::Error, "failed to get local player offset");
         return std::nullopt;
     }
     offsets.direct.local_player = process.GetRelativeAddress(local_player.value(), 0x03, 0x08);
 
     const auto cvar_address = process.GetInterfaceOffset(offsets.library.tier0, "VEngineCvar0");
     if (!cvar_address.has_value()) {
-        std::cerr << "failed to get cvar offset\n";
+        Log(LogLevel::Error, "failed to get cvar offset");
         return std::nullopt;
     }
     offsets.interface.cvar = cvar_address.value();
 
     const auto input_system_address = process.GetInterfaceOffset(offsets.library.input, "InputSystemVersion0");
     if (!input_system_address.has_value()) {
-        std::cerr << "failed to get input offset\n";
+        Log(LogLevel::Error, "failed to get input offset");
         return std::nullopt;
     }
     offsets.interface.input = input_system_address.value();
@@ -158,7 +177,7 @@ std::optional<Offsets> FindOffsets() {
         },
         17, offsets.library.client);
     if (!view_matrix.has_value()) {
-        std::cerr << "could not find view matrix offset\n";
+        Log(LogLevel::Error, "could not find view matrix offset");
         return std::nullopt;
     }
     offsets.direct.view_matrix = process.GetRelativeAddress(view_matrix.value() + 0x07, 0x03, 0x07);
@@ -175,7 +194,7 @@ std::optional<Offsets> FindOffsets() {
 
     const auto sdl_window_address = process.GetModuleExport(offsets.library.sdl, "SDL_GetKeyboardFocus");
     if (!sdl_window_address.has_value()) {
-        std::cerr << "could not find sdl window offset\n";
+        Log(LogLevel::Error, "could not find sdl window offset");
     }
     const u64 sdl_window = process.GetRelativeAddress(sdl_window_address.value(), 0x02, 0x06);
     const u64 sdl_window2 = process.Read<u64>(sdl_window);
@@ -183,12 +202,12 @@ std::optional<Offsets> FindOffsets() {
 
     const auto ffa_address = process.GetConvar(offsets.interface.cvar, "mp_teammates_are_enemies");
     if (!ffa_address.has_value()) {
-        std::cerr << "could not get mp_tammates_are_enemies convar offset\n";
+        Log(LogLevel::Error, "could not get mp_tammates_are_enemies convar offset");
     }
     offsets.convar.ffa = ffa_address.value();
     const auto sensitivity_address = process.GetConvar(offsets.interface.cvar, "sensitivity");
     if (!sensitivity_address.has_value()) {
-        std::cerr << "could not get sensitivity convar offset\n";
+        Log(LogLevel::Error, "could not get sensitivity convar offset");
     }
     offsets.convar.sensitivity = sensitivity_address.value();
 
@@ -376,12 +395,13 @@ std::optional<Offsets> FindOffsets() {
         }
 
         if (offsets.AllFound()) {
+            Log(LogLevel::Info, "offsets found");
             target.Reset();
             return offsets;
         }
     }
 
-    std::cerr << "did not find all offsets\n";
+    Log(LogLevel::Error, "did not find all offsets");
     return std::nullopt;
 }
 
@@ -490,12 +510,12 @@ void FindTarget() {
     if (weapon_class != WeaponClass::Sniper) {
         const auto punch = local_player.AimPunch();
         if (glm::length(punch) < 0.001 && shots_fired > 0) {
-            aim_punch = target.previous_aim_punch;
+            aim_punch = target.aim_punch;
         } else {
             aim_punch = punch;
         }
     }
-    target.previous_aim_punch = aim_punch;
+    target.aim_punch = aim_punch;
 
     if (players.size() == 0) {
         target.Reset();
@@ -554,7 +574,10 @@ void FindTarget() {
     }
 }
 
+extern std::mutex vinfo_lock;
+
 void VisualInfo() {
+    vinfo_lock.lock();
     std::vector<PlayerInfo> player_info_new;
     for (auto &player : players) {
         PlayerInfo info = {0};
@@ -584,9 +607,14 @@ void VisualInfo() {
     } else {
         window_size = process.Read<glm::ivec4>(sdl_window + 0x18);
     }
+    vinfo_lock.unlock();
 }
 
 void Run() {
+    FovChanger();
+    NoFlash();
+    Rcs();
+
     FindTarget();
 
     Aimbot();

@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <fstream>
 #include <glm/glm.hpp>
 #include <vector>
@@ -7,7 +8,10 @@
 
 Config LoadConfig();
 
+std::mutex config_lock;
 Config config = LoadConfig();
+
+std::mutex vinfo_lock;
 std::vector<PlayerInfo> player_info;
 glm::mat4 view_matrix;
 glm::ivec4 window_size;
@@ -53,13 +57,10 @@ Config DefaultConfig() {
 }
 
 std::string ConfigPath() {
-    // get the home directory
-    const char *home = getenv("HOME");
-    if (home == nullptr) {
-        return "deadlocked.config";
-    }
-
-    return std::string(home) + "/.config/deadlocked.config";
+    // current executable directory
+    const auto exe = std::filesystem::canonical("/proc/self/exe");
+    const auto exe_path = exe.parent_path();
+    return (exe_path / std::filesystem::path("deadlocked.config")).string();
 }
 
 std::ofstream config_file(ConfigPath(), std::ios::binary);

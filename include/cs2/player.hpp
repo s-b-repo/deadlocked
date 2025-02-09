@@ -35,6 +35,7 @@ class Player {
     bool IsValid();
     bool IsFlashed();
     void NoFlash(f32 max_alpha);
+    void SetFov(i32 fov);
     glm::vec2 ViewAngles();
     glm::vec2 AimPunch();
 

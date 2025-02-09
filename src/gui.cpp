@@ -7,7 +7,6 @@
 
 #include <chrono>
 #include <filesystem>
-#include <format>
 #include <iostream>
 #include <log.hpp>
 #include <thread>
@@ -19,7 +18,9 @@
 #include "style.hpp"
 #include "types.hpp"
 
+extern std::mutex config_lock;
 extern Config config;
+extern std::mutex vinfo_lock;
 extern std::vector<PlayerInfo> player_info;
 
 ImU32 HealthColor(i32 health) {
@@ -44,7 +45,7 @@ ImU32 HealthColor(i32 health) {
 void Gui() {
     glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
     if (!glfwInit()) {
-        std::cout << "glfw initialization failed, exiting\n";
+        Log(LogLevel::Error, "glfw initialization failed, exiting");
         exit(1);
     }
 
@@ -78,8 +79,9 @@ void Gui() {
         }
     }
 
-    std::cout << "screen top left corner at: " << minX << " x " << minY << " px\n";
-    std::cout << "screen resolution detected: " << maxX - minX << " x " << maxY - minY << " px\n";
+    Log(LogLevel::Info, "screen top left corner at: " + std::to_string(minX) + " x " + std::to_string(minY) + " px");
+    Log(LogLevel::Info,
+        "screen resolution: " + std::to_string(maxX - minX) + " x " + std::to_string(maxY - minY) + " px");
 
     IMGUI_CHECKVERSION();
     ImGuiContext *gui_ctx = ImGui::CreateContext();
@@ -88,7 +90,7 @@ void Gui() {
     glfwWindowHint(GLFW_RESIZABLE, false);
     GLFWwindow *gui_window = glfwCreateWindow(640, 420, "deadlocked", nullptr, nullptr);
     if (!gui_window) {
-        std::cerr << "could not create gui window\n";
+        Log(LogLevel::Error, "could not create gui window");
         return;
     }
     glfwMakeContextCurrent(gui_window);
@@ -100,7 +102,7 @@ void Gui() {
     glfwWindowHint(GLFW_MOUSE_PASSTHROUGH, true);
     GLFWwindow *overlay = glfwCreateWindow(maxX - minX, maxY - minY, "deadlocked", nullptr, nullptr);
     if (!overlay) {
-        std::cerr << "could not create overlay window\n";
+        Log(LogLevel::Error, "could not create overlay window");
         return;
     }
     glfwSetWindowPos(overlay, minX, minY);
@@ -121,7 +123,7 @@ void Gui() {
         gui_io.Fonts->AddFontFromFileTTF(FONT, 20);
         gui_io.Fonts->AddFontFromFileTTF(FONT, 20, &font_config, icon_ranges);
     } else {
-        std::cout << "font not found: " << FONT << "\n";
+        Log(LogLevel::Warning, "font not found: " + std::string(FONT));
     }
 
     ImGui_ImplGlfw_InitForOpenGL(gui_window, true);
@@ -136,11 +138,13 @@ void Gui() {
         overlay_io.Fonts->AddFontFromFileTTF(FONT, 20);
         overlay_io.Fonts->AddFontFromFileTTF(FONT, 20, &font_config, icon_ranges);
     } else {
-        std::cout << "font not found: " << FONT << "\n";
+        Log(LogLevel::Warning, "font not found: " + std::string(FONT));
     }
 
     ImGui_ImplGlfw_InitForOpenGL(overlay, true);
     ImGui_ImplOpenGL3_Init("#version 130");
+
+    std::thread cs2(CS2);
 
     while (!glfwWindowShouldClose(gui_window) && !glfwWindowShouldClose(overlay)) {
         auto clock = std::chrono::steady_clock::now();
@@ -159,6 +163,7 @@ void Gui() {
         ImGui::SetWindowPos(ImVec2(0.0f, 0.0f));
 
         // tabs
+        config_lock.lock();
         ImGui::BeginTabBar("tabs");
 
         if (ImGui::BeginTabItem("Aimbot")) {
@@ -238,9 +243,9 @@ void Gui() {
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("Misc")) {
+        if (ImGui::BeginTabItem("Unsafe")) {
             ImGui::Checkbox("No Flash", &config.misc.no_flash);
-            ImGui::DragFloat("Max Flash Alpha", &config.misc.max_flash_alpha, 0.002f, 0.0, 1.0, "%.2f");
+            ImGui::DragFloat("Max Flash Alpha", &config.misc.max_flash_alpha, 0.2f, 0.0, 255.0, "%.0f");
 
             ImGui::Checkbox("FOV Changer", &config.misc.fov_changer);
             ImGui::DragInt("Desired FOV", &config.misc.desired_fov, 0.2f, 1, 179);
@@ -298,7 +303,7 @@ void Gui() {
         ImGui::SetWindowSize(ImVec2(maxX - minX, maxY - minY));
         ImDrawList *overlay_draw_list = ImGui::GetBackgroundDrawList();
 
-        std::string overlay_fps = std::format("FPS: {:.0f}", overlay_io.Framerate);
+        std::string overlay_fps = "FPS: " + std::to_string((i32)overlay_io.Framerate);
         overlay_draw_list->AddText(ImVec2(4, 4), 0xFFFFFFFF, overlay_fps.c_str());
 
         if (config.visuals.debug_window) {
@@ -311,6 +316,7 @@ void Gui() {
         }
 
         // todo: overlay
+        vinfo_lock.lock();
         for (auto player : player_info) {
             const auto bottom_opt = WorldToScreen(player.position);
             const auto top_opt = WorldToScreen(player.head);
@@ -396,8 +402,10 @@ void Gui() {
                 overlay_draw_list->AddText(weapon_bottom_left, 0xffffffff, player.weapon.c_str());
             }
         }
+        vinfo_lock.unlock();
 
         ImGui::End();
+        config_lock.unlock();
 
         ImGui::Render();
         glfwGetFramebufferSize(overlay, &width, &height);
@@ -408,11 +416,10 @@ void Gui() {
 
         glfwSwapBuffers(overlay);
 
-        CS2();
         SaveConfig();
 
-        auto end_time = std::chrono::steady_clock::now();
-        auto us = std::chrono::duration_cast<std::chrono::microseconds>(end_time - clock);
+        const auto end_time = std::chrono::steady_clock::now();
+        const auto us = std::chrono::duration_cast<std::chrono::microseconds>(end_time - clock);
         const auto frame_time = std::chrono::microseconds(1000000 / config.visuals.overlay_fps);
         std::this_thread::sleep_for(frame_time - us);
         // glfwPollEvents();

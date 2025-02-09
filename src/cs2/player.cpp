@@ -189,11 +189,21 @@ bool Player::IsFlashed() { return process.Read<f32>(pawn + offsets.pawn.flash_du
 void Player::NoFlash(f32 max_alpha) {
     if (max_alpha < 0.0f) {
         max_alpha = 0.0f;
-    } else if (max_alpha > 1.0f) {
-        max_alpha = 1.0f;
+    } else if (max_alpha > 255.0f) {
+        max_alpha = 255.0f;
     }
     if (process.Read<f32>(pawn + offsets.pawn.flash_alpha) != max_alpha) {
         process.Write<f32>(pawn + offsets.pawn.flash_alpha, max_alpha);
+    }
+}
+
+void Player::SetFov(i32 fov) {
+    u64 camera_service = process.Read<u64>(pawn + offsets.pawn.camera_services);
+    if (camera_service == 0) {
+        return;
+    }
+    if (process.Read<u32>(camera_service + offsets.camera_service.fov) != fov) {
+        process.Write<i32>(controller + offsets.controller.desired_fov, fov);
     }
 }
 
