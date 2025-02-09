@@ -273,7 +273,7 @@ void Gui() {
 
         ImDrawList *gui_draw_list = ImGui::GetForegroundDrawList();
         ImGui::SetCursorScreenPos(ImVec2(0.0, 0.0));
-        std::string gui_fps = std::format("FPS: {:.0f}", gui_io.Framerate);
+        std::string gui_fps = "FPS: " + std::to_string((i32)gui_io.Framerate);
         const ImVec2 text_size = ImGui::CalcTextSize(gui_fps.c_str());
         const ImVec2 window_size = ImGui::GetWindowSize();
         gui_draw_list->AddText(ImVec2(window_size.x - text_size.x - 4, window_size.y - text_size.y - 4), 0xFFFFFFFF,
