@@ -158,57 +158,107 @@ void Gui() {
         ImGui::SetWindowSize(ImVec2(width, height));
         ImGui::SetWindowPos(ImVec2(0.0f, 0.0f));
 
-        ImGui::Checkbox("enable visuals", &config.visuals.enabled);
+        // tabs
+        ImGui::BeginTabBar("tabs");
 
-        ImGui::Text("draw box");
-        ImGui::SameLine();
-        ImGui::PushID("draw_box");
-        if (ImGui::RadioButton("none", config.visuals.draw_box == DrawStyle::DrawNone)) {
-            config.visuals.draw_box = DrawStyle::DrawNone;
-        }
-        ImGui::SameLine();
-        if (ImGui::RadioButton("color", config.visuals.draw_box == DrawStyle::DrawColor)) {
-            config.visuals.draw_box = DrawStyle::DrawColor;
-        }
-        ImGui::SameLine();
-        if (ImGui::RadioButton("health", config.visuals.draw_box == DrawStyle::DrawHealth)) {
-            config.visuals.draw_box = DrawStyle::DrawHealth;
-        }
-        ImGui::PopID();
+        if (ImGui::BeginTabItem("Aimbot")) {
+            ImGui::Checkbox("Enable", &config.aimbot.enabled);
 
-        if (config.visuals.draw_box == DrawStyle::DrawColor) {
-            ImGui::ColorEdit3("box color", &config.visuals.box_color.x);
-        }
+            if (ImGui::BeginCombo("Hotkey", key_code_names.at(config.aimbot.hotkey))) {
+                for (const auto &[key, name] : key_code_names) {
+                    bool is_selected = key == config.aimbot.hotkey;
+                    if (ImGui::Selectable(name, is_selected)) {
+                        config.aimbot.hotkey = key;
+                    }
+                    if (is_selected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
 
-        ImGui::Text("draw skeleton");
-        ImGui::SameLine();
-        ImGui::PushID("draw_skeleton");
-        if (ImGui::RadioButton("none", config.visuals.draw_skeleton == DrawStyle::DrawNone)) {
-            config.visuals.draw_skeleton = DrawStyle::DrawNone;
-        }
-        ImGui::SameLine();
-        if (ImGui::RadioButton("color", config.visuals.draw_skeleton == DrawStyle::DrawColor)) {
-            config.visuals.draw_skeleton = DrawStyle::DrawColor;
-        }
-        ImGui::SameLine();
-        if (ImGui::RadioButton("health", config.visuals.draw_skeleton == DrawStyle::DrawHealth)) {
-            config.visuals.draw_skeleton = DrawStyle::DrawHealth;
-        }
-        ImGui::PopID();
+            ImGui::DragInt("Start Bullet", &config.aimbot.start_bullet, 0.05f, 0, 10);
 
-        if (config.visuals.draw_skeleton == DrawStyle::DrawColor) {
-            ImGui::ColorEdit3("skeleton color", &config.visuals.skeleton_color.x);
+            ImGui::Checkbox("Multibone", &config.aimbot.multibone);
+
+            ImGui::Checkbox("Visibility Check", &config.aimbot.visibility_check);
+            ImGui::DragFloat("FOV", &config.aimbot.fov, 0.02f, 0.1f, 360.0f, "%.1f");
+
+            ImGui::Checkbox("Aim Lock", &config.aimbot.aim_lock);
+            ImGui::DragFloat("Smooth", &config.aimbot.smooth, 0.02f, 1.0, 10.0, "%.1f");
+
+            ImGui::Checkbox("RCS", &config.aimbot.rcs);
+
+            ImGui::EndTabItem();
         }
 
-        ImGui::Checkbox("health bar", &config.visuals.draw_health);
-        ImGui::Checkbox("armor bar", &config.visuals.draw_armor);
-        if (config.visuals.draw_armor) {
-            ImGui::ColorEdit3("armor color", &config.visuals.armor_color.x);
-        }
-        ImGui::Checkbox("draw weapon name", &config.visuals.draw_weapon);
-        ImGui::DragInt("overlay fps", &config.visuals.overlay_fps, 0.5f, 30, 240);
+        if (ImGui::BeginTabItem("Visuals")) {
+            ImGui::Checkbox("Enable", &config.visuals.enabled);
 
-        ImGui::Checkbox("overlay debugging", &config.visuals.debug_window);
+            ImGui::Text("Draw Box");
+            ImGui::SameLine();
+            ImGui::PushID("draw_box");
+            if (ImGui::RadioButton("None", config.visuals.draw_box == DrawStyle::DrawNone)) {
+                config.visuals.draw_box = DrawStyle::DrawNone;
+            }
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Color", config.visuals.draw_box == DrawStyle::DrawColor)) {
+                config.visuals.draw_box = DrawStyle::DrawColor;
+            }
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Health", config.visuals.draw_box == DrawStyle::DrawHealth)) {
+                config.visuals.draw_box = DrawStyle::DrawHealth;
+            }
+            ImGui::PopID();
+
+            ImGui::Text("Draw Skeleton");
+            ImGui::SameLine();
+            ImGui::PushID("draw_skeleton");
+            if (ImGui::RadioButton("None", config.visuals.draw_skeleton == DrawStyle::DrawNone)) {
+                config.visuals.draw_skeleton = DrawStyle::DrawNone;
+            }
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Color", config.visuals.draw_skeleton == DrawStyle::DrawColor)) {
+                config.visuals.draw_skeleton = DrawStyle::DrawColor;
+            }
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Health", config.visuals.draw_skeleton == DrawStyle::DrawHealth)) {
+                config.visuals.draw_skeleton = DrawStyle::DrawHealth;
+            }
+            ImGui::PopID();
+
+            ImGui::Checkbox("Health Bar", &config.visuals.draw_health);
+            ImGui::Checkbox("Armor Bar", &config.visuals.draw_armor);
+
+            ImGui::Checkbox("Weapon Name", &config.visuals.draw_weapon);
+            ImGui::DragInt("Overlay FPS", &config.visuals.overlay_fps, 0.2f, 60, 240);
+
+            ImGui::Checkbox("Debug Overlay", &config.visuals.debug_window);
+
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Misc")) {
+            ImGui::Checkbox("No Flash", &config.misc.no_flash);
+            ImGui::DragFloat("Max Flash Alpha", &config.misc.max_flash_alpha, 0.002f, 0.0, 1.0, "%.2f");
+
+            ImGui::Checkbox("FOV Changer", &config.misc.fov_changer);
+            ImGui::DragInt("Desired FOV", &config.misc.desired_fov, 0.2f, 1, 179);
+
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Colors")) {
+            ImGui::ColorEdit3("Box", &config.visuals.box_color.x);
+
+            ImGui::ColorEdit3("Skeleton", &config.visuals.skeleton_color.x);
+
+            ImGui::ColorEdit3("Armor", &config.visuals.armor_color.x);
+
+            ImGui::EndTabItem();
+        }
+
+        ImGui::EndTabBar();
 
         if (ImGui::Button("reset config")) {
             ResetConfig();

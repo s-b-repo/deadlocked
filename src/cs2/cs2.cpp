@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "config.hpp"
+#include "cs2/aimbot.hpp"
 #include "cs2/constants.hpp"
 #include "cs2/player.hpp"
 #include "math.hpp"
@@ -236,37 +237,43 @@ std::optional<Offsets> FindOffsets() {
             if (!network_enable || offsets.controller.name != 0) {
                 continue;
             }
-            offsets.controller.name = *(i32 *)(entry + 0x08 + 0x10);
+            offsets.controller.name = *(i32 *)(entry + 0x18);
         } else if (name == std::string("m_hPawn")) {
             if (!network_enable || offsets.controller.pawn != 0) {
                 continue;
             }
-            offsets.controller.pawn = *(i32 *)(entry + 0x08 + 0x10);
+            offsets.controller.pawn = *(i32 *)(entry + 0x18);
+        } else if (name == std::string("m_iDesiredFOV")) {
+            if (offsets.controller.desired_fov != 0) {
+                continue;
+            }
+            offsets.controller.desired_fov = *(i32 *)(entry + 0x08);
+
         } else if (name == std::string("m_hOwnerEntity")) {
             if (!network_enable || offsets.controller.owner_entity != 0) {
                 continue;
             }
-            offsets.controller.owner_entity = *(i32 *)(entry + 0x08 + 0x10);
+            offsets.controller.owner_entity = *(i32 *)(entry + 0x18);
         } else if (name == std::string("m_iHealth")) {
             if (!network_enable || offsets.pawn.health != 0) {
                 continue;
             }
-            offsets.pawn.health = *(i32 *)(entry + 0x08 + 0x10);
+            offsets.pawn.health = *(i32 *)(entry + 0x18);
         } else if (name == std::string("m_ArmorValue")) {
             if (!network_enable || offsets.pawn.armor != 0) {
                 continue;
             }
-            offsets.pawn.armor = *(i32 *)(entry + 0x08 + 0x10);
+            offsets.pawn.armor = *(i32 *)(entry + 0x18);
         } else if (name == std::string("m_iTeamNum")) {
             if (!network_enable || offsets.pawn.team != 0) {
                 continue;
             }
-            offsets.pawn.team = *(i32 *)(entry + 0x08 + 0x10);
+            offsets.pawn.team = *(i32 *)(entry + 0x18);
         } else if (name == std::string("m_lifeState")) {
             if (!network_enable || offsets.pawn.life_state != 0) {
                 continue;
             }
-            offsets.pawn.life_state = *(i32 *)(entry + 0x08 + 0x10);
+            offsets.pawn.life_state = *(i32 *)(entry + 0x18);
         } else if (name == std::string("m_pClippingWeapon")) {
             if (offsets.pawn.weapon != 0) {
                 continue;
@@ -286,27 +293,37 @@ std::optional<Offsets> FindOffsets() {
             if (!network_enable || offsets.pawn.eye_offset != 0) {
                 continue;
             }
-            offsets.pawn.eye_offset = *(i32 *)(entry + 0x08 + 0x10);
+            offsets.pawn.eye_offset = *(i32 *)(entry + 0x18);
         } else if (name == std::string("m_aimPunchCache")) {
             if (!network_enable || offsets.pawn.aim_punch_cache != 0) {
                 continue;
             }
-            offsets.pawn.aim_punch_cache = *(i32 *)(entry + 0x08 + 0x10);
+            offsets.pawn.aim_punch_cache = *(i32 *)(entry + 0x18);
         } else if (name == std::string("m_iShotsFired")) {
             if (!network_enable || offsets.pawn.shots_fired != 0) {
                 continue;
             }
-            offsets.pawn.shots_fired = *(i32 *)(entry + 0x08 + 0x10);
+            offsets.pawn.shots_fired = *(i32 *)(entry + 0x18);
         } else if (name == std::string("v_angle")) {
             if (offsets.pawn.view_angles != 0) {
                 continue;
             }
             offsets.pawn.view_angles = *(i32 *)(entry + 0x08);
+        } else if (name == std::string("m_flFlashMaxAlpha")) {
+            if (offsets.pawn.flash_alpha != 0) {
+                continue;
+            }
+            offsets.pawn.flash_alpha = *(i32 *)(entry + 0x10);
+        } else if (name == std::string("m_flFlashDuration")) {
+            if (offsets.pawn.flash_duration != 0) {
+                continue;
+            }
+            offsets.pawn.flash_duration = *(i32 *)(entry + 0x10);
         } else if (name == std::string("m_entitySpottedState")) {
             if (!network_enable || offsets.pawn.spotted_state != 0) {
                 continue;
             }
-            const u64 offset = *(i32 *)(entry + 0x08 + 0x10);
+            const u64 offset = *(i32 *)(entry + 0x18);
             if (offset < 10000 || offset > 14000) {
                 continue;
             }
@@ -316,6 +333,11 @@ std::optional<Offsets> FindOffsets() {
                 continue;
             }
             offsets.pawn.observer_services = *(i32 *)(entry + 0x08);
+        } else if (name == std::string("m_pCameraServices")) {
+            if (!network_enable || offsets.pawn.camera_services != 0) {
+                continue;
+            }
+            offsets.pawn.camera_services = *(i32 *)(entry + 0x18);
         } else if (name == std::string("m_bDormant")) {
             if (offsets.game_scene_node.dormant != 0) {
                 continue;
@@ -325,7 +347,7 @@ std::optional<Offsets> FindOffsets() {
             if (!network_enable || offsets.game_scene_node.origin != 0) {
                 continue;
             }
-            offsets.game_scene_node.origin = *(i32 *)(entry + 0x08 + 0x10);
+            offsets.game_scene_node.origin = *(i32 *)(entry + 0x18);
         } else if (name == std::string("m_modelState")) {
             if (offsets.game_scene_node.model_state != 0) {
                 continue;
@@ -340,12 +362,17 @@ std::optional<Offsets> FindOffsets() {
             if (!network_enable || offsets.spotted_state.mask != 0) {
                 continue;
             }
-            offsets.spotted_state.mask = *(i32 *)(entry + 0x08 + 0x10);
+            offsets.spotted_state.mask = *(i32 *)(entry + 0x18);
         } else if (name == std::string("m_hObserverTarget")) {
             if (offsets.observer_service.target != 0) {
                 continue;
             }
             offsets.observer_service.target = *(i32 *)(entry + 0x08);
+        } else if (name == std::string("m_iFOV")) {
+            if (offsets.camera_service.fov != 0) {
+                continue;
+            }
+            offsets.camera_service.fov = *(i32 *)(entry + 0x08);
         }
 
         if (offsets.AllFound()) {
@@ -390,12 +417,26 @@ std::optional<std::string> GetEntityType(const u64 entity) {
     return std::nullopt;
 }
 
-glm::vec2 TargetAngle(Player &local_player, const glm::vec3 &eye_position, const glm::vec3 &position,
-                      const glm::vec2 &aim_punch) {
+bool IsButtonPressed(KeyCode &button) {
+    // what the actual fuck is happening here?
+    const auto value = process.Read<u32>(offsets.interface.input + (((button >> 5) * 4) + offsets.direct.button_state));
+    return ((value >> (button & 31)) & 1) != 0;
+}
+
+glm::vec2 TargetAngle(const glm::vec3 &eye_position, const glm::vec3 &position, const glm::vec2 &aim_punch) {
     const auto forward = glm::normalize(position - eye_position);
     auto angles = AnglesFromVector(forward) - aim_punch;
     Vec2Clamp(angles);
     return angles;
+}
+
+// 5.0 fov scale at 0 units, down to 1.0 at 500 units and above
+f32 DistanceScale(f32 distance) {
+    if (distance > 500.0f) {
+        return 1.0;
+    } else {
+        return 5.0 - (distance / 125.0);
+    }
 }
 
 void FindTarget() {
@@ -477,7 +518,7 @@ void FindTarget() {
 
         const auto head_position = player.BonePosition(Bones::BoneHead);
         const auto distance = glm::distance(eye_position, head_position);
-        const auto angle = TargetAngle(local_player, eye_position, head_position, aim_punch);
+        const auto angle = TargetAngle(eye_position, head_position, aim_punch);
         const f32 fov = AnglesToFov(view_angles, angle);
 
         if (fov < smallest_fov) {
@@ -500,7 +541,7 @@ void FindTarget() {
     for (const auto bone : all_bones) {
         const auto bone_position = target_player.BonePosition(bone);
         const auto distance = glm::distance(eye_position, bone_position);
-        const auto angle = TargetAngle(local_player, eye_position, bone_position, aim_punch);
+        const auto angle = TargetAngle(eye_position, bone_position, aim_punch);
         const auto fov = AnglesToFov(view_angles, angle);
 
         if (fov < smallest_fov) {
@@ -547,5 +588,8 @@ void VisualInfo() {
 
 void Run() {
     FindTarget();
+
+    Aimbot();
+
     VisualInfo();
 }

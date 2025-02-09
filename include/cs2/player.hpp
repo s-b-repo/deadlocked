@@ -33,6 +33,8 @@ class Player {
     u64 SpottedMask();
     std::vector<std::pair<glm::vec3, glm::vec3>> AllBones();
     bool IsValid();
+    bool IsFlashed();
+    void NoFlash(f32 max_alpha);
     glm::vec2 ViewAngles();
     glm::vec2 AimPunch();
 

@@ -184,6 +184,19 @@ bool Player::IsValid() {
     return true;
 }
 
+bool Player::IsFlashed() { return process.Read<f32>(pawn + offsets.pawn.flash_duration) > 0.2f; }
+
+void Player::NoFlash(f32 max_alpha) {
+    if (max_alpha < 0.0f) {
+        max_alpha = 0.0f;
+    } else if (max_alpha > 1.0f) {
+        max_alpha = 1.0f;
+    }
+    if (process.Read<f32>(pawn + offsets.pawn.flash_alpha) != max_alpha) {
+        process.Write<f32>(pawn + offsets.pawn.flash_alpha, max_alpha);
+    }
+}
+
 glm::vec2 Player::ViewAngles() { return process.Read<glm::vec2>(pawn + offsets.pawn.view_angles); }
 
 glm::vec2 Player::AimPunch() {

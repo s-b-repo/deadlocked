@@ -22,6 +22,14 @@ class Process {
         process_vm_readv(pid, &local_iov, 1, &remote_iov, 1, 0);
         return value;
     }
+
+    template <typename T>
+    void Write(u64 address, T value) {
+        const struct iovec local_iov = {.iov_base = &value, .iov_len = sizeof(T)};
+        const struct iovec remote_iov = {.iov_base = (void *)address, .iov_len = sizeof(T)};
+        process_vm_writev(pid, &local_iov, 1, &remote_iov, 1, 0);
+    }
+
     std::string ReadString(u64 address);
     std::vector<u8> ReadBytes(u64 address, u64 count);
 

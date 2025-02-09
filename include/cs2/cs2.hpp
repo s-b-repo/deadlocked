@@ -41,6 +41,7 @@ struct Target {
 extern Config config;
 extern Process process;
 extern Offsets offsets;
+extern Target target;
 
 void CS2();
 bool IsValid();
@@ -53,3 +54,6 @@ f32 Sensitivity();
 bool IsFfa();
 bool EntityHasOwner(const u64 entity);
 std::optional<std::string> GetEntityType(const u64 entity);
+bool IsButtonPressed(KeyCode &button);
+glm::vec2 TargetAngle(const glm::vec3 &eye_position, const glm::vec3 &position, const glm::vec2 &aim_punch);
+f32 DistanceScale(f32 distance);

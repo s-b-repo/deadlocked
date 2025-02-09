@@ -48,7 +48,7 @@ struct VisualsConfig {
 
 struct MiscConfig {
     f32 max_flash_alpha;
-    u32 desired_fov;
+    i32 desired_fov;
 
     bool no_flash;
     bool fov_changer;
