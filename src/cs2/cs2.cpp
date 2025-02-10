@@ -54,9 +54,11 @@ void CS2() {
         } else {
             // if it was just a 5 second sleep, it would wait 5 seconds before closing the gui window
             for (i32 i = 0; i < 100; i++) {
+                config_lock.lock();
                 if (should_quit) {
                     return;
                 }
+                config_lock.unlock();
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
             }
         }

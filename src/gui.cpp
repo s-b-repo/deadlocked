@@ -278,8 +278,8 @@ void Gui() {
         ImGui::SetCursorScreenPos(ImVec2(0.0f, 0.0f));
         std::string gui_fps = "FPS: " + std::to_string((i32)gui_io.Framerate);
         const ImVec2 text_size = ImGui::CalcTextSize(gui_fps.c_str());
-        const ImVec2 window_size = ImGui::GetWindowSize();
-        gui_draw_list->AddText(ImVec2(window_size.x - text_size.x - 4.0f, window_size.y - text_size.y - 4.0f),
+        const ImVec2 gui_window_size = ImGui::GetWindowSize();
+        gui_draw_list->AddText(ImVec2(gui_window_size.x - text_size.x - 4.0f, gui_window_size.y - text_size.y - 4.0f),
                                0xFFFFFFFF, gui_fps.c_str());
 
         ImGui::End();
@@ -309,7 +309,9 @@ void Gui() {
         ImDrawList *overlay_draw_list = ImGui::GetBackgroundDrawList();
 
         std::string overlay_fps = "FPS: " + std::to_string((i32)overlay_io.Framerate);
-        overlay_draw_list->AddText(ImVec2(4, 4), 0xFFFFFFFF, overlay_fps.c_str());
+        extern glm::ivec4 window_size;
+        overlay_draw_list->AddText(ImVec2((f32)window_size.x + 4.0f, (f32)window_size.y + 4.0f), 0xFFFFFFFF,
+                                   overlay_fps.c_str());
 
         if (config.visuals.debug_window) {
             // frame
@@ -472,8 +474,10 @@ void Gui() {
         // glfwPollEvents();
     }
 
+    config_lock.lock();
     extern bool should_quit;
     should_quit = true;
+    config_lock.unlock();
     cs2.join();
 
     ImGui::SetCurrentContext(gui_ctx);
