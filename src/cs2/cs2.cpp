@@ -568,23 +568,27 @@ void FindTarget() {
     } else {
         target.Reset();
     }
-    for (auto player : players) {
-        if (!ffa && local_team == player.Team()) {
-            continue;
-        }
 
-        const auto head_position = player.BonePosition(Bones::BoneHead);
-        const auto distance = glm::distance(eye_position, head_position);
-        const auto angle = TargetAngle(eye_position, head_position, aim_punch);
-        const f32 fov = AnglesToFov(view_angles, angle);
+    // update target player
+    if (!IsButtonPressed(config.aimbot.hotkey) || !target.player.has_value()) {
+        for (auto player : players) {
+            if (!ffa && local_team == player.Team()) {
+                continue;
+            }
 
-        if (fov < smallest_fov) {
-            smallest_fov = fov;
+            const auto head_position = player.BonePosition(Bones::BoneHead);
+            const auto distance = glm::distance(eye_position, head_position);
+            const auto angle = TargetAngle(eye_position, head_position, aim_punch);
+            const f32 fov = AnglesToFov(view_angles, angle);
 
-            target.player = player;
-            target.angle = angle;
-            target.distance = distance;
-            target.bone_index = Bones::BoneHead;
+            if (fov < smallest_fov) {
+                smallest_fov = fov;
+
+                target.player = player;
+                target.angle = angle;
+                target.distance = distance;
+                target.bone_index = Bones::BoneHead;
+            }
         }
     }
 
