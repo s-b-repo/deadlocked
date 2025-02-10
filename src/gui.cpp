@@ -233,6 +233,8 @@ void Gui() {
             ImGui::Checkbox("Weapon Name", &config.visuals.draw_weapon);
             ImGui::Checkbox("Player Tags (helmet, defuser, bomb)", &config.visuals.draw_tags);
 
+            ImGui::DragFloat("Line Width", &config.visuals.line_width, 0.01f, 0.2f, 3.0f, "%.1f");
+
             ImGui::DragInt("Overlay FPS", &config.visuals.overlay_fps, 0.2f, 60, 240);
 
             ImGui::Checkbox("Debug Overlay", &config.visuals.debug_window);
@@ -345,16 +347,22 @@ void Gui() {
                 } else {
                     color = health_color;
                 }
-                overlay_draw_list->AddLine(bottom_left, ImVec2(bottom_left.x, bottom_left.y - height / 4), color, 2.0);
-                overlay_draw_list->AddLine(bottom_left, ImVec2(bottom_left.x + width / 4, bottom_left.y), color, 2.0);
+                overlay_draw_list->AddLine(bottom_left, ImVec2(bottom_left.x, bottom_left.y - height / 4), color,
+                                           config.visuals.line_width);
+                overlay_draw_list->AddLine(bottom_left, ImVec2(bottom_left.x + width / 4, bottom_left.y), color,
+                                           config.visuals.line_width);
                 overlay_draw_list->AddLine(bottom_right, ImVec2(bottom_right.x, bottom_right.y - height / 4), color,
-                                           2.0);
+                                           config.visuals.line_width);
                 overlay_draw_list->AddLine(bottom_right, ImVec2(bottom_right.x - width / 4, bottom_right.y), color,
-                                           2.0);
-                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x, top_left.y + height / 4), color, 2.0);
-                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x + width / 4, top_left.y), color, 2.0);
-                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x, top_right.y + height / 4), color, 2.0);
-                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x - width / 4, top_right.y), color, 2.0);
+                                           config.visuals.line_width);
+                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x, top_left.y + height / 4), color,
+                                           config.visuals.line_width);
+                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x + width / 4, top_left.y), color,
+                                           config.visuals.line_width);
+                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x, top_right.y + height / 4), color,
+                                           config.visuals.line_width);
+                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x - width / 4, top_right.y), color,
+                                           config.visuals.line_width);
             }
 
             if (config.visuals.draw_skeleton != DrawStyle::DrawNone) {
@@ -371,7 +379,7 @@ void Gui() {
                     if (bone1.has_value() && bone2.has_value()) {
                         const ImVec2 start = ImVec2(bone1.value().x, bone1.value().y);
                         const ImVec2 end = ImVec2(bone2.value().x, bone2.value().y);
-                        overlay_draw_list->AddLine(start, end, color, 2.0);
+                        overlay_draw_list->AddLine(start, end, color, config.visuals.line_width);
                     }
                 }
             }
@@ -380,7 +388,7 @@ void Gui() {
                 const ImVec2 health_bottom = ImVec2(bottom_left.x - 4, bottom_left.y);
                 // adjust height based on health
                 const ImVec2 health_top = ImVec2(top_left.x - 4, bottom_left.y - height * player.health / 100);
-                overlay_draw_list->AddLine(health_bottom, health_top, health_color, 2.0);
+                overlay_draw_list->AddLine(health_bottom, health_top, health_color, config.visuals.line_width);
             }
 
             if (config.visuals.draw_armor) {
@@ -390,7 +398,7 @@ void Gui() {
                     armor_bottom, armor_top,
                     IM_COL32(config.visuals.armor_color.x * 255, config.visuals.armor_color.y * 255,
                              config.visuals.armor_color.z * 255, 255),
-                    2.0);
+                    config.visuals.line_width);
             }
 
             if (config.visuals.draw_name) {

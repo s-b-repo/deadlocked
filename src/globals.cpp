@@ -22,8 +22,8 @@ Config DefaultConfig() {
                       {
                           .hotkey = KeyCode::Mouse5,
                           .start_bullet = 2,
-                          .fov = 2.5,
-                          .smooth = 5.0,
+                          .fov = 2.5f,
+                          .smooth = 5.0f,
 
                           .enabled = true,
                           .aim_lock = false,
@@ -39,9 +39,10 @@ Config DefaultConfig() {
                           .armor_color = ImVec4(0.0f, 0.0f, 1.0f, 1.0f),
 
                           .overlay_fps = 120,
+                          .line_width = 2.0f,
+
                           .draw_box = DrawStyle::DrawColor,
                           .draw_skeleton = DrawStyle::DrawHealth,
-
                           .enabled = true,
                           .draw_health = true,
                           .draw_armor = true,
@@ -51,7 +52,7 @@ Config DefaultConfig() {
                           .debug_window = false,
                       },
                   .misc = {
-                      .max_flash_alpha = 0.0,
+                      .max_flash_alpha = 0.0f,
                       .desired_fov = 90,
 
                       .no_flash = false,

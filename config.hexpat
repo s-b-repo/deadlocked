@@ -33,9 +33,10 @@ struct VisualsConfig {
     ImVec4 armor_color;
 
     s32 overlay_fps;
+    float line_width;
+
     DrawStyle draw_box;
     DrawStyle draw_skeleton;
-
     bool enabled;
     bool draw_health;
     bool draw_armor;
