@@ -59,7 +59,7 @@ void Aimbot() {
     const auto xy = glm::vec2(aim_angles.y / sensitivity * 50.0, -aim_angles.x / sensitivity * 50.0);
     glm::vec2 smooth_angles(0.0);
     if (!config.aimbot.aim_lock && config.aimbot.smooth > 1.0) {
-        smooth_angles = AimSmooth(xy, config.aimbot.smooth);
+        smooth_angles = glm::vec2(xy.x / config.aimbot.smooth, xy.y / config.aimbot.smooth);
     } else {
         smooth_angles = xy;
     }

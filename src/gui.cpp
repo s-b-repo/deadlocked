@@ -324,7 +324,7 @@ void Gui() {
             const ImVec2 bottom = ImVec2(bottom_opt.value().x, bottom_opt.value().y);
             const ImVec2 top = ImVec2(bottom.x, bottom.y + (top_opt.value().y - bottom.y));
 
-            const f32 height = top.y - bottom.y;
+            const f32 height = bottom.y - top.y;
             const f32 width = height / 2.0f;
             const f32 half_width = width / 2.0f;
 
@@ -345,15 +345,15 @@ void Gui() {
                 } else {
                     color = health_color;
                 }
-                overlay_draw_list->AddLine(bottom_left, ImVec2(bottom_left.x, bottom_left.y + height / 4), color, 2.0);
+                overlay_draw_list->AddLine(bottom_left, ImVec2(bottom_left.x, bottom_left.y - height / 4), color, 2.0);
                 overlay_draw_list->AddLine(bottom_left, ImVec2(bottom_left.x + width / 4, bottom_left.y), color, 2.0);
-                overlay_draw_list->AddLine(bottom_right, ImVec2(bottom_right.x, bottom_right.y + height / 4), color,
+                overlay_draw_list->AddLine(bottom_right, ImVec2(bottom_right.x, bottom_right.y - height / 4), color,
                                            2.0);
                 overlay_draw_list->AddLine(bottom_right, ImVec2(bottom_right.x - width / 4, bottom_right.y), color,
                                            2.0);
-                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x, top_left.y - height / 4), color, 2.0);
+                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x, top_left.y + height / 4), color, 2.0);
                 overlay_draw_list->AddLine(top_left, ImVec2(top_left.x + width / 4, top_left.y), color, 2.0);
-                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x, top_right.y - height / 4), color, 2.0);
+                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x, top_right.y + height / 4), color, 2.0);
                 overlay_draw_list->AddLine(top_right, ImVec2(top_right.x - width / 4, top_right.y), color, 2.0);
             }
 
@@ -377,50 +377,50 @@ void Gui() {
             }
 
             if (config.visuals.draw_health) {
-                const ImVec2 health_bottom_left = ImVec2(bottom_right.x - 4, bottom_right.y);
+                const ImVec2 health_bottom = ImVec2(bottom_left.x - 4, bottom_left.y);
                 // adjust height based on health
-                const ImVec2 health_top_left = ImVec2(top_right.x - 4, bottom_right.y + height * player.health / 100);
-                overlay_draw_list->AddLine(health_bottom_left, health_top_left, health_color, 2.0);
+                const ImVec2 health_top = ImVec2(top_left.x - 4, bottom_left.y - height * player.health / 100);
+                overlay_draw_list->AddLine(health_bottom, health_top, health_color, 2.0);
             }
 
             if (config.visuals.draw_armor) {
-                const ImVec2 armor_bottom_left = ImVec2(bottom_right.x - 8, bottom_right.y);
-                const ImVec2 armor_top_left = ImVec2(top_right.x - 8, bottom_right.y + height * player.armor / 100);
+                const ImVec2 armor_bottom = ImVec2(bottom_left.x - 8, bottom_left.y);
+                const ImVec2 armor_top = ImVec2(top_left.x - 8, bottom_left.y - height * player.armor / 100);
                 overlay_draw_list->AddLine(
-                    armor_bottom_left, armor_top_left,
+                    armor_bottom, armor_top,
                     IM_COL32(config.visuals.armor_color.x * 255, config.visuals.armor_color.y * 255,
                              config.visuals.armor_color.z * 255, 255),
                     2.0);
             }
 
             if (config.visuals.draw_name) {
-                const ImVec2 name_bottom_left = ImVec2(top_right.x, top_right.y - 18);
-                overlay_draw_list->AddText(name_bottom_left, 0xffffffff, player.name.c_str());
+                const ImVec2 name_position = ImVec2(top_left.x, top_left.y - 18);
+                overlay_draw_list->AddText(name_position, 0xffffffff, player.name.c_str());
             }
 
             if (config.visuals.draw_weapon) {
-                const ImVec2 weapon_bottom_left = ImVec2(bottom_right.x, bottom_right.y);
-                overlay_draw_list->AddText(weapon_bottom_left, 0xffffffff, player.weapon.c_str());
+                const ImVec2 weapon_position = ImVec2(bottom_left.x, bottom_left.y);
+                overlay_draw_list->AddText(weapon_position, 0xffffffff, player.weapon.c_str());
             }
 
             f32 offset = 16;
 
             if (config.visuals.draw_tags && player.has_helmet) {
-                const ImVec2 helmet_bottom_left = ImVec2(bottom_right.x, bottom_right.y + offset);
+                const ImVec2 helmet_position = ImVec2(bottom_left.x, bottom_left.y + offset);
                 offset += 16;
-                overlay_draw_list->AddText(helmet_bottom_left, 0xffffffff, "helmet");
+                overlay_draw_list->AddText(helmet_position, 0xffffffff, "helmet");
             }
 
             if (config.visuals.draw_tags && player.has_defuser) {
-                const ImVec2 defuser_bottom_left = ImVec2(bottom_right.x, bottom_right.y + offset);
+                const ImVec2 defuser_position = ImVec2(bottom_left.x, bottom_left.y + offset);
                 offset += 16;
-                overlay_draw_list->AddText(defuser_bottom_left, 0xffffffff, "defuser");
+                overlay_draw_list->AddText(defuser_position, 0xffffffff, "defuser");
             }
 
             if (config.visuals.draw_tags && player.has_bomb) {
-                const ImVec2 bomb_bottom_left = ImVec2(bottom_right.x, bottom_right.y + offset);
+                const ImVec2 bomb_position = ImVec2(bottom_left.x, bottom_left.y + offset);
                 offset += 16;
-                overlay_draw_list->AddText(bomb_bottom_left, 0xffffffff, "bomb");
+                overlay_draw_list->AddText(bomb_position, 0xffffffff, "bomb");
             }
         }
         vinfo_lock.unlock();

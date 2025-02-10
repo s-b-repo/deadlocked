@@ -4,16 +4,6 @@
 
 f32 ToDegrees(const f32 value) { return value * 180.0 / M_PI; }
 
-glm::vec2 AimSmooth(const glm::vec2 &aim_coords, f32 smooth) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::normal_distribution range(-0.5f, 0.5f);
-    glm::vec2 smooth_coords = aim_coords / smooth;
-    glm::vec2 jitter(range(gen) * smooth_coords.x, range(gen) * smooth_coords.y);
-    glm::vec2 out = smooth_coords + jitter;
-    return glm::clamp(out, 0.0f, 200.0f / smooth);
-}
-
 glm::vec2 AnglesFromVector(const glm::vec3 &forward) {
     f32 yaw = 0.0;
     f32 pitch = 0.0;
