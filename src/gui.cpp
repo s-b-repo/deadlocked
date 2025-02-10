@@ -325,7 +325,7 @@ void Gui() {
         vinfo_lock.lock();
         for (auto player : player_info) {
             const auto bottom_opt = WorldToScreen(player.position);
-            const auto top_opt = WorldToScreen(player.head);
+            const auto top_opt = WorldToScreen(player.head + glm::vec3(0.0f, 0.0f, 8.0f));
 
             if (!bottom_opt.has_value() || !top_opt.has_value()) {
                 continue;
