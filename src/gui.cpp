@@ -348,6 +348,25 @@ void Gui() {
 
         vinfo_lock.lock();
         for (auto player : player_info) {
+            if (config.visuals.draw_skeleton != DrawStyle::DrawNone) {
+                ImU32 color;
+                if (config.visuals.draw_skeleton == DrawStyle::DrawColor) {
+                    color = IM_COL32(config.visuals.skeleton_color.x * 255, config.visuals.skeleton_color.y * 255,
+                                     config.visuals.skeleton_color.z * 255, 255);
+                } else {
+                    color = health_color;
+                }
+                for (auto connection : player.bones) {
+                    const auto bone1 = WorldToScreen(connection.first);
+                    const auto bone2 = WorldToScreen(connection.second);
+                    if (bone1.has_value() && bone2.has_value()) {
+                        const ImVec2 start = ImVec2(bone1.value().x, bone1.value().y);
+                        const ImVec2 end = ImVec2(bone2.value().x, bone2.value().y);
+                        overlay_draw_list->AddLine(start, end, color, config.visuals.line_width);
+                    }
+                }
+            }
+
             const auto bottom_opt = WorldToScreen(player.position);
             const auto top_opt = WorldToScreen(player.head + glm::vec3(0.0f, 0.0f, 8.0f));
 
@@ -395,25 +414,6 @@ void Gui() {
                                            config.visuals.line_width);
                 overlay_draw_list->AddLine(top_right, ImVec2(top_right.x - width / 4.0f, top_right.y), color,
                                            config.visuals.line_width);
-            }
-
-            if (config.visuals.draw_skeleton != DrawStyle::DrawNone) {
-                ImU32 color;
-                if (config.visuals.draw_skeleton == DrawStyle::DrawColor) {
-                    color = IM_COL32(config.visuals.skeleton_color.x * 255, config.visuals.skeleton_color.y * 255,
-                                     config.visuals.skeleton_color.z * 255, 255);
-                } else {
-                    color = health_color;
-                }
-                for (auto connection : player.bones) {
-                    const auto bone1 = WorldToScreen(connection.first);
-                    const auto bone2 = WorldToScreen(connection.second);
-                    if (bone1.has_value() && bone2.has_value()) {
-                        const ImVec2 start = ImVec2(bone1.value().x, bone1.value().y);
-                        const ImVec2 end = ImVec2(bone2.value().x, bone2.value().y);
-                        overlay_draw_list->AddLine(start, end, color, config.visuals.line_width);
-                    }
-                }
             }
 
             if (config.visuals.draw_health) {
