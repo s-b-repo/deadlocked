@@ -13,7 +13,7 @@
 
 #include "config.hpp"
 #include "cs2/cs2.hpp"
-#include "font_icons.hpp"
+#include "font.hpp"
 #include "math.hpp"
 #include "style.hpp"
 #include "types.hpp"
@@ -110,18 +110,13 @@ void Gui() {
     glfwSwapInterval(0);
     glfwFocusWindow(gui_window);
 
-    const ImWchar icon_ranges[] = {ICON_MIN, ICON_MAX};
-    ImFontConfig font_config;
-    font_config.MergeMode = true;
-
     ImGui::SetCurrentContext(gui_ctx);
     Style();
 
     ImGuiIO &gui_io = ImGui::GetIO();
     gui_io.IniFilename = nullptr;
     if (std::filesystem::exists(std::filesystem::path(FONT))) {
-        gui_io.Fonts->AddFontFromFileTTF(FONT, 20);
-        gui_io.Fonts->AddFontFromFileTTF(FONT, 20, &font_config, icon_ranges);
+        gui_io.Fonts->AddFontFromMemoryTTF(jet_brains_mono, jet_brains_mono_len, 20);
     } else {
         Log(LogLevel::Warning, "font not found: " + std::string(FONT));
     }
@@ -135,8 +130,7 @@ void Gui() {
     ImGuiIO &overlay_io = ImGui::GetIO();
     overlay_io.IniFilename = nullptr;
     if (std::filesystem::exists(std::filesystem::path(FONT))) {
-        overlay_io.Fonts->AddFontFromFileTTF(FONT, 20);
-        overlay_io.Fonts->AddFontFromFileTTF(FONT, 20, &font_config, icon_ranges);
+        overlay_io.Fonts->AddFontFromMemoryTTF(jet_brains_mono, jet_brains_mono_len, 20);
     } else {
         Log(LogLevel::Warning, "font not found: " + std::string(FONT));
     }
