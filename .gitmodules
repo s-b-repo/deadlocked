@@ -4,6 +4,6 @@
 [submodule "imgui"]
 	path = imgui
 	url = https://github.com/ocornut/imgui
-[submodule "glfw"]
-	path = glfw
-	url = https://github.com/glfw/glfw
+[submodule "sdl"]
+	path = sdl
+	url = https://github.com/libsdl-org/sdl

@@ -1,9 +1,10 @@
 #include "gui.hpp"
 
-#include <GLFW/glfw3.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_opengl.h>
 #include <imgui.h>
-#include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <imgui_impl_sdl3.h>
 
 #include <chrono>
 #include <filesystem>
@@ -44,38 +45,38 @@ ImU32 HealthColor(i32 health) {
 }
 
 void Gui() {
-    glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
-    if (!glfwInit()) {
-        Log(LogLevel::Error, "glfw initialization failed, exiting");
+    SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
+
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        Log(LogLevel::Error, "sdl3 initialization failed, exiting");
         exit(1);
     }
 
     // get monitor sizes
     i32 count = 0;
     i32 minX, minY, maxX, maxY = 0;
-    GLFWmonitor **monitors = glfwGetMonitors(&count);
+    SDL_DisplayID *displays = SDL_GetDisplays(&count);
     for (i32 i = 0; i < count; i++) {
-        const GLFWvidmode *mode = glfwGetVideoMode(monitors[i]);
-        i32 x, y = 0;
-        glfwGetMonitorPos(monitors[i], &x, &y);
+        SDL_Rect bounds;
+        SDL_GetDisplayBounds(displays[i], &bounds);
 
         if (i == 0) {
-            minX = x;
-            minY = y;
-            maxX = x + mode->width;
-            maxY = y + mode->height;
+            minX = bounds.x;
+            minY = bounds.y;
+            maxX = bounds.x + bounds.w;
+            maxY = bounds.y + bounds.h;
         } else {
-            if (x < minX) {
-                minX = x;
+            if (bounds.x < minX) {
+                minX = bounds.x;
             }
-            if (y < minY) {
-                minY = y;
+            if (bounds.y < minY) {
+                minY = bounds.y;
             }
-            if (x + mode->width > maxX) {
-                maxX = x + mode->width;
+            if (bounds.x + bounds.w > maxX) {
+                maxX = bounds.x + bounds.w;
             }
-            if (y + mode->height > maxY) {
-                maxY = y + mode->height;
+            if (bounds.y + bounds.h > maxY) {
+                maxY = bounds.y + bounds.h;
             }
         }
     }
@@ -88,28 +89,44 @@ void Gui() {
     ImGuiContext *gui_ctx = ImGui::CreateContext();
     ImGuiContext *overlay_ctx = ImGui::CreateContext();
 
-    glfwWindowHint(GLFW_RESIZABLE, false);
-    GLFWwindow *gui_window = glfwCreateWindow(640, 420, "deadlocked", nullptr, nullptr);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+    // gui window
+    SDL_Window *gui_window = SDL_CreateWindow("deadlocked", 640, 420, SDL_WINDOW_OPENGL);
     if (!gui_window) {
         Log(LogLevel::Error, "could not create gui window");
         return;
     }
-    glfwMakeContextCurrent(gui_window);
-    glfwSwapInterval(0);
-    glfwWindowHint(GLFW_RESIZABLE, false);
-    glfwWindowHint(GLFW_DECORATED, false);
-    glfwWindowHint(GLFW_FLOATING, true);
-    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, true);
-    glfwWindowHint(GLFW_MOUSE_PASSTHROUGH, true);
-    GLFWwindow *overlay = glfwCreateWindow(maxX - minX, maxY - minY, "deadlocked", nullptr, nullptr);
+    SDL_SetWindowPosition(gui_window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    SDL_GLContext gui_gl = SDL_GL_CreateContext(gui_window);
+    SDL_GL_MakeCurrent(gui_window, gui_gl);
+    SDL_GL_SetSwapInterval(0);
+
+    SDL_Window *temp = SDL_CreateWindow("deadlocked", 1, 1, SDL_WINDOW_BORDERLESS);
+    if (!temp) {
+        Log(LogLevel::Error, "could not create overlay window");
+        return;
+    }
+    SDL_SetWindowPosition(temp, 0, 0);
+
+    // overlay window
+    SDL_Window *overlay =
+        SDL_CreatePopupWindow(temp, 0, 0, maxX - minX, maxY - minY,
+                              SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_NOT_FOCUSABLE |
+                                  SDL_WINDOW_OPENGL | SDL_WINDOW_TOOLTIP | SDL_WINDOW_TRANSPARENT);
     if (!overlay) {
         Log(LogLevel::Error, "could not create overlay window");
         return;
     }
-    glfwSetWindowPos(overlay, minX, minY);
-    glfwMakeContextCurrent(overlay);
-    glfwSwapInterval(0);
-    glfwFocusWindow(gui_window);
+    SDL_SetWindowPosition(overlay, minX, minY);
+    SDL_GLContext overlay_gl = SDL_GL_CreateContext(overlay);
+    SDL_GL_MakeCurrent(overlay, overlay_gl);
+    SDL_GL_SetSwapInterval(0);
+
+    SDL_SetWindowPosition(temp, 0, 0);
+
+    SDL_ShowWindow(overlay);
+    SDL_ShowWindow(gui_window);
 
     ImGui::SetCurrentContext(gui_ctx);
     Style();
@@ -122,7 +139,7 @@ void Gui() {
         Log(LogLevel::Warning, "font not found: " + std::string(FONT));
     }
 
-    ImGui_ImplGlfw_InitForOpenGL(gui_window, true);
+    ImGui_ImplSDL3_InitForOpenGL(gui_window, gui_gl);
     ImGui_ImplOpenGL3_Init("#version 130");
 
     ImGui::SetCurrentContext(overlay_ctx);
@@ -136,24 +153,33 @@ void Gui() {
         Log(LogLevel::Warning, "font not found: " + std::string(FONT));
     }
 
-    ImGui_ImplGlfw_InitForOpenGL(overlay, true);
+    ImGui_ImplSDL3_InitForOpenGL(overlay, overlay_gl);
     ImGui_ImplOpenGL3_Init("#version 130");
 
     std::thread cs2(CS2);
 
-    while (!glfwWindowShouldClose(gui_window) && !glfwWindowShouldClose(overlay)) {
+    bool should_close = false;
+    while (!should_close) {
         auto clock = std::chrono::steady_clock::now();
+
+        SDL_GL_MakeCurrent(gui_window, gui_gl);
+        ImGui::SetCurrentContext(gui_ctx);
+
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            ImGui_ImplSDL3_ProcessEvent(&event);
+            if (event.type == SDL_EVENT_QUIT) should_close = true;
+            if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) should_close = true;
+        }
+
         // gui
         i32 width, height;
-        glfwMakeContextCurrent(gui_window);
-        ImGui::SetCurrentContext(gui_ctx);
-        glfwGetFramebufferSize(gui_window, &width, &height);
         ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
+        ImGui_ImplSDL3_NewFrame();
+        SDL_GetWindowSize(gui_window, &width, &height);
         ImGui::NewFrame();
         ImGui::Begin("deadlocked", nullptr,
                      ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-        glfwGetWindowSize(gui_window, &width, &height);
         ImGui::SetWindowSize(ImVec2(width, height));
         ImGui::SetWindowPos(ImVec2(0.0f, 0.0f));
 
@@ -290,15 +316,13 @@ void Gui() {
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        glfwSwapBuffers(gui_window);
-
-        glfwPollEvents();
+        SDL_GL_SwapWindow(gui_window);
 
         // overlay
-        glfwMakeContextCurrent(overlay);
+        SDL_GL_MakeCurrent(overlay, overlay_gl);
         ImGui::SetCurrentContext(overlay_ctx);
         ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
+        ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
 
         ImGui::Begin("overlay", nullptr,
@@ -457,13 +481,13 @@ void Gui() {
         config_lock.unlock();
 
         ImGui::Render();
-        glfwGetFramebufferSize(overlay, &width, &height);
+        SDL_GetWindowSize(overlay, &width, &height);
         glViewport(0, 0, width, height);
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        glfwSwapBuffers(overlay);
+        SDL_GL_SwapWindow(overlay);
 
         SaveConfig();
 
@@ -482,16 +506,19 @@ void Gui() {
 
     ImGui::SetCurrentContext(gui_ctx);
     ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
 
     ImGui::SetCurrentContext(overlay_ctx);
     ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
 
+    // todo: why are these pointers invalid?
     // ImGui::DestroyContext(gui_ctx);
     // ImGui::DestroyContext(overlay_ctx);
 
-    glfwDestroyWindow(gui_window);
-    glfwDestroyWindow(overlay);
-    glfwTerminate();
+    SDL_GL_DestroyContext(gui_gl);
+    SDL_GL_DestroyContext(overlay_gl);
+    SDL_DestroyWindow(gui_window);
+    SDL_DestroyWindow(overlay);
+    SDL_Quit();
 }
