@@ -3,6 +3,7 @@
 #include <string>
 
 enum LogLevel {
+    Debug,
     Info,
     Warning,
     Error,

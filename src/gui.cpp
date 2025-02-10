@@ -311,7 +311,6 @@ void Gui() {
             overlay_draw_list->AddLine(ImVec2(minX, maxY - minY), ImVec2(maxX - minX, minY), 0xffffffff, 4.0);
         }
 
-        // todo: overlay
         vinfo_lock.lock();
         for (auto player : player_info) {
             const auto bottom_opt = WorldToScreen(player.position);
@@ -426,6 +425,10 @@ void Gui() {
         // glfwPollEvents();
     }
 
+    extern bool should_quit;
+    should_quit = true;
+    cs2.join();
+
     ImGui::SetCurrentContext(gui_ctx);
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -434,8 +437,8 @@ void Gui() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
 
-    ImGui::DestroyContext(gui_ctx);
-    ImGui::DestroyContext(overlay_ctx);
+    //ImGui::DestroyContext(gui_ctx);
+    //ImGui::DestroyContext(overlay_ctx);
 
     glfwDestroyWindow(gui_window);
     glfwDestroyWindow(overlay);

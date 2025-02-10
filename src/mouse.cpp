@@ -68,6 +68,7 @@ void MouseInit() {
 }
 
 void MouseMove(glm::ivec2 coords) {
+    Log(LogLevel::Debug, "mouse move: " + std::to_string(coords.x) + "/" + std::to_string(coords.y));
     struct input_event ev = {0};
 
     // x

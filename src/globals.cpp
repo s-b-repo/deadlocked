@@ -15,6 +15,7 @@ std::mutex vinfo_lock;
 std::vector<PlayerInfo> player_info;
 glm::mat4 view_matrix;
 glm::ivec4 window_size;
+bool should_quit = false;
 
 Config DefaultConfig() {
     return Config{.aimbot =

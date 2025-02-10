@@ -26,11 +26,16 @@ extern Config config;
 extern std::vector<PlayerInfo> player_info;
 extern glm::mat4 view_matrix;
 extern glm::ivec4 window_size;
+extern bool should_quit;
 
 void CS2() {
     Log(LogLevel::Info, "game thread started");
     while (true) {
         const auto clock = std::chrono::steady_clock::now();
+
+        if (should_quit) {
+            break;
+        }
 
         if (IsValid()) {
             config_lock.lock();
@@ -43,7 +48,17 @@ void CS2() {
         const auto end_time = std::chrono::steady_clock::now();
         const auto us = std::chrono::duration_cast<std::chrono::microseconds>(end_time - clock);
         const auto frame_time = std::chrono::microseconds(10000);
-        std::this_thread::sleep_for(frame_time - us);
+        if (IsValid()) {
+            std::this_thread::sleep_for(frame_time - us);
+        } else {
+            // if it was just a 5 second sleep, it would wait 5 seconds before closing the gui window
+            for (i32 i = 0; i < 100; i++) {
+                if (should_quit) {
+                    return;
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            }
+        }
     }
 }
 

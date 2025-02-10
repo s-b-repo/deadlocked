@@ -9,6 +9,7 @@
 #include <string>
 
 #include "constants.hpp"
+#include "log.hpp"
 
 std::optional<i32> GetPid(std::string process_name) {
     for (const auto &entry : std::filesystem::directory_iterator("/proc")) {
@@ -48,12 +49,26 @@ std::optional<Process> OpenProcess(i32 pid) {
 
 std::string Process::ReadString(u64 address) {
     std::string value;
-    for (u64 i = address; i < address + 512; i++) {
-        u8 character = Read<u8>(i);
-        if (character == 0) {
-            break;
+    value.reserve(64);
+    for (u64 i = address; i < address + 512; i += sizeof(u64)) {
+        u64 chunk = Read<u64>(i);
+
+        // https://graphics.stanford.edu/~seander/bithacks.html
+        if (((chunk - 0x0101010101010101ULL) & ~chunk & 0x8080808080808080ULL) != 0) {
+            // at least one byte is null, process each individually
+            // Process each byte individually.
+            for (int offset = 0; offset < 8; ++offset) {
+                u8 byte = (chunk >> (offset * 8)) & 0xFF;
+                if (byte == 0) return value;
+                value.push_back(byte);
+            }
+        } else {
+            // no null, just append the chunk
+            for (int offset = 0; offset < 8; ++offset) {
+                u8 byte = (chunk >> (offset * 8)) & 0xFF;
+                value.push_back(byte);
+            }
         }
-        value.push_back(character);
     }
     return value;
 }
@@ -75,10 +90,19 @@ std::optional<u64> Process::GetModuleBaseAddress(const char *module_name) {
             continue;
         }
         const size_t index = line.find_first_of('-');
-        const std::string address = line.substr(0, index);
-        return std::stoull(address, nullptr, 16);
+        const std::string address_str = line.substr(0, index);
+        u64 address = std::stoull(address_str, nullptr, 16);
+        if (address == 0) {
+            Log(LogLevel::Warning, "address for module " + std::string(module_name) + " was 0, input string was \"" +
+                                       line + "\", extracted address was " + address_str);
+            continue;
+        } else {
+            Log(LogLevel::Debug, "module " + std::string(module_name) + " found at " + std::to_string(address));
+            return address;
+        }
     }
 
+    Log(LogLevel::Warning, "could not find address for module " + std::string(module_name));
     return std::nullopt;
 }
 
@@ -92,6 +116,11 @@ u64 Process::ModuleSize(u64 module_address) {
 
 std::vector<u8> Process::DumpModule(u64 module_address) {
     const u64 module_size = ModuleSize(module_address);
+    // should be 1 gb
+    if (module_size == 0 || module_size > 1000000000) {
+        Log(LogLevel::Error, "could not dump module at " + std::to_string(module_address));
+        return std::vector<u8>();
+    }
     return ReadBytes(module_address, module_size);
 }
 
@@ -114,6 +143,8 @@ std::optional<u64> Process::ScanPattern(std::vector<u8> pattern, std::vector<boo
             return module_address + i;
         }
     }
+
+    Log(LogLevel::Warning, "broken signature: " + std::string(pattern.begin(), pattern.end()));
     return std::nullopt;
 }
 
@@ -125,6 +156,7 @@ u64 Process::GetRelativeAddress(u64 instruction, u64 offset, u64 instruction_siz
 std::optional<u64> Process::GetInterfaceOffset(u64 module_address, const char *interface_name) {
     const std::optional<u64> create_interface_opt = GetModuleExport(module_address, "CreateInterface");
     if (!create_interface_opt.has_value()) {
+        Log(LogLevel::Error, "could not find CreateInterface export");
         return std::nullopt;
     }
     const u64 create_interface = create_interface_opt.value();
@@ -149,6 +181,7 @@ std::optional<u64> Process::GetInterfaceOffset(u64 module_address, const char *i
         }
     }
 
+    Log(LogLevel::Warning, "could not find interface offset for " + std::string(interface_name));
     return std::nullopt;
 }
 
@@ -174,6 +207,8 @@ std::optional<u64> Process::GetModuleExport(u64 module_address, const char *expo
         symbol_table += add;
     }
 
+    Log(LogLevel::Warning,
+        "could not find export " + std::string(export_name) + " in module at " + std::to_string(module_address));
     return std::nullopt;
 }
 
@@ -181,6 +216,7 @@ std::optional<u64> Process::GetAddressFromDynamicSection(u64 module_address, u64
     const std::optional<u64> dynamic_section_offset_opt =
         GetSegmentFromPht(module_address, ELF_DYNAMIC_SECTION_PHT_TYPE);
     if (!dynamic_section_offset_opt.has_value()) {
+        Log(LogLevel::Error, "could not find dynamic section in loaded elf");
         return std::nullopt;
     }
     const u64 dynamic_section_offset = dynamic_section_offset_opt.value();
@@ -202,6 +238,7 @@ std::optional<u64> Process::GetAddressFromDynamicSection(u64 module_address, u64
         address += register_size * 2;
     }
 
+    Log(LogLevel::Warning, "could not find tag " + std::to_string(tag) + " in dynamic section");
     return std::nullopt;
 }
 
@@ -216,6 +253,8 @@ std::optional<u64> Process::GetSegmentFromPht(u64 module_address, u64 tag) {
         }
     }
 
+    Log(LogLevel::Error,
+        "could not find tag " + std::to_string(tag) + " in program header table at " + std::to_string(module_address));
     return std::nullopt;
 }
 
@@ -238,6 +277,7 @@ std::optional<u64> Process::GetConvar(u64 convar_offset, const char *convar_name
         }
     }
 
+    Log(LogLevel::Warning, "could not find convar " + std::string(convar_name));
     return std::nullopt;
 }
 
