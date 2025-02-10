@@ -23,6 +23,11 @@ struct PlayerInfo {
     std::vector<std::pair<glm::vec3, glm::vec3>> bones;
 };
 
+struct EntityInfo {
+    std::string name;
+    glm::vec3 position;
+};
+
 struct Target {
     std::optional<Player> player;
     Bones bone_index;

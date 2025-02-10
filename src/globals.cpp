@@ -13,6 +13,7 @@ Config config = LoadConfig();
 
 std::mutex vinfo_lock;
 std::vector<PlayerInfo> player_info;
+std::vector<EntityInfo> entity_info;
 glm::mat4 view_matrix;
 glm::ivec4 window_size;
 bool should_quit = false;
@@ -49,6 +50,7 @@ Config DefaultConfig() {
                           .draw_name = true,
                           .draw_weapon = true,
                           .draw_tags = true,
+                          .dropped_weapons = true,
                           .debug_window = false,
                       },
                   .misc = {

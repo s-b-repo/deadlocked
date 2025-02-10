@@ -24,6 +24,7 @@ std::vector<Player> players;
 extern std::mutex config_lock;
 extern Config config;
 extern std::vector<PlayerInfo> player_info;
+extern std::vector<EntityInfo> entity_info;
 extern glm::mat4 view_matrix;
 extern glm::ivec4 window_size;
 extern bool should_quit;
@@ -466,12 +467,6 @@ std::optional<std::string> GetEntityType(const u64 entity) {
     if (position = name.find("weapon_") != std::string::npos) {
         name = name.substr(7);
         return name;
-    } else if (position = name.rfind("_projectile") != std::string::npos) {
-        name = name.substr(0, name.length() - 11);
-        if (name == std::string("incendiarygrenade")) {
-            return std::string("incgrenade");
-        }
-        return name;
     }
 
     return std::nullopt;
@@ -636,11 +631,47 @@ void VisualInfo() {
         player_info_new.push_back(info);
     }
 
+    // entities
+    std::vector<EntityInfo> entity_info_new;
+    for (u64 i = 64; i <= 1024; i++) {
+        const auto entity_opt = Player::ClientEntity(i);
+        if (!entity_opt.has_value()) {
+            continue;
+        }
+        const u64 entity = entity_opt.value();
+
+        // is a held weapon
+        if (EntityHasOwner(entity)) {
+            continue;
+        }
+
+        const auto name_opt = GetEntityType(entity);
+        if (!name_opt.has_value()) {
+            continue;
+        }
+        const auto name = name_opt.value();
+
+        const u64 gs_node = process.Read<u64>(entity + offsets.pawn.game_scene_node);
+        if (!gs_node) {
+            continue;
+        }
+        const auto position = process.Read<glm::vec3>(gs_node + offsets.game_scene_node.origin);
+
+        entity_info_new.push_back(EntityInfo{.name = name, .position = position});
+    }
+
     if (player_info_new.size() > 0) {
         player_info = player_info_new;
     } else {
         player_info.clear();
     }
+
+    if (entity_info_new.size() > 0) {
+        entity_info = entity_info_new;
+    } else {
+        entity_info.clear();
+    }
+
     view_matrix = process.Read<glm::mat4>(offsets.direct.view_matrix);
     const u64 sdl_window = process.Read<u64>(offsets.direct.sdl_window);
     if (sdl_window == 0) {

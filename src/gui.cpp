@@ -22,6 +22,7 @@ extern std::mutex config_lock;
 extern Config config;
 extern std::mutex vinfo_lock;
 extern std::vector<PlayerInfo> player_info;
+extern std::vector<EntityInfo> entity_info;
 
 ImU32 HealthColor(i32 health) {
     // smooth gradient from 100 (green) over 50 (yellow) to 0 (red)
@@ -88,7 +89,7 @@ void Gui() {
     ImGuiContext *overlay_ctx = ImGui::CreateContext();
 
     glfwWindowHint(GLFW_RESIZABLE, false);
-    GLFWwindow *gui_window = glfwCreateWindow(640, 420, "deadlocked", nullptr, nullptr);
+    GLFWwindow *gui_window = glfwCreateWindow(640, 460, "deadlocked", nullptr, nullptr);
     if (!gui_window) {
         Log(LogLevel::Error, "could not create gui window");
         return;
@@ -232,6 +233,8 @@ void Gui() {
             ImGui::Checkbox("Player Name", &config.visuals.draw_name);
             ImGui::Checkbox("Weapon Name", &config.visuals.draw_weapon);
             ImGui::Checkbox("Player Tags (helmet, defuser, bomb)", &config.visuals.draw_tags);
+
+            ImGui::Checkbox("Dropped Weapons", &config.visuals.dropped_weapons);
 
             ImGui::DragFloat("Line Width", &config.visuals.line_width, 0.01f, 0.2f, 3.0f, "%.1f");
 
@@ -429,6 +432,17 @@ void Gui() {
                 const ImVec2 bomb_position = ImVec2(bottom_left.x, bottom_left.y + offset);
                 offset += 16;
                 overlay_draw_list->AddText(bomb_position, 0xffffffff, "bomb");
+            }
+        }
+
+        if (config.visuals.dropped_weapons) {
+            for (auto entity : entity_info) {
+                const auto position_opt = WorldToScreen(entity.position);
+                if (!position_opt.has_value()) {
+                    continue;
+                }
+                const auto position = position_opt.value();
+                overlay_draw_list->AddText(ImVec2(position.x, position.y), 0xFFFFFFFF, entity.name.c_str());
             }
         }
         vinfo_lock.unlock();
