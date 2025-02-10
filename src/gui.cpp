@@ -348,6 +348,8 @@ void Gui() {
 
         vinfo_lock.lock();
         for (auto player : player_info) {
+            const ImU32 health_color = HealthColor(player.health);
+
             if (config.visuals.draw_skeleton != DrawStyle::DrawNone) {
                 ImU32 color;
                 if (config.visuals.draw_skeleton == DrawStyle::DrawColor) {
@@ -385,8 +387,6 @@ void Gui() {
             const ImVec2 bottom_right = ImVec2(bottom.x + half_width, bottom.y);
             const ImVec2 top_left = ImVec2(top.x - half_width, top.y);
             const ImVec2 top_right = ImVec2(top.x + half_width, top.y);
-
-            const ImU32 health_color = HealthColor(player.health);
 
             if (config.visuals.draw_box != DrawStyle::DrawNone) {
                 // four corners, each a quarter of the width/height
