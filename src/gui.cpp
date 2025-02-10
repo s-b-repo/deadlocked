@@ -231,6 +231,7 @@ void Gui() {
 
             ImGui::Checkbox("Player Name", &config.visuals.draw_name);
             ImGui::Checkbox("Weapon Name", &config.visuals.draw_weapon);
+            ImGui::Checkbox("Player Tags (helmet, defuser, bomb)", &config.visuals.draw_tags);
 
             ImGui::DragInt("Overlay FPS", &config.visuals.overlay_fps, 0.2f, 60, 240);
 
@@ -401,6 +402,26 @@ void Gui() {
                 const ImVec2 weapon_bottom_left = ImVec2(bottom_right.x, bottom_right.y);
                 overlay_draw_list->AddText(weapon_bottom_left, 0xffffffff, player.weapon.c_str());
             }
+
+            f32 offset = 16;
+
+            if (config.visuals.draw_tags && player.has_helmet) {
+                const ImVec2 helmet_bottom_left = ImVec2(bottom_right.x, bottom_right.y + offset);
+                offset += 16;
+                overlay_draw_list->AddText(helmet_bottom_left, 0xffffffff, "helmet");
+            }
+
+            if (config.visuals.draw_tags && player.has_defuser) {
+                const ImVec2 defuser_bottom_left = ImVec2(bottom_right.x, bottom_right.y + offset);
+                offset += 16;
+                overlay_draw_list->AddText(defuser_bottom_left, 0xffffffff, "defuser");
+            }
+
+            if (config.visuals.draw_tags && player.has_bomb) {
+                const ImVec2 bomb_bottom_left = ImVec2(bottom_right.x, bottom_right.y + offset);
+                offset += 16;
+                overlay_draw_list->AddText(bomb_bottom_left, 0xffffffff, "bomb");
+            }
         }
         vinfo_lock.unlock();
 
@@ -437,8 +458,8 @@ void Gui() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
 
-    //ImGui::DestroyContext(gui_ctx);
-    //ImGui::DestroyContext(overlay_ctx);
+    // ImGui::DestroyContext(gui_ctx);
+    // ImGui::DestroyContext(overlay_ctx);
 
     glfwDestroyWindow(gui_window);
     glfwDestroyWindow(overlay);

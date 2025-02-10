@@ -372,6 +372,16 @@ std::optional<Offsets> FindOffsets() {
                 continue;
             }
             offsets.pawn.camera_services = *(i32 *)(entry + 0x18);
+        } else if (name == std::string("m_pItemServices")) {
+            if (offsets.pawn.item_services != 0) {
+                continue;
+            }
+            offsets.pawn.item_services = *(i32 *)(entry + 0x08);
+        } else if (name == std::string("m_pWeaponServices")) {
+            if (offsets.pawn.weapon_services != 0) {
+                continue;
+            }
+            offsets.pawn.weapon_services = *(i32 *)(entry + 0x08);
         } else if (name == std::string("m_bDormant")) {
             if (offsets.game_scene_node.dormant != 0) {
                 continue;
@@ -407,6 +417,21 @@ std::optional<Offsets> FindOffsets() {
                 continue;
             }
             offsets.camera_service.fov = *(i32 *)(entry + 0x08);
+        } else if (name == std::string("m_bHasDefuser")) {
+            if (offsets.item_service.has_defuser != 0) {
+                continue;
+            }
+            offsets.item_service.has_defuser = *(i32 *)(entry + 0x10);
+        } else if (name == std::string("m_bHasHelmet")) {
+            if (!network_enable || offsets.item_service.has_helmet != 0) {
+                continue;
+            }
+            offsets.item_service.has_helmet = *(i32 *)(entry + 0x18);
+        } else if (name == std::string("m_hMyWeapons")) {
+            if (offsets.weapon_service.weapons != 0) {
+                continue;
+            }
+            offsets.weapon_service.weapons = *(i32 *)(entry + 0x08);
         }
 
         if (offsets.AllFound()) {
@@ -601,12 +626,12 @@ void VisualInfo() {
         info.team = player.Team();
         info.position = player.Position();
         info.head = player.BonePosition(Bones::BoneHead);
+        info.has_defuser = player.HasDefuser();
+        info.has_helmet = player.HasHelmet();
+        info.has_bomb = player.HasBomb();
         info.name = player.Name();
         info.weapon = player.WeaponName();
         info.bones = player.AllBones();
-
-        const i32 spotted_mask = player.SpottedMask();
-        info.visible = spotted_mask & (1 << target.local_pawn_index);
 
         player_info_new.push_back(info);
     }

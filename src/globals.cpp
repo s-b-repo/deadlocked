@@ -47,6 +47,7 @@ Config DefaultConfig() {
                           .draw_armor = true,
                           .draw_name = true,
                           .draw_weapon = true,
+                          .draw_tags = true,
                           .debug_window = false,
                       },
                   .misc = {

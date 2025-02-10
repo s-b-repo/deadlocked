@@ -15,7 +15,9 @@ struct PlayerInfo {
     u8 team;
     glm::vec3 position;
     glm::vec3 head;
-    bool visible;
+    bool has_defuser;
+    bool has_helmet;
+    bool has_bomb;
     std::string name;
     std::string weapon;
     std::vector<std::pair<glm::vec3, glm::vec3>> bones;

@@ -15,7 +15,7 @@ std::optional<Player> Player::LocalPlayer() {
     return Player{.controller = controller, .pawn = pawn.value()};
 }
 
-std::optional<Player> Player::Index(u64 index) {
+std::optional<u64> Player::ClientEntity(u64 index) {
     // wtf is this doing, and how?
     const u64 v1 = process.Read<u64>(offsets.interface.entity + 0x08 * (index >> 9) + 0x10);
     if (v1 == 0) {
@@ -27,11 +27,20 @@ std::optional<Player> Player::Index(u64 index) {
         return std::nullopt;
     }
 
-    const auto pawn = Pawn(controller);
+    return controller;
+}
+
+std::optional<Player> Player::Index(u64 index) {
+    const auto controller = ClientEntity(index);
+    if (!controller.has_value()) {
+        return std::nullopt;
+    }
+
+    const auto pawn = Pawn(controller.value());
     if (!pawn.has_value()) {
         return std::nullopt;
     }
-    return Player{.controller = controller, .pawn = pawn.value()};
+    return Player{.controller = controller.value(), .pawn = pawn.value()};
 }
 
 std::optional<u64> Player::Pawn(u64 controller) {
@@ -218,4 +227,54 @@ glm::vec2 Player::AimPunch() {
     const u64 data_address = process.Read<u64>(pawn + offsets.pawn.aim_punch_cache + 0x08);
 
     return process.Read<glm::vec2>(data_address + (length - 1) * 12) * glm::vec2(2.0);
+}
+
+bool Player::HasDefuser() {
+    const u64 item_service = process.Read<u64>(pawn + offsets.pawn.item_services);
+    if (!item_service) {
+        return false;
+    }
+    return process.Read<u8>(item_service + offsets.item_service.has_defuser) != 0;
+}
+
+bool Player::HasHelmet() {
+    const u64 item_service = process.Read<u64>(pawn + offsets.pawn.item_services);
+    if (!item_service) {
+        return false;
+    }
+    return process.Read<u8>(item_service + offsets.item_service.has_helmet) != 0;
+}
+bool Player::HasBomb() {
+    // return false;
+    const u64 weapon_service = process.Read<u64>(pawn + offsets.pawn.weapon_services);
+    if (!weapon_service) {
+        return false;
+    }
+    const u64 length = process.Read<u64>(weapon_service + offsets.weapon_service.weapons);
+    const u64 weapon_list = process.Read<u64>(weapon_service + offsets.weapon_service.weapons + 0x08);
+    for (u64 i = 0; i < length; i++) {
+        const u64 weapon_index = process.Read<u32>(weapon_list + (0x04 * i)) & 0xFFF;
+        // CEntityInstance
+        const auto weapon_entity_instance = ClientEntity(weapon_index);
+        if (!weapon_entity_instance.has_value()) {
+            continue;
+        }
+        // CEntityIdentity, 0x10 = m_pEntity
+        const u64 weapon_entity_identity = process.Read<u64>(weapon_entity_instance.value() + 0x10);
+        if (weapon_entity_identity == 0) {
+            continue;
+        }
+        // 0x20 = m_designerName (pointer -> string)
+        const u64 weapon_name_pointer = process.Read<u64>(weapon_entity_identity + 0x20);
+        if (weapon_name_pointer == 0) {
+            continue;
+        }
+
+        auto name = process.ReadString(weapon_name_pointer);
+        if (name.find("weapon_c4") != std::string::npos) {
+            return true;
+        }
+    }
+
+    return false;
 }

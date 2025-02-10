@@ -57,6 +57,8 @@ struct PawnOffsets {
     u64 spotted_state = 0;      // SpottedState (m_entitySpottedState)
     u64 observer_services = 0;  // Pointer -> ObserverServices (m_pObserverServices)
     u64 camera_services = 0;    // Pointer -> CameraServices (m_pCameraServices)
+    u64 item_services = 0;      // Pointer -> ItemServices (m_pItemServices)
+    u64 weapon_services = 0;    // Pointer -> WeaponServices (m_pWeaponServices)
 
     bool AllFound() const {
         return health && armor && team && life_state && weapon && fov_multiplier && game_scene_node && eye_offset &&
@@ -92,6 +94,19 @@ struct CameraServiceOffsets {
     bool AllFound() const { return fov; }
 };
 
+struct ItemServiceOffsets {
+    u64 has_defuser = 0;  // bool (m_bHasDefuser)
+    u64 has_helmet = 0;   // bool (m_bHasHelmet)
+
+    bool AllFound() const { return has_defuser && has_helmet; }
+};
+
+struct WeaponServiceOffsets {
+    u64 weapons = 0;  // pointer -> Vec<pointer -> Weapon> (m_hMyWeapons)
+
+    bool AllFound() const { return weapons; }
+};
+
 struct Offsets {
     LibraryOffsets library;
     InterfaceOffsets interface;
@@ -103,9 +118,12 @@ struct Offsets {
     SpottedStateOffsets spotted_state;
     ObserverServiceOffsets observer_service;
     CameraServiceOffsets camera_service;
+    ItemServiceOffsets item_service;
+    WeaponServiceOffsets weapon_service;
 
     bool AllFound() const {
         return controller.AllFound() && pawn.AllFound() && game_scene_node.AllFound() && spotted_state.AllFound() &&
-               observer_service.AllFound() && camera_service.AllFound();
+               observer_service.AllFound() && camera_service.AllFound() && item_service.AllFound() &&
+               weapon_service.AllFound();
     }
 };

@@ -41,9 +41,10 @@ struct VisualsConfig {
     bool draw_armor;
     bool draw_name;
     bool draw_weapon;
+    bool draw_tags;
     bool debug_window;
 
-    padding[1];
+    padding[3];
 };
 
 struct MiscConfig {

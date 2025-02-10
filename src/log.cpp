@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-LogLevel filter_level = LogLevel::Debug;
+LogLevel filter_level = LogLevel::Info;
 
 void SetLogLevel(LogLevel level) { filter_level = level; }
 
