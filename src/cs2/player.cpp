@@ -146,7 +146,7 @@ glm::vec3 Player::BonePosition(u64 bone_index) {
     const u64 bone_data = process.Read<u64>(gs_node + offsets.game_scene_node.model_state + 0x80);
 
     if (bone_data == 0) {
-        return glm::vec3(0.0);
+        return glm::vec3(0.0f);
     }
 
     return process.Read<glm::vec3>(bone_data + (bone_index * 32));
@@ -221,12 +221,12 @@ glm::vec2 Player::ViewAngles() { return process.Read<glm::vec2>(pawn + offsets.p
 glm::vec2 Player::AimPunch() {
     const u64 length = process.Read<u64>(pawn + offsets.pawn.aim_punch_cache);
     if (length < 1) {
-        return glm::vec2(0.0);
+        return glm::vec2(0.0f);
     }
 
     const u64 data_address = process.Read<u64>(pawn + offsets.pawn.aim_punch_cache + 0x08);
 
-    return process.Read<glm::vec2>(data_address + (length - 1) * 12) * glm::vec2(2.0);
+    return process.Read<glm::vec2>(data_address + (length - 1) * 12) * glm::vec2(2.0f);
 }
 
 bool Player::HasDefuser() {

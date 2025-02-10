@@ -89,7 +89,7 @@ void Gui() {
     ImGuiContext *overlay_ctx = ImGui::CreateContext();
 
     glfwWindowHint(GLFW_RESIZABLE, false);
-    GLFWwindow *gui_window = glfwCreateWindow(640, 460, "deadlocked", nullptr, nullptr);
+    GLFWwindow *gui_window = glfwCreateWindow(640, 420, "deadlocked", nullptr, nullptr);
     if (!gui_window) {
         Log(LogLevel::Error, "could not create gui window");
         return;
@@ -185,7 +185,7 @@ void Gui() {
             ImGui::DragFloat("FOV", &config.aimbot.fov, 0.02f, 0.1f, 360.0f, "%.1f");
 
             ImGui::Checkbox("Aim Lock", &config.aimbot.aim_lock);
-            ImGui::DragFloat("Smooth", &config.aimbot.smooth, 0.02f, 1.0, 10.0, "%.1f");
+            ImGui::DragFloat("Smooth", &config.aimbot.smooth, 0.02f, 1.0f, 10.0f, "%.1f");
 
             ImGui::Checkbox("RCS", &config.aimbot.rcs);
 
@@ -228,10 +228,13 @@ void Gui() {
             ImGui::PopID();
 
             ImGui::Checkbox("Health Bar", &config.visuals.draw_health);
+            ImGui::SameLine();
             ImGui::Checkbox("Armor Bar", &config.visuals.draw_armor);
 
             ImGui::Checkbox("Player Name", &config.visuals.draw_name);
+            ImGui::SameLine();
             ImGui::Checkbox("Weapon Name", &config.visuals.draw_weapon);
+
             ImGui::Checkbox("Player Tags (helmet, defuser, bomb)", &config.visuals.draw_tags);
 
             ImGui::Checkbox("Dropped Weapons", &config.visuals.dropped_weapons);
@@ -247,7 +250,7 @@ void Gui() {
 
         if (ImGui::BeginTabItem("Unsafe")) {
             ImGui::Checkbox("No Flash", &config.misc.no_flash);
-            ImGui::DragFloat("Max Flash Alpha", &config.misc.max_flash_alpha, 0.2f, 0.0, 255.0, "%.0f");
+            ImGui::DragFloat("Max Flash Alpha", &config.misc.max_flash_alpha, 0.2f, 0.0f, 255.0f, "%.0f");
 
             ImGui::Checkbox("FOV Changer", &config.misc.fov_changer);
             ImGui::DragInt("Desired FOV", &config.misc.desired_fov, 0.2f, 1, 179);
@@ -272,12 +275,12 @@ void Gui() {
         }
 
         ImDrawList *gui_draw_list = ImGui::GetForegroundDrawList();
-        ImGui::SetCursorScreenPos(ImVec2(0.0, 0.0));
+        ImGui::SetCursorScreenPos(ImVec2(0.0f, 0.0f));
         std::string gui_fps = "FPS: " + std::to_string((i32)gui_io.Framerate);
         const ImVec2 text_size = ImGui::CalcTextSize(gui_fps.c_str());
         const ImVec2 window_size = ImGui::GetWindowSize();
-        gui_draw_list->AddText(ImVec2(window_size.x - text_size.x - 4, window_size.y - text_size.y - 4), 0xFFFFFFFF,
-                               gui_fps.c_str());
+        gui_draw_list->AddText(ImVec2(window_size.x - text_size.x - 4.0f, window_size.y - text_size.y - 4.0f),
+                               0xFFFFFFFF, gui_fps.c_str());
 
         ImGui::End();
 
@@ -310,11 +313,11 @@ void Gui() {
 
         if (config.visuals.debug_window) {
             // frame
-            overlay_draw_list->AddRect(ImVec2(minX, minY), ImVec2(maxX - minX, maxY - minY), 0xffffffff, 0.0f, 0, 8.0);
+            overlay_draw_list->AddRect(ImVec2(minX, minY), ImVec2(maxX - minX, maxY - minY), 0xFFFFFFFF, 0.0f, 0, 8.0f);
 
             // cross
-            overlay_draw_list->AddLine(ImVec2(minX, minY), ImVec2(maxX - minX, maxY - minY), 0xffffffff, 4.0);
-            overlay_draw_list->AddLine(ImVec2(minX, maxY - minY), ImVec2(maxX - minX, minY), 0xffffffff, 4.0);
+            overlay_draw_list->AddLine(ImVec2(minX, minY), ImVec2(maxX - minX, maxY - minY), 0xFFFFFFFF, 4.0f);
+            overlay_draw_list->AddLine(ImVec2(minX, maxY - minY), ImVec2(maxX - minX, minY), 0xFFFFFFFF, 4.0f);
         }
 
         vinfo_lock.lock();
@@ -350,21 +353,21 @@ void Gui() {
                 } else {
                     color = health_color;
                 }
-                overlay_draw_list->AddLine(bottom_left, ImVec2(bottom_left.x, bottom_left.y - height / 4), color,
+                overlay_draw_list->AddLine(bottom_left, ImVec2(bottom_left.x, bottom_left.y - height / 4.0f), color,
                                            config.visuals.line_width);
-                overlay_draw_list->AddLine(bottom_left, ImVec2(bottom_left.x + width / 4, bottom_left.y), color,
+                overlay_draw_list->AddLine(bottom_left, ImVec2(bottom_left.x + width / 4.0f, bottom_left.y), color,
                                            config.visuals.line_width);
-                overlay_draw_list->AddLine(bottom_right, ImVec2(bottom_right.x, bottom_right.y - height / 4), color,
+                overlay_draw_list->AddLine(bottom_right, ImVec2(bottom_right.x, bottom_right.y - height / 4.0f), color,
                                            config.visuals.line_width);
-                overlay_draw_list->AddLine(bottom_right, ImVec2(bottom_right.x - width / 4, bottom_right.y), color,
+                overlay_draw_list->AddLine(bottom_right, ImVec2(bottom_right.x - width / 4.0f, bottom_right.y), color,
                                            config.visuals.line_width);
-                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x, top_left.y + height / 4), color,
+                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x, top_left.y + height / 4.0f), color,
                                            config.visuals.line_width);
-                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x + width / 4, top_left.y), color,
+                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x + width / 4.0f, top_left.y), color,
                                            config.visuals.line_width);
-                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x, top_right.y + height / 4), color,
+                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x, top_right.y + height / 4.0f), color,
                                            config.visuals.line_width);
-                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x - width / 4, top_right.y), color,
+                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x - width / 4.0f, top_right.y), color,
                                            config.visuals.line_width);
             }
 
@@ -388,15 +391,16 @@ void Gui() {
             }
 
             if (config.visuals.draw_health) {
-                const ImVec2 health_bottom = ImVec2(bottom_left.x - 4, bottom_left.y);
+                const ImVec2 health_bottom = ImVec2(bottom_left.x - 4.0f, bottom_left.y);
                 // adjust height based on health
-                const ImVec2 health_top = ImVec2(top_left.x - 4, bottom_left.y - height * player.health / 100);
+                const ImVec2 health_top =
+                    ImVec2(top_left.x - 4.0f, bottom_left.y - height * (f32)player.health / 100.0f);
                 overlay_draw_list->AddLine(health_bottom, health_top, health_color, config.visuals.line_width);
             }
 
             if (config.visuals.draw_armor) {
                 const ImVec2 armor_bottom = ImVec2(bottom_left.x - 8, bottom_left.y);
-                const ImVec2 armor_top = ImVec2(top_left.x - 8, bottom_left.y - height * player.armor / 100);
+                const ImVec2 armor_top = ImVec2(top_left.x - 8, bottom_left.y - height * (f32)player.armor / 100.0f);
                 overlay_draw_list->AddLine(
                     armor_bottom, armor_top,
                     IM_COL32(config.visuals.armor_color.x * 255, config.visuals.armor_color.y * 255,
@@ -405,33 +409,33 @@ void Gui() {
             }
 
             if (config.visuals.draw_name) {
-                const ImVec2 name_position = ImVec2(top_left.x, top_left.y - 18);
-                overlay_draw_list->AddText(name_position, 0xffffffff, player.name.c_str());
+                const ImVec2 name_position = ImVec2(top_left.x, top_left.y - 18.0f);
+                overlay_draw_list->AddText(name_position, 0xFFFFFFFF, player.name.c_str());
             }
 
             if (config.visuals.draw_weapon) {
                 const ImVec2 weapon_position = ImVec2(bottom_left.x, bottom_left.y);
-                overlay_draw_list->AddText(weapon_position, 0xffffffff, player.weapon.c_str());
+                overlay_draw_list->AddText(weapon_position, 0xFFFFFFFF, player.weapon.c_str());
             }
 
-            f32 offset = 16;
+            f32 offset = 16.0f;
 
             if (config.visuals.draw_tags && player.has_helmet) {
                 const ImVec2 helmet_position = ImVec2(bottom_left.x, bottom_left.y + offset);
-                offset += 16;
-                overlay_draw_list->AddText(helmet_position, 0xffffffff, "helmet");
+                offset += 16.0f;
+                overlay_draw_list->AddText(helmet_position, 0xFFFFFFFF, "helmet");
             }
 
             if (config.visuals.draw_tags && player.has_defuser) {
                 const ImVec2 defuser_position = ImVec2(bottom_left.x, bottom_left.y + offset);
-                offset += 16;
-                overlay_draw_list->AddText(defuser_position, 0xffffffff, "defuser");
+                offset += 16.0f;
+                overlay_draw_list->AddText(defuser_position, 0xFFFFFFFF, "defuser");
             }
 
             if (config.visuals.draw_tags && player.has_bomb) {
                 const ImVec2 bomb_position = ImVec2(bottom_left.x, bottom_left.y + offset);
-                offset += 16;
-                overlay_draw_list->AddText(bomb_position, 0xffffffff, "bomb");
+                offset += 16.0f;
+                overlay_draw_list->AddText(bomb_position, 0xFFFFFFFF, "bomb");
             }
         }
 
@@ -453,7 +457,7 @@ void Gui() {
         ImGui::Render();
         glfwGetFramebufferSize(overlay, &width, &height);
         glViewport(0, 0, width, height);
-        glClearColor(0.0, 0.0, 0.0, 0.0);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

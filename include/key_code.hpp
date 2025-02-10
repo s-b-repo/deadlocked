@@ -65,7 +65,7 @@ enum KeyCode {
     KeyMINUS,
     KeyEQUAL,
     KeyENTER,*/
-    KeySpace = 65,
+    KeySpace = 66,
     KeyBackspace,
     KeyTab,
     KeyCapslock,
@@ -79,11 +79,11 @@ enum KeyCode {
     KeyPAGEUP,
     KeyPAGEDOWN,
     KeyBREAK,*/
-    KeyLeftShift = 79,
+    KeyLeftShift = 80,
     // KeyRSHIFT,
-    KeyLeftAlt = 81,
+    KeyLeftAlt = 82,
     // KeyRALT,
-    KeyLeftControl = 83,
+    KeyLeftControl = 84,
     /*KeyRCONTROL,
     KeyLWIN,
     KeyRWIN,

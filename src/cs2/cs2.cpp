@@ -488,9 +488,9 @@ glm::vec2 TargetAngle(const glm::vec3 &eye_position, const glm::vec3 &position, 
 // 5.0 fov scale at 0 units, down to 1.0 at 500 units and above
 f32 DistanceScale(f32 distance) {
     if (distance > 500.0f) {
-        return 1.0;
+        return 1.0f;
     } else {
-        return 5.0 - (distance / 125.0);
+        return 5.0f - (distance / 125.0f);
     }
 }
 
@@ -541,10 +541,10 @@ void FindTarget() {
     const auto view_angles = local_player.ViewAngles();
     const auto ffa = IsFfa();
     const auto shots_fired = local_player.ShotsFired();
-    glm::vec2 aim_punch = glm::vec2(0.0);
+    glm::vec2 aim_punch = glm::vec2(0.0f);
     if (weapon_class != WeaponClass::Sniper) {
         const auto punch = local_player.AimPunch();
-        if (glm::length(punch) < 0.001 && shots_fired > 0) {
+        if (glm::length(punch) < 0.001f && shots_fired > 0) {
             aim_punch = target.aim_punch;
         } else {
             aim_punch = punch;
@@ -557,7 +557,7 @@ void FindTarget() {
         return;
     }
 
-    f32 smallest_fov = 360.0;
+    f32 smallest_fov = 360.0f;
     const auto eye_position = local_player.EyePosition();
     if (target.player.has_value()) {
         if (!target.player.value().IsValid()) {
@@ -591,7 +591,7 @@ void FindTarget() {
     }
 
     // update target angle
-    smallest_fov = 360.0;
+    smallest_fov = 360.0f;
     auto target_player = target.player.value();
     for (const auto bone : all_bones) {
         const auto bone_position = target_player.BonePosition(bone);

@@ -39,10 +39,10 @@ struct Target {
     void Reset() {
         player = std::nullopt;
         bone_index = Bones::BonePelvis;
-        angle = glm::vec2(0.0);
-        distance = 0.0;
+        angle = glm::vec2(0.0f);
+        distance = 0.0f;
         local_pawn_index = 0;
-        aim_punch = glm::vec2(0.0);
+        aim_punch = glm::vec2(0.0f);
     }
 };
 
