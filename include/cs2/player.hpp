@@ -1,6 +1,5 @@
 #pragma once
 
-// #include "cs2/cs2.hpp"
 #include <glm/glm.hpp>
 #include <optional>
 

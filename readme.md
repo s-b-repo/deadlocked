@@ -7,8 +7,7 @@ simple cs2 aimbot and esp, for linux only.
 
 > [!CAUTION]
 > vacnet 3.0 seems to be better at detecting aimbot and wallhacks, so **do not** use aim lock,
-> and play with a low fov to avoid bans.
-> use visuals sparingly, the default configuration should be a good starting point.
+> and play with a low fov to avoid bans. use visuals sparingly.
 
 ## features
 
@@ -26,7 +25,8 @@ simple cs2 aimbot and esp, for linux only.
   - armor bar
   - player name
   - weapon name
-- rcs
+  - player tags (helmet, defuser, bomb)
+- standalone rcs
 - unsafe
   - noflash
     - max flash alpha
@@ -47,3 +47,27 @@ simple cs2 aimbot and esp, for linux only.
 ## running
 
 - execute the run script: `./run.sh`
+
+## faq
+
+### what desktop environments and window managers are supported?
+
+it is tested on GNOME with Mutter, and KDE with KWin.
+support for other (especially tiling) window managers is not guaranteed.
+if in doubt, use either one of the two just listed.
+
+### the overlay window/my screen is black
+
+your compositor or window manager does not support transparency, or it is not enabled.
+
+### the overlay shows up, but i cannot click on anything
+
+the window could not be made click-through, which might be because of window manager/compositor support.
+
+### the overlay does not show up
+
+you window manager does not support positioning or resizing the window.
+
+### the overlay is not on top of other windows
+
+your window manager does not support always on top windows.
