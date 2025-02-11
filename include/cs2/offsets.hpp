@@ -55,6 +55,7 @@ struct PawnOffsets {
     u64 flash_alpha = 0;        // f32 (m_flFlashMaxAlpha)
     u64 flash_duration = 0;     // f32 (m_flFlashDuration)
     u64 spotted_state = 0;      // SpottedState (m_entitySpottedState)
+    u64 crosshair_entity = 0;   // EntityIndex (m_iIDEntIndex)
     u64 observer_services = 0;  // Pointer -> ObserverServices (m_pObserverServices)
     u64 camera_services = 0;    // Pointer -> CameraServices (m_pCameraServices)
     u64 item_services = 0;      // Pointer -> ItemServices (m_pItemServices)

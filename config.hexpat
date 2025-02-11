@@ -27,6 +27,18 @@ struct AimbotConfig {
     padding[2];
 };
 
+struct TriggerbotConfig {
+    KeyCode hotkey;
+    i32 delay_min;
+    i32 delay_max;
+
+    bool enabled;
+    bool visibility_check;
+    bool flash_check;
+
+    padding[1];
+};
+
 struct VisualsConfig {
     ImVec4 box_color;
     ImVec4 skeleton_color;
@@ -61,6 +73,7 @@ struct MiscConfig {
 
 struct Config {
     AimbotConfig aimbot;
+    TriggerbotConfig triggerbot;
     VisualsConfig visuals;
     MiscConfig misc;
 };

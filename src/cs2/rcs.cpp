@@ -1,6 +1,5 @@
-#include "cs2/rcs.hpp"
-
 #include "cs2/cs2.hpp"
+#include "cs2/features.hpp"
 #include "mouse.hpp"
 
 glm::vec2 mouse_movement(0.0);

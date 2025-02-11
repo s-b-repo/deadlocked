@@ -89,3 +89,37 @@ void MouseMove(glm::ivec2 coords) {
     ev.value = 0;
     write(mouse, &ev, sizeof(ev));
 }
+
+void MouseLeftPress() {
+    Log(LogLevel::Debug, "pressed left mouse button");
+    struct input_event ev = {0};
+
+    // y
+    ev.type = EV_KEY;
+    ev.code = BTN_LEFT;
+    ev.value = 1;
+    write(mouse, &ev, sizeof(ev));
+
+    // syn
+    ev.type = EV_SYN;
+    ev.code = SYN_REPORT;
+    ev.value = 0;
+    write(mouse, &ev, sizeof(ev));
+}
+
+void MouseLeftRelease() {
+    Log(LogLevel::Debug, "released left mouse button");
+    struct input_event ev = {0};
+
+    // y
+    ev.type = EV_KEY;
+    ev.code = BTN_LEFT;
+    ev.value = 0;
+    write(mouse, &ev, sizeof(ev));
+
+    // syn
+    ev.type = EV_SYN;
+    ev.code = SYN_REPORT;
+    ev.value = 0;
+    write(mouse, &ev, sizeof(ev));
+}

@@ -4,12 +4,9 @@
 #include <thread>
 
 #include "config.hpp"
-#include "cs2/aimbot.hpp"
 #include "cs2/constants.hpp"
-#include "cs2/fov_changer.hpp"
-#include "cs2/no_flash.hpp"
+#include "cs2/features.hpp"
 #include "cs2/player.hpp"
-#include "cs2/rcs.hpp"
 #include "log.hpp"
 #include "math.hpp"
 
@@ -364,6 +361,11 @@ std::optional<Offsets> FindOffsets() {
                 continue;
             }
             offsets.pawn.spotted_state = offset;
+        } else if (name == std::string("m_iIDEntIndex")) {
+            if (offsets.pawn.crosshair_entity != 0) {
+                continue;
+            }
+            offsets.pawn.crosshair_entity = *(i32 *)(entry + 0x10);
         } else if (name == std::string("m_pObserverServices")) {
             if (offsets.pawn.observer_services != 0) {
                 continue;
@@ -702,6 +704,7 @@ void Run() {
     FindTarget();
 
     Aimbot();
+    Triggerbot();
 
     VisualInfo();
 }

@@ -1,6 +1,5 @@
-#include "cs2/no_flash.hpp"
-
 #include "cs2/cs2.hpp"
+#include "cs2/features.hpp"
 
 void NoFlash() {
     const auto local_player_opt = Player::LocalPlayer();

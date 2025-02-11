@@ -1,6 +1,5 @@
-#include "cs2/aimbot.hpp"
-
 #include "cs2/cs2.hpp"
+#include "cs2/features.hpp"
 #include "math.hpp"
 #include "mouse.hpp"
 

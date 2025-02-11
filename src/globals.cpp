@@ -34,6 +34,16 @@ Config DefaultConfig() {
                           .flash_check = true,
                           .rcs = false,
                       },
+                  .triggerbot =
+                      {
+                          .hotkey = KeyCode::Mouse4,
+                          .delay_min = 100,
+                          .delay_max = 200,
+
+                          .enabled = false,
+                          .visibility_check = true,
+                          .flash_check = true,
+                      },
                   .visuals =
                       {
                           .box_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f),

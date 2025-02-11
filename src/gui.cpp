@@ -211,12 +211,30 @@ void Gui() {
             ImGui::Checkbox("Multibone", &config.aimbot.multibone);
 
             ImGui::Checkbox("Visibility Check", &config.aimbot.visibility_check);
+            ImGui::SameLine();
+            ImGui::Checkbox("Flash Check", &config.aimbot.flash_check);
+
             ImGui::DragFloat("FOV", &config.aimbot.fov, 0.02f, 0.1f, 360.0f, "%.1f");
 
             ImGui::Checkbox("Aim Lock", &config.aimbot.aim_lock);
             ImGui::DragFloat("Smooth", &config.aimbot.smooth, 0.02f, 1.0f, 10.0f, "%.1f");
 
             ImGui::Checkbox("RCS", &config.aimbot.rcs);
+
+            ImGui::EndChild();
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Triggerbot")) {
+            ImVec2 available = ImGui::GetContentRegionAvail();
+            ImGui::BeginChild("tab_items_triggerbot", available);
+
+            ImGui::Checkbox("Enable", &config.triggerbot.enabled);
+
+            ImGui::DragIntRange2("Delay", &config.triggerbot.delay_min, &config.triggerbot.delay_max, 0.2f, 0, 1000,
+                                 "%d", nullptr, ImGuiSliderFlags_AlwaysClamp);
+
+            ImGui::Checkbox("Flash Check", &config.triggerbot.flash_check);
 
             ImGui::EndChild();
             ImGui::EndTabItem();
