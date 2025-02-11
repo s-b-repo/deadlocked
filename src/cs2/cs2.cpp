@@ -361,6 +361,11 @@ std::optional<Offsets> FindOffsets() {
                 continue;
             }
             offsets.pawn.flash_duration = *(i32 *)(entry + 0x10);
+        } else if (name == std::string("m_bIsScoped")) {
+            if (!network_enable || offsets.pawn.scoped != 0) {
+                continue;
+            }
+            offsets.pawn.scoped = *(i32 *)(entry + 0x18);
         } else if (name == std::string("m_entitySpottedState")) {
             if (!network_enable || offsets.pawn.spotted_state != 0) {
                 continue;

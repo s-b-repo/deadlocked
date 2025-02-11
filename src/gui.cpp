@@ -253,7 +253,11 @@ void Gui() {
                 "Delay", &config.triggerbot.delay_min, &config.triggerbot.delay_max, 0.2f, 0, 1000,
                 "%d", nullptr, ImGuiSliderFlags_AlwaysClamp);
 
+            ImGui::Checkbox("Visibility Check", &config.triggerbot.visibility_check);
+
             ImGui::Checkbox("Flash Check", &config.triggerbot.flash_check);
+
+            ImGui::Checkbox("Scope Check", &config.triggerbot.scope_check);
 
             ImGui::EndChild();
             ImGui::EndTabItem();

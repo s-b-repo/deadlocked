@@ -33,6 +33,11 @@ void Triggerbot() {
         return;
     }
 
+    if (config.triggerbot.scope_check && local_player.GetWeaponClass() == WeaponClass::Sniper &&
+        !local_player.IsScoped()) {
+        return;
+    }
+
     if (!local_player.HasEntityInCrosshair()) {
         return;
     }

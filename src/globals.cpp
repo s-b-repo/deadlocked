@@ -9,7 +9,7 @@
 #include "log.hpp"
 
 std::mutex config_lock;
-Config config;
+Config config = LoadConfig();
 
 std::mutex vinfo_lock;
 std::vector<PlayerInfo> player_info;

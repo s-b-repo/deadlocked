@@ -56,7 +56,8 @@ toml::table TriggerbotConfig::to_toml() const {
         {"delay_max", delay_max},
         {"enabled", enabled},
         {"visibility_check", visibility_check},
-        {"flash_check", flash_check}};
+        {"flash_check", flash_check},
+        {"scope_check", scope_check}};
 }
 
 TriggerbotConfig TriggerbotConfig::from_toml(const toml::table &tbl) {
@@ -67,6 +68,7 @@ TriggerbotConfig TriggerbotConfig::from_toml(const toml::table &tbl) {
     cfg.enabled = tbl["enabled"].value_or(cfg.enabled);
     cfg.visibility_check = tbl["visibility_check"].value_or(cfg.visibility_check);
     cfg.flash_check = tbl["flash_check"].value_or(cfg.flash_check);
+    cfg.scope_check = tbl["scope_check"].value_or(cfg.scope_check);
     return cfg;
 }
 

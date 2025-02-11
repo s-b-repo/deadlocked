@@ -42,6 +42,7 @@ class Player {
     bool HasHelmet() const;
     bool HasBomb() const;
     bool HasEntityInCrosshair() const;
+    bool IsScoped() const;
 
     bool Equals(Player &other) { return pawn == other.pawn && controller == other.controller; }
 };

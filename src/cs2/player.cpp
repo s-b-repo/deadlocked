@@ -303,3 +303,5 @@ bool Player::HasEntityInCrosshair() const {
     }
     return true;
 }
+
+bool Player::IsScoped() const { return process.Read<u8>(pawn + offsets.pawn.scoped) != 0; }
