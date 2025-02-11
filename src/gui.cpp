@@ -92,7 +92,7 @@ void Gui() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     // gui window
-    SDL_Window *gui_window = SDL_CreateWindow("deadlocked", 640, 420, SDL_WINDOW_OPENGL);
+    SDL_Window *gui_window = SDL_CreateWindow("deadlocked", 600, 400, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if (!gui_window) {
         Log(LogLevel::Error, "could not create gui window");
         return;
@@ -188,6 +188,9 @@ void Gui() {
         ImGui::BeginTabBar("tabs");
 
         if (ImGui::BeginTabItem("Aimbot")) {
+            ImVec2 available = ImGui::GetContentRegionAvail();
+            ImGui::BeginChild("tab_items_aimbot", available);
+
             ImGui::Checkbox("Enable", &config.aimbot.enabled);
 
             if (ImGui::BeginCombo("Hotkey", key_code_names.at(config.aimbot.hotkey))) {
@@ -215,10 +218,14 @@ void Gui() {
 
             ImGui::Checkbox("RCS", &config.aimbot.rcs);
 
+            ImGui::EndChild();
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("Visuals")) {
+            ImVec2 available = ImGui::GetContentRegionAvail();
+            ImGui::BeginChild("tab_items_visuals", available);
+
             ImGui::Checkbox("Enable", &config.visuals.enabled);
 
             ImGui::Text("Draw Box");
@@ -271,42 +278,57 @@ void Gui() {
 
             ImGui::Checkbox("Debug Overlay", &config.visuals.debug_window);
 
+            ImGui::EndChild();
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("Unsafe")) {
+            ImVec2 available = ImGui::GetContentRegionAvail();
+            ImGui::BeginChild("tab_items_unsafe", available);
+
             ImGui::Checkbox("No Flash", &config.misc.no_flash);
             ImGui::DragFloat("Max Flash Alpha", &config.misc.max_flash_alpha, 0.2f, 0.0f, 255.0f, "%.0f");
 
             ImGui::Checkbox("FOV Changer", &config.misc.fov_changer);
             ImGui::DragInt("Desired FOV", &config.misc.desired_fov, 0.2f, 1, 179);
 
+            ImGui::EndChild();
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("Colors")) {
+            ImVec2 available = ImGui::GetContentRegionAvail();
+            ImGui::BeginChild("tab_items_colors", available);
+
             ImGui::ColorEdit3("Box", &config.visuals.box_color.x);
 
             ImGui::ColorEdit3("Skeleton", &config.visuals.skeleton_color.x);
 
             ImGui::ColorEdit3("Armor", &config.visuals.armor_color.x);
 
+            ImGui::EndChild();
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Config")) {
+            ImVec2 available = ImGui::GetContentRegionAvail();
+            ImGui::BeginChild("tab_items_config", available);
+
+            if (ImGui::Button("reset config")) {
+                ResetConfig();
+            }
+
+            ImGui::EndChild();
             ImGui::EndTabItem();
         }
 
         ImGui::EndTabBar();
-
-        if (ImGui::Button("reset config")) {
-            ResetConfig();
-        }
 
         ImDrawList *gui_draw_list = ImGui::GetForegroundDrawList();
         ImGui::SetCursorScreenPos(ImVec2(0.0f, 0.0f));
         std::string gui_fps = "FPS: " + std::to_string((i32)gui_io.Framerate);
         const ImVec2 text_size = ImGui::CalcTextSize(gui_fps.c_str());
         const ImVec2 gui_window_size = ImGui::GetWindowSize();
-        gui_draw_list->AddText(ImVec2(gui_window_size.x - text_size.x - 4.0f, gui_window_size.y - text_size.y - 4.0f),
-                               0xFFFFFFFF, gui_fps.c_str());
+        gui_draw_list->AddText(ImVec2(gui_window_size.x - text_size.x - 4.0f, 4.0f), 0xFFFFFFFF, gui_fps.c_str());
 
         ImGui::End();
 
