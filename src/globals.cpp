@@ -1,12 +1,12 @@
 #include <filesystem>
 #include <fstream>
 #include <glm/glm.hpp>
+#include <mutex>
 #include <vector>
 
 #include "config.hpp"
 #include "cs2/cs2.hpp"
-
-Config LoadConfig();
+#include "log.hpp"
 
 std::mutex config_lock;
 Config config = LoadConfig();
@@ -66,14 +66,14 @@ std::string ConfigPath() {
     // current executable directory
     const auto exe = std::filesystem::canonical("/proc/self/exe");
     const auto exe_path = exe.parent_path();
-    return (exe_path / std::filesystem::path("deadlocked.config")).string();
+    return (exe_path / std::filesystem::path("deadlocked.json")).string();
 }
-
-std::ofstream config_file(ConfigPath(), std::ios::binary);
 
 void SaveConfig() {
     // save config in binary format
-    if (!config_file.is_open()) {
+    std::ofstream config_file(ConfigPath(), std::ios::binary);
+    if (!config_file.good()) {
+        Log(LogLevel::Error, "config file is not opened");
         return;
     }
 
@@ -83,16 +83,13 @@ void SaveConfig() {
 
 Config LoadConfig() {
     // load config in binary format
-    Config conf = DefaultConfig();
+    Config config = DefaultConfig();
     std::ifstream file(ConfigPath(), std::ios::binary);
-    if (!file.is_open()) {
-        return conf;
+    if (!file.good()) {
+        return config;
     }
 
-    file.read((char *)(&conf), sizeof(Config));
-    file.close();
-
-    return conf;
+    return config;
 }
 
 void ResetConfig() {

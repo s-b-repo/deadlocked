@@ -2,9 +2,6 @@
 
 #include <imgui.h>
 
-#include <mutex>
-
-#include "config.hpp"
 #include "key_code.hpp"
 #include "types.hpp"
 
@@ -65,4 +62,5 @@ struct Config {
 };
 
 void SaveConfig();
+Config LoadConfig();
 void ResetConfig();
