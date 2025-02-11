@@ -31,6 +31,7 @@ struct VisualsConfig {
     ImVec4 box_color;
     ImVec4 skeleton_color;
     ImVec4 armor_color;
+    ImVec4 crosshair_color;
 
     s32 overlay_fps;
     float line_width;
@@ -44,9 +45,10 @@ struct VisualsConfig {
     bool draw_weapon;
     bool draw_tags;
     bool dropped_weapons;
+    bool sniper_crosshair;
     bool debug_window;
 
-    padding[2];
+    padding[1];
 };
 
 struct MiscConfig {

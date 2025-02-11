@@ -25,6 +25,7 @@ extern std::vector<PlayerInfo> player_info;
 extern std::vector<EntityInfo> entity_info;
 extern glm::mat4 view_matrix;
 extern glm::ivec4 window_size;
+extern MiscInfo misc_info;
 extern bool should_quit;
 
 void CS2() {
@@ -682,6 +683,13 @@ void VisualInfo() {
         window_size = glm::ivec4(0);
     } else {
         window_size = process.Read<glm::ivec4>(sdl_window + 0x18);
+    }
+
+    std::optional<Player> local_player = Player::LocalPlayer();
+    if (local_player.has_value()) {
+        misc_info.held_weapon = local_player.value().WeaponName();
+    } else {
+        misc_info.held_weapon = "?";
     }
     vinfo_lock.unlock();
 }

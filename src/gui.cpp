@@ -271,6 +271,8 @@ void Gui() {
             ImGui::Checkbox("Player Tags (helmet, defuser, bomb)", &config.visuals.draw_tags);
 
             ImGui::Checkbox("Dropped Weapons", &config.visuals.dropped_weapons);
+            ImGui::SameLine();
+            ImGui::Checkbox("Sniper Crosshair", &config.visuals.sniper_crosshair);
 
             ImGui::DragFloat("Line Width", &config.visuals.line_width, 0.01f, 0.2f, 3.0f, "%.1f");
 
@@ -305,6 +307,8 @@ void Gui() {
             ImGui::ColorEdit3("Skeleton", &config.visuals.skeleton_color.x);
 
             ImGui::ColorEdit3("Armor", &config.visuals.armor_color.x);
+
+            ImGui::ColorEdit3("Crosshair", &config.visuals.crosshair_color.x);
 
             ImGui::EndChild();
             ImGui::EndTabItem();
@@ -497,6 +501,21 @@ void Gui() {
                 overlay_draw_list->AddText(ImVec2(position.x, position.y), 0xFFFFFFFF, entity.name.c_str());
             }
         }
+
+        extern MiscInfo misc_info;
+        // sniper crosshair
+        if (config.visuals.sniper_crosshair && WeaponClassFromString(misc_info.held_weapon) == WeaponClass::Sniper) {
+            const f32 crosshair_size = 32.0f;
+            const ImVec2 center =
+                ImVec2((f32)window_size.x + (f32)window_size.z / 2.0f, (f32)window_size.y + (f32)window_size.w / 2.0f);
+            const ImU32 color = IM_COL32(config.visuals.crosshair_color.x * 255, config.visuals.crosshair_color.y * 255,
+                                         config.visuals.crosshair_color.z * 255, 255);
+            overlay_draw_list->AddLine(ImVec2(center.x - crosshair_size, center.y),
+                                       ImVec2(center.x + crosshair_size, center.y), color);
+            overlay_draw_list->AddLine(ImVec2(center.x, center.y - crosshair_size),
+                                       ImVec2(center.x, center.y + crosshair_size), color);
+        }
+
         vinfo_lock.unlock();
 
         ImGui::End();

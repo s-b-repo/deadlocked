@@ -28,6 +28,10 @@ struct EntityInfo {
     glm::vec3 position;
 };
 
+struct MiscInfo {
+    std::string held_weapon;
+};
+
 struct Target {
     std::optional<Player> player;
     Bones bone_index;

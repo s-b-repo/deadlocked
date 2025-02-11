@@ -16,6 +16,7 @@ std::vector<PlayerInfo> player_info;
 std::vector<EntityInfo> entity_info;
 glm::mat4 view_matrix;
 glm::ivec4 window_size;
+MiscInfo misc_info;
 bool should_quit = false;
 
 Config DefaultConfig() {
@@ -38,6 +39,7 @@ Config DefaultConfig() {
                           .box_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
                           .skeleton_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
                           .armor_color = ImVec4(0.0f, 0.0f, 1.0f, 1.0f),
+                          .crosshair_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
 
                           .overlay_fps = 120,
                           .line_width = 2.0f,
@@ -51,6 +53,7 @@ Config DefaultConfig() {
                           .draw_weapon = true,
                           .draw_tags = true,
                           .dropped_weapons = true,
+                          .sniper_crosshair = false,
                           .debug_window = false,
                       },
                   .misc = {
@@ -69,25 +72,26 @@ std::string ConfigPath() {
     return (exe_path / std::filesystem::path("deadlocked.json")).string();
 }
 
+std::ofstream config_file(ConfigPath(), std::ios::binary);
 void SaveConfig() {
     // save config in binary format
-    std::ofstream config_file(ConfigPath(), std::ios::binary);
     if (!config_file.good()) {
         Log(LogLevel::Error, "config file is not opened");
         return;
     }
 
-    config_file.write((const char *)(&config), sizeof(Config));
     config_file.seekp(0);
+    config_file.write((const char *)(&config), sizeof(Config));
 }
 
 Config LoadConfig() {
     // load config in binary format
     Config config = DefaultConfig();
     std::ifstream file(ConfigPath(), std::ios::binary);
-    if (!file.good()) {
-        return config;
+    if (file.good()) {
+        file.read((char *)(&config), sizeof(Config));
     }
+    file.close();
 
     return config;
 }
