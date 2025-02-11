@@ -231,6 +231,19 @@ void Gui() {
 
             ImGui::Checkbox("Enable", &config.triggerbot.enabled);
 
+            if (ImGui::BeginCombo("Hotkey", key_code_names.at(config.triggerbot.hotkey))) {
+                for (const auto &[key, name] : key_code_names) {
+                    bool is_selected = key == config.triggerbot.hotkey;
+                    if (ImGui::Selectable(name, is_selected)) {
+                        config.triggerbot.hotkey = key;
+                    }
+                    if (is_selected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
             ImGui::DragIntRange2("Delay", &config.triggerbot.delay_min, &config.triggerbot.delay_max, 0.2f, 0, 1000,
                                  "%d", nullptr, ImGuiSliderFlags_AlwaysClamp);
 
