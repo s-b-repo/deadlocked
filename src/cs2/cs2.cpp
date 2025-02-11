@@ -1,7 +1,5 @@
 #include "cs2/cs2.hpp"
 
-#include <string.h>
-
 #include <iostream>
 #include <thread>
 

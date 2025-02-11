@@ -1,7 +1,5 @@
 #include "math.hpp"
 
-#include <random>
-
 f32 ToDegrees(const f32 value) { return value * 180.0f / M_PI; }
 
 glm::vec2 AnglesFromVector(const glm::vec3 &forward) {

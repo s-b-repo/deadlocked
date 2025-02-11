@@ -3,8 +3,9 @@
 #include "cs2/cs2.hpp"
 #include "mouse.hpp"
 
-glm::vec2 previous_aim_punch(0.0);
+glm::vec2 mouse_movement(0.0);
 
+// todo: rework
 void Rcs() {
     if (!config.aimbot.rcs) {
         return;
@@ -24,16 +25,17 @@ void Rcs() {
     const i32 shots_fired = local_player.ShotsFired();
 
     if (shots_fired < 1) {
-        previous_aim_punch = glm::vec2(0.0f);
+        mouse_movement = glm::vec2(0.0f);
         return;
     }
 
     const f32 sensitivity = Sensitivity() * local_player.FovMultiplier();
-    const glm::vec2 xy = glm::vec2(target.aim_punch - previous_aim_punch) * glm::vec2(-0.5f);
+    const glm::vec2 xy = target.aim_punch * glm::vec2(-0.5f);
 
     glm::vec2 mouse_angle = glm::vec2(((xy.y * 2.0f) / sensitivity) / -0.022f, ((xy.x * 2.0f) / sensitivity) / 0.022f);
+    glm::vec2 delta = mouse_angle - mouse_movement;
 
-    previous_aim_punch = target.aim_punch;
+    mouse_movement += glm::round(delta);
 
-    MouseMove(glm::ivec2((i32)mouse_angle.x, (i32)mouse_angle.y));
+    MouseMove(glm::ivec2((i32)delta.x, (i32)delta.y));
 }

@@ -1,7 +1,5 @@
 #include "log.hpp"
 
-#include <stdarg.h>
-
 #include <iostream>
 
 LogLevel filter_level = LogLevel::Info;

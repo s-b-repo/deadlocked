@@ -26,7 +26,7 @@ void Aimbot() {
 
     if (config.aimbot.visibility_check) {
         const u64 spotted_mask = target_player.SpottedMask();
-        if (spotted_mask & (1 << target.local_pawn_index) == 0) {
+        if ((spotted_mask & (1 << target.local_pawn_index)) == 0) {
             return;
         }
     }
