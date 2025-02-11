@@ -69,7 +69,7 @@ std::string ConfigPath() {
     // current executable directory
     const auto exe = std::filesystem::canonical("/proc/self/exe");
     const auto exe_path = exe.parent_path();
-    return (exe_path / std::filesystem::path("deadlocked.json")).string();
+    return (exe_path / std::filesystem::path("deadlocked.config")).string();
 }
 
 std::ofstream config_file(ConfigPath(), std::ios::binary);
@@ -86,14 +86,14 @@ void SaveConfig() {
 
 Config LoadConfig() {
     // load config in binary format
-    Config config = DefaultConfig();
+    Config conf = DefaultConfig();
     std::ifstream file(ConfigPath(), std::ios::binary);
     if (file.good()) {
-        file.read((char *)(&config), sizeof(Config));
+        file.read((char *)(&conf), sizeof(Config));
     }
     file.close();
 
-    return config;
+    return conf;
 }
 
 void ResetConfig() {
