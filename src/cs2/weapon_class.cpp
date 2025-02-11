@@ -51,13 +51,15 @@ WeaponClass WeaponClassFromString(const std::string &name) {
         {"p90", WeaponClass::Smg},
         {"ump45", WeaponClass::Smg},
 
-        // Heavy weapons (Shotguns & LMGs)
+        // Heavy
         {"m249", WeaponClass::Heavy},
         {"negev", WeaponClass::Heavy},
-        {"mag7", WeaponClass::Heavy},
-        {"nova", WeaponClass::Heavy},
-        {"sawedoff", WeaponClass::Heavy},
-        {"xm1014", WeaponClass::Heavy},
+
+        // Shotguns
+        {"mag7", WeaponClass::Shotgun},
+        {"nova", WeaponClass::Shotgun},
+        {"sawedoff", WeaponClass::Shotgun},
+        {"xm1014", WeaponClass::Shotgun},
 
         // Rifles
         {"ak47", WeaponClass::Rifle},
