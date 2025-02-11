@@ -110,10 +110,10 @@ void Gui() {
     SDL_SetWindowPosition(temp, 0, 0);
 
     // overlay window
-    SDL_Window *overlay =
-        SDL_CreatePopupWindow(temp, 0, 0, maxX - minX, maxY - minY,
-                              SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_NOT_FOCUSABLE |
-                                  SDL_WINDOW_OPENGL | SDL_WINDOW_TOOLTIP | SDL_WINDOW_TRANSPARENT);
+    SDL_Window *overlay = SDL_CreatePopupWindow(
+        temp, 0, 0, maxX - minX, maxY - minY,
+        SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_NOT_FOCUSABLE | SDL_WINDOW_OPENGL |
+            SDL_WINDOW_TOOLTIP | SDL_WINDOW_TRANSPARENT);
     if (!overlay) {
         Log(LogLevel::Error, "could not create overlay window");
         return;
@@ -159,8 +159,10 @@ void Gui() {
     std::thread cs2(CS2);
 
     bool should_close = false;
+    auto save_timer = std::chrono::steady_clock::now();
+    const std::chrono::seconds save_interval(5);
     while (!should_close) {
-        auto clock = std::chrono::steady_clock::now();
+        auto start_time = std::chrono::steady_clock::now();
 
         SDL_GL_MakeCurrent(gui_window, gui_gl);
         ImGui::SetCurrentContext(gui_ctx);
@@ -178,8 +180,8 @@ void Gui() {
         ImGui_ImplSDL3_NewFrame();
         SDL_GetWindowSize(gui_window, &width, &height);
         ImGui::NewFrame();
-        ImGui::Begin("deadlocked", nullptr,
-                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+        ImGui::Begin(
+            "deadlocked", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
         ImGui::SetWindowSize(ImVec2(width, height));
         ImGui::SetWindowPos(ImVec2(0.0f, 0.0f));
 
@@ -244,8 +246,9 @@ void Gui() {
                 ImGui::EndCombo();
             }
 
-            ImGui::DragIntRange2("Delay", &config.triggerbot.delay_min, &config.triggerbot.delay_max, 0.2f, 0, 1000,
-                                 "%d", nullptr, ImGuiSliderFlags_AlwaysClamp);
+            ImGui::DragIntRange2(
+                "Delay", &config.triggerbot.delay_min, &config.triggerbot.delay_max, 0.2f, 0, 1000, "%d", nullptr,
+                ImGuiSliderFlags_AlwaysClamp);
 
             ImGui::Checkbox("Flash Check", &config.triggerbot.flash_check);
 
@@ -385,17 +388,18 @@ void Gui() {
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("overlay", nullptr,
-                     ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs |
-                         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+        ImGui::Begin(
+            "overlay", nullptr,
+            ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs |
+                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
         ImGui::SetWindowPos(ImVec2(minX, minY));
         ImGui::SetWindowSize(ImVec2(maxX - minX, maxY - minY));
         ImDrawList *overlay_draw_list = ImGui::GetBackgroundDrawList();
 
         std::string overlay_fps = "FPS: " + std::to_string((i32)overlay_io.Framerate);
         extern glm::ivec4 window_size;
-        overlay_draw_list->AddText(ImVec2((f32)window_size.x + 4.0f, (f32)window_size.y + 4.0f), 0xFFFFFFFF,
-                                   overlay_fps.c_str());
+        overlay_draw_list->AddText(
+            ImVec2((f32)window_size.x + 4.0f, (f32)window_size.y + 4.0f), 0xFFFFFFFF, overlay_fps.c_str());
 
         if (config.visuals.debug_window) {
             // frame
@@ -413,8 +417,9 @@ void Gui() {
             if (config.visuals.draw_skeleton != DrawStyle::DrawNone) {
                 ImU32 color;
                 if (config.visuals.draw_skeleton == DrawStyle::DrawColor) {
-                    color = IM_COL32(config.visuals.skeleton_color.x * 255, config.visuals.skeleton_color.y * 255,
-                                     config.visuals.skeleton_color.z * 255, 255);
+                    color = IM_COL32(
+                        config.visuals.skeleton_color.x * 255, config.visuals.skeleton_color.y * 255,
+                        config.visuals.skeleton_color.z * 255, 255);
                 } else {
                     color = health_color;
                 }
@@ -458,27 +463,31 @@ void Gui() {
                 // convert imvec4 to imu32
                 ImU32 color;
                 if (config.visuals.draw_box == DrawStyle::DrawColor) {
-                    color = IM_COL32(config.visuals.box_color.x * 255, config.visuals.box_color.y * 255,
-                                     config.visuals.box_color.z * 255, 255);
+                    color = IM_COL32(
+                        config.visuals.box_color.x * 255, config.visuals.box_color.y * 255,
+                        config.visuals.box_color.z * 255, 255);
                 } else {
                     color = health_color;
                 }
-                overlay_draw_list->AddLine(bottom_left, ImVec2(bottom_left.x, bottom_left.y - height / 4.0f), color,
-                                           config.visuals.line_width);
-                overlay_draw_list->AddLine(bottom_left, ImVec2(bottom_left.x + width / 4.0f, bottom_left.y), color,
-                                           config.visuals.line_width);
-                overlay_draw_list->AddLine(bottom_right, ImVec2(bottom_right.x, bottom_right.y - height / 4.0f), color,
-                                           config.visuals.line_width);
-                overlay_draw_list->AddLine(bottom_right, ImVec2(bottom_right.x - width / 4.0f, bottom_right.y), color,
-                                           config.visuals.line_width);
-                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x, top_left.y + height / 4.0f), color,
-                                           config.visuals.line_width);
-                overlay_draw_list->AddLine(top_left, ImVec2(top_left.x + width / 4.0f, top_left.y), color,
-                                           config.visuals.line_width);
-                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x, top_right.y + height / 4.0f), color,
-                                           config.visuals.line_width);
-                overlay_draw_list->AddLine(top_right, ImVec2(top_right.x - width / 4.0f, top_right.y), color,
-                                           config.visuals.line_width);
+                overlay_draw_list->AddLine(
+                    bottom_left, ImVec2(bottom_left.x, bottom_left.y - height / 4.0f), color,
+                    config.visuals.line_width);
+                overlay_draw_list->AddLine(
+                    bottom_left, ImVec2(bottom_left.x + width / 4.0f, bottom_left.y), color, config.visuals.line_width);
+                overlay_draw_list->AddLine(
+                    bottom_right, ImVec2(bottom_right.x, bottom_right.y - height / 4.0f), color,
+                    config.visuals.line_width);
+                overlay_draw_list->AddLine(
+                    bottom_right, ImVec2(bottom_right.x - width / 4.0f, bottom_right.y), color,
+                    config.visuals.line_width);
+                overlay_draw_list->AddLine(
+                    top_left, ImVec2(top_left.x, top_left.y + height / 4.0f), color, config.visuals.line_width);
+                overlay_draw_list->AddLine(
+                    top_left, ImVec2(top_left.x + width / 4.0f, top_left.y), color, config.visuals.line_width);
+                overlay_draw_list->AddLine(
+                    top_right, ImVec2(top_right.x, top_right.y + height / 4.0f), color, config.visuals.line_width);
+                overlay_draw_list->AddLine(
+                    top_right, ImVec2(top_right.x - width / 4.0f, top_right.y), color, config.visuals.line_width);
             }
 
             if (config.visuals.draw_health) {
@@ -494,8 +503,9 @@ void Gui() {
                 const ImVec2 armor_top = ImVec2(top_left.x - 8, bottom_left.y - height * (f32)player.armor / 100.0f);
                 overlay_draw_list->AddLine(
                     armor_bottom, armor_top,
-                    IM_COL32(config.visuals.armor_color.x * 255, config.visuals.armor_color.y * 255,
-                             config.visuals.armor_color.z * 255, 255),
+                    IM_COL32(
+                        config.visuals.armor_color.x * 255, config.visuals.armor_color.y * 255,
+                        config.visuals.armor_color.z * 255, 255),
                     config.visuals.line_width);
             }
 
@@ -548,12 +558,13 @@ void Gui() {
             const f32 crosshair_size = 32.0f;
             const ImVec2 center =
                 ImVec2((f32)window_size.x + (f32)window_size.z / 2.0f, (f32)window_size.y + (f32)window_size.w / 2.0f);
-            const ImU32 color = IM_COL32(config.visuals.crosshair_color.x * 255, config.visuals.crosshair_color.y * 255,
-                                         config.visuals.crosshair_color.z * 255, 255);
-            overlay_draw_list->AddLine(ImVec2(center.x - crosshair_size, center.y),
-                                       ImVec2(center.x + crosshair_size, center.y), color);
-            overlay_draw_list->AddLine(ImVec2(center.x, center.y - crosshair_size),
-                                       ImVec2(center.x, center.y + crosshair_size), color);
+            const ImU32 color = IM_COL32(
+                config.visuals.crosshair_color.x * 255, config.visuals.crosshair_color.y * 255,
+                config.visuals.crosshair_color.z * 255, 255);
+            overlay_draw_list->AddLine(
+                ImVec2(center.x - crosshair_size, center.y), ImVec2(center.x + crosshair_size, center.y), color);
+            overlay_draw_list->AddLine(
+                ImVec2(center.x, center.y - crosshair_size), ImVec2(center.x, center.y + crosshair_size), color);
         }
 
         vinfo_lock.unlock();
@@ -570,10 +581,14 @@ void Gui() {
 
         SDL_GL_SwapWindow(overlay);
 
-        SaveConfig();
-
         const auto end_time = std::chrono::steady_clock::now();
-        const auto us = std::chrono::duration_cast<std::chrono::microseconds>(end_time - clock);
+
+        if (end_time - save_timer > save_interval) {
+            SaveConfig();
+            save_timer = end_time;
+        }
+
+        const auto us = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
         const auto frame_time = std::chrono::microseconds(1000000 / config.visuals.overlay_fps);
         std::this_thread::sleep_for(frame_time - us);
         // glfwPollEvents();

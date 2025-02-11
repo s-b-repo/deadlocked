@@ -9,7 +9,7 @@
 #include "log.hpp"
 
 std::mutex config_lock;
-Config config = LoadConfig();
+Config config;
 
 std::mutex vinfo_lock;
 std::vector<PlayerInfo> player_info;
@@ -19,96 +19,42 @@ glm::ivec4 window_size;
 MiscInfo misc_info;
 bool should_quit = false;
 
-Config DefaultConfig() {
-    return Config{.aimbot =
-                      {
-                          .hotkey = KeyCode::Mouse5,
-                          .start_bullet = 2,
-                          .fov = 2.5f,
-                          .smooth = 5.0f,
-
-                          .enabled = true,
-                          .aim_lock = false,
-                          .visibility_check = true,
-                          .multibone = true,
-                          .flash_check = true,
-                          .rcs = false,
-                      },
-                  .triggerbot =
-                      {
-                          .hotkey = KeyCode::Mouse4,
-                          .delay_min = 100,
-                          .delay_max = 200,
-
-                          .enabled = false,
-                          .visibility_check = true,
-                          .flash_check = true,
-                      },
-                  .visuals =
-                      {
-                          .box_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
-                          .skeleton_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
-                          .armor_color = ImVec4(0.0f, 0.0f, 1.0f, 1.0f),
-                          .crosshair_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
-
-                          .overlay_fps = 120,
-                          .line_width = 2.0f,
-                          .font_size = 16.0f,
-
-                          .draw_box = DrawStyle::DrawColor,
-                          .draw_skeleton = DrawStyle::DrawHealth,
-                          .enabled = true,
-                          .draw_health = true,
-                          .draw_armor = true,
-                          .draw_name = true,
-                          .draw_weapon = true,
-                          .draw_tags = true,
-                          .dropped_weapons = true,
-                          .sniper_crosshair = false,
-                          .dynamic_font = true,
-                          .debug_window = false,
-                      },
-                  .misc = {
-                      .max_flash_alpha = 0.0f,
-                      .desired_fov = 90,
-
-                      .no_flash = false,
-                      .fov_changer = false,
-                  }};
-}
-
 std::string ConfigPath() {
     // current executable directory
     const auto exe = std::filesystem::canonical("/proc/self/exe");
     const auto exe_path = exe.parent_path();
-    return (exe_path / std::filesystem::path("deadlocked.config")).string();
+    return (exe_path / std::filesystem::path("deadlocked.toml")).string();
 }
 
-std::ofstream config_file(ConfigPath(), std::ios::binary);
 void SaveConfig() {
     // save config in binary format
-    if (!config_file.good()) {
-        Log(LogLevel::Error, "config file is not opened");
+    std::ofstream file(ConfigPath());
+    if (!file.good()) {
+        Log(LogLevel::Warning, "config file invalid, cannot save");
         return;
     }
 
-    config_file.seekp(0);
-    config_file.write((const char *)(&config), sizeof(Config));
+    file << config.to_toml();
 }
 
 Config LoadConfig() {
-    // load config in binary format
-    Config conf = DefaultConfig();
-    std::ifstream file(ConfigPath(), std::ios::binary);
-    if (file.good()) {
-        file.read((char *)(&conf), sizeof(Config));
+    std::ifstream file(ConfigPath());
+    if (!file.good()) {
+        Log(LogLevel::Warning, "config file invalid, laoding defaults");
+        return Config();
     }
-    file.close();
 
-    return conf;
+    try {
+        auto data = toml::parse(file);
+        return Config::from_toml(*data.as_table());
+    } catch (toml::parse_error) {
+        Log(LogLevel::Warning, "config file invalid, laoding defaults");
+        return Config();
+    }
 }
 
 void ResetConfig() {
-    config = DefaultConfig();
+    // default initialized
+    config = Config();
     SaveConfig();
 }
