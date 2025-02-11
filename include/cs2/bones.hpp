@@ -23,10 +23,10 @@ enum Bones {
     BoneRightFoot = 27
 };
 
-const std::vector<Bones> all_bones = {BonePelvis,       BoneSpine1,    BoneSpine2,   BoneNeck,          BoneHead,
-                                      BoneLeftShoulder, BoneLeftElbow, BoneLeftHand, BoneRightShoulder, BoneRightElbow,
-                                      BoneRightHand,    BoneLeftHip,   BoneLeftKnee, BoneLeftFoot,      BoneRightHip,
-                                      BoneRightKnee,    BoneRightFoot};
+const std::vector<Bones> all_bones = {
+    BonePelvis,    BoneSpine1,   BoneSpine2,        BoneNeck,       BoneHead,      BoneLeftShoulder,
+    BoneLeftElbow, BoneLeftHand, BoneRightShoulder, BoneRightElbow, BoneRightHand, BoneLeftHip,
+    BoneLeftKnee,  BoneLeftFoot, BoneRightHip,      BoneRightKnee,  BoneRightFoot};
 
 const std::vector<std::pair<Bones, Bones>> bone_connections = {
     {Bones::BonePelvis, Bones::BoneSpine1},

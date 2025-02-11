@@ -62,9 +62,10 @@ struct PawnOffsets {
     u64 weapon_services = 0;    // Pointer -> WeaponServices (m_pWeaponServices)
 
     bool AllFound() const {
-        return health && armor && team && life_state && weapon && fov_multiplier && game_scene_node && eye_offset &&
-               aim_punch_cache && shots_fired && view_angles && flash_alpha && flash_duration && spotted_state &&
-               observer_services && camera_services;
+        return health && armor && team && life_state && weapon && fov_multiplier &&
+               game_scene_node && eye_offset && aim_punch_cache && shots_fired && view_angles &&
+               flash_alpha && flash_duration && spotted_state && observer_services &&
+               camera_services;
     }
 };
 
@@ -123,8 +124,8 @@ struct Offsets {
     WeaponServiceOffsets weapon_service;
 
     bool AllFound() const {
-        return controller.AllFound() && pawn.AllFound() && game_scene_node.AllFound() && spotted_state.AllFound() &&
-               observer_service.AllFound() && camera_service.AllFound() && item_service.AllFound() &&
-               weapon_service.AllFound();
+        return controller.AllFound() && pawn.AllFound() && game_scene_node.AllFound() &&
+               spotted_state.AllFound() && observer_service.AllFound() &&
+               camera_service.AllFound() && item_service.AllFound() && weapon_service.AllFound();
     }
 };

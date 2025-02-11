@@ -68,7 +68,7 @@ struct VisualsConfig {
     bool draw_tags = true;
     bool dropped_weapons = true;
     bool sniper_crosshair = true;
-    bool dynamic_font = true;
+    bool dynamic_font = false;
     bool debug_window = false;
 
     toml::table to_toml() const;

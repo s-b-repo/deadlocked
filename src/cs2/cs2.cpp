@@ -48,7 +48,8 @@ void CS2() {
         if (IsValid()) {
             std::this_thread::sleep_for(frame_time - us);
         } else {
-            // if it was just a 5 second sleep, it would wait 5 seconds before closing the gui window
+            // if it was just a 5 second sleep, it would wait 5 seconds before closing the gui
+            // window
             for (i32 i = 0; i < 100; i++) {
                 config_lock.lock();
                 if (should_quit) {
@@ -136,7 +137,8 @@ std::optional<Offsets> FindOffsets() {
     offsets.library.matchmaking = matchmaking_address.value();
 
     // used for player interface offset
-    const auto resource_offset = process.GetInterfaceOffset(offsets.library.engine, "GameResourceServiceClientV0");
+    const auto resource_offset =
+        process.GetInterfaceOffset(offsets.library.engine, "GameResourceServiceClientV0");
     if (!resource_offset.has_value()) {
         Log(LogLevel::Error, "failed to get resource offset");
         return std::nullopt;
@@ -147,7 +149,8 @@ std::optional<Offsets> FindOffsets() {
 
     const auto local_player = process.ScanPattern(
         {0x48, 0x83, 0x3D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x95, 0xC0, 0xC3},
-        {true, true, true, false, false, false, false, true, true, true, true, true}, 12, offsets.library.client);
+        {true, true, true, false, false, false, false, true, true, true, true, true}, 12,
+        offsets.library.client);
     if (!local_player.has_value()) {
         Log(LogLevel::Error, "failed to get local player offset");
         return std::nullopt;
@@ -161,7 +164,8 @@ std::optional<Offsets> FindOffsets() {
     }
     offsets.interface.cvar = cvar_address.value();
 
-    const auto input_system_address = process.GetInterfaceOffset(offsets.library.input, "InputSystemVersion0");
+    const auto input_system_address =
+        process.GetInterfaceOffset(offsets.library.input, "InputSystemVersion0");
     if (!input_system_address.has_value()) {
         Log(LogLevel::Error, "failed to get input offset");
         return std::nullopt;
@@ -169,7 +173,8 @@ std::optional<Offsets> FindOffsets() {
     offsets.interface.input = input_system_address.value();
 
     const auto view_matrix = process.ScanPattern(
-        {0x48, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00, 0x4C, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00, 0x48, 0x8D, 0x0D},
+        {0x48, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00, 0x4C, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00, 0x48,
+         0x8D, 0x0D},
         {
             true,
             true,
@@ -196,17 +201,20 @@ std::optional<Offsets> FindOffsets() {
     }
     offsets.direct.view_matrix = process.GetRelativeAddress(view_matrix.value() + 0x07, 0x03, 0x07);
 
-    offsets.direct.button_state = process.Read<u32>(process.GetInterfaceFunction(offsets.interface.input, 19) + 0x14);
+    offsets.direct.button_state =
+        process.Read<u32>(process.GetInterfaceFunction(offsets.interface.input, 19) + 0x14);
 
-    const auto game_types = process.ScanPattern({0x48, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00, 0xC3, 0x0F, 0x1F, 0x84, 0x00,
-                                                 0x00, 0x00, 0x00, 0x00, 0x48, 0x8B, 0x07},
-                                                {
-                                                    true, true,  true,  false, false, false, false, true, true, true,
-                                                    true, false, false, false, false, false, true,  true, true,
-                                                },
-                                                19, offsets.library.matchmaking);
+    const auto game_types = process.ScanPattern(
+        {0x48, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00, 0xC3, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00,
+         0x00, 0x48, 0x8B, 0x07},
+        {
+            true, true,  true,  false, false, false, false, true, true, true,
+            true, false, false, false, false, false, true,  true, true,
+        },
+        19, offsets.library.matchmaking);
 
-    const auto sdl_window_address = process.GetModuleExport(offsets.library.sdl, "SDL_GetKeyboardFocus");
+    const auto sdl_window_address =
+        process.GetModuleExport(offsets.library.sdl, "SDL_GetKeyboardFocus");
     if (!sdl_window_address.has_value()) {
         Log(LogLevel::Error, "could not find sdl window offset");
     }
@@ -244,7 +252,8 @@ std::optional<Offsets> FindOffsets() {
         }
 
         if (network_enable_name_pointer >= base && network_enable_name_pointer <= base + size) {
-            network_enable_name_pointer = *(u64 *)(network_enable_name_pointer - base + client_dump);
+            network_enable_name_pointer =
+                *(u64 *)(network_enable_name_pointer - base + client_dump);
             if (network_enable_name_pointer >= base && network_enable_name_pointer <= base + size) {
                 const auto name = (char *)(network_enable_name_pointer - base + client_dump);
                 if (!strcmp(name, "MNetworkEnable")) {
@@ -477,11 +486,13 @@ std::optional<std::string> GetEntityType(const u64 entity) {
 
 bool IsButtonPressed(KeyCode &button) {
     // what the actual fuck is happening here?
-    const auto value = process.Read<u32>(offsets.interface.input + (((button >> 5) * 4) + offsets.direct.button_state));
+    const auto value = process.Read<u32>(
+        offsets.interface.input + (((button >> 5) * 4) + offsets.direct.button_state));
     return ((value >> (button & 31)) & 1) != 0;
 }
 
-glm::vec2 TargetAngle(const glm::vec3 &eye_position, const glm::vec3 &position, const glm::vec2 &aim_punch) {
+glm::vec2 TargetAngle(
+    const glm::vec3 &eye_position, const glm::vec3 &position, const glm::vec2 &aim_punch) {
     const auto forward = glm::normalize(position - eye_position);
     auto angles = AnglesFromVector(forward) - aim_punch;
     Vec2Clamp(angles);

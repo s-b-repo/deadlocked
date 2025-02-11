@@ -40,7 +40,8 @@ void Triggerbot() {
     std::random_device dev;
     std::mt19937 rng(dev());
     const i32 mean = (config.triggerbot.delay_min + config.triggerbot.delay_max) / 2;
-    std::normal_distribution<f32> normal(mean, (config.triggerbot.delay_max - config.triggerbot.delay_min) / 2);
+    std::normal_distribution<f32> normal(
+        mean, (config.triggerbot.delay_max - config.triggerbot.delay_min) / 2);
 
     const i32 delay = (i32)normal(rng);
     next_shot = std::chrono::steady_clock::now() + std::chrono::milliseconds(delay);

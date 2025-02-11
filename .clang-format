@@ -1,7 +1,7 @@
 BasedOnStyle: Google
 AccessModifierOffset: -2
 AlignAfterOpenBracket: AlwaysBreak
-ColumnLimit: 120
+ColumnLimit: 100
 DerivePointerAlignment: false
 IndentWidth: 4
 InsertNewlineAtEOF: true

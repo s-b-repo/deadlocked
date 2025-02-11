@@ -81,9 +81,10 @@ void Gui() {
         }
     }
 
-    Log(LogLevel::Info, "screen top left corner at: " + std::to_string(minX) + " x " + std::to_string(minY) + " px");
-    Log(LogLevel::Info,
-        "screen resolution: " + std::to_string(maxX - minX) + " x " + std::to_string(maxY - minY) + " px");
+    Log(LogLevel::Info, "screen top left corner at: " + std::to_string(minX) + " x " +
+                            std::to_string(minY) + " px");
+    Log(LogLevel::Info, "screen resolution: " + std::to_string(maxX - minX) + " x " +
+                            std::to_string(maxY - minY) + " px");
 
     IMGUI_CHECKVERSION();
     ImGuiContext *gui_ctx = ImGui::CreateContext();
@@ -92,7 +93,8 @@ void Gui() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     // gui window
-    SDL_Window *gui_window = SDL_CreateWindow("deadlocked", 600, 400, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    SDL_Window *gui_window =
+        SDL_CreateWindow("deadlocked", 600, 400, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if (!gui_window) {
         Log(LogLevel::Error, "could not create gui window");
         return;
@@ -112,8 +114,8 @@ void Gui() {
     // overlay window
     SDL_Window *overlay = SDL_CreatePopupWindow(
         temp, 0, 0, maxX - minX, maxY - minY,
-        SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_NOT_FOCUSABLE | SDL_WINDOW_OPENGL |
-            SDL_WINDOW_TOOLTIP | SDL_WINDOW_TRANSPARENT);
+        SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_NOT_FOCUSABLE |
+            SDL_WINDOW_OPENGL | SDL_WINDOW_TOOLTIP | SDL_WINDOW_TRANSPARENT);
     if (!overlay) {
         Log(LogLevel::Error, "could not create overlay window");
         return;
@@ -181,7 +183,8 @@ void Gui() {
         SDL_GetWindowSize(gui_window, &width, &height);
         ImGui::NewFrame();
         ImGui::Begin(
-            "deadlocked", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
+            "deadlocked", nullptr,
+            ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
         ImGui::SetWindowSize(ImVec2(width, height));
         ImGui::SetWindowPos(ImVec2(0.0f, 0.0f));
 
@@ -247,8 +250,8 @@ void Gui() {
             }
 
             ImGui::DragIntRange2(
-                "Delay", &config.triggerbot.delay_min, &config.triggerbot.delay_max, 0.2f, 0, 1000, "%d", nullptr,
-                ImGuiSliderFlags_AlwaysClamp);
+                "Delay", &config.triggerbot.delay_min, &config.triggerbot.delay_max, 0.2f, 0, 1000,
+                "%d", nullptr, ImGuiSliderFlags_AlwaysClamp);
 
             ImGui::Checkbox("Flash Check", &config.triggerbot.flash_check);
 
@@ -289,7 +292,8 @@ void Gui() {
                 config.visuals.draw_skeleton = DrawStyle::DrawColor;
             }
             ImGui::SameLine();
-            if (ImGui::RadioButton("Health", config.visuals.draw_skeleton == DrawStyle::DrawHealth)) {
+            if (ImGui::RadioButton(
+                    "Health", config.visuals.draw_skeleton == DrawStyle::DrawHealth)) {
                 config.visuals.draw_skeleton = DrawStyle::DrawHealth;
             }
             ImGui::PopID();
@@ -305,7 +309,8 @@ void Gui() {
             ImGui::Checkbox("Player Tags (helmet, defuser, bomb)", &config.visuals.draw_tags);
 
             ImGui::Checkbox("Dynamic Font Size", &config.visuals.dynamic_font);
-            ImGui::DragFloat("Static Font Size", &config.visuals.font_size, 0.02f, 1.0f, 50.0f, "%.1f");
+            ImGui::DragFloat(
+                "Static Font Size", &config.visuals.font_size, 0.02f, 1.0f, 50.0f, "%.1f");
 
             ImGui::Checkbox("Dropped Weapons", &config.visuals.dropped_weapons);
             ImGui::SameLine();
@@ -326,7 +331,8 @@ void Gui() {
             ImGui::BeginChild("tab_items_unsafe", available);
 
             ImGui::Checkbox("No Flash", &config.misc.no_flash);
-            ImGui::DragFloat("Max Flash Alpha", &config.misc.max_flash_alpha, 0.2f, 0.0f, 255.0f, "%.0f");
+            ImGui::DragFloat(
+                "Max Flash Alpha", &config.misc.max_flash_alpha, 0.2f, 0.0f, 255.0f, "%.0f");
 
             ImGui::Checkbox("FOV Changer", &config.misc.fov_changer);
             ImGui::DragInt("Desired FOV", &config.misc.desired_fov, 0.2f, 1, 179);
@@ -369,7 +375,8 @@ void Gui() {
         std::string gui_fps = "FPS: " + std::to_string((i32)gui_io.Framerate);
         const ImVec2 text_size = ImGui::CalcTextSize(gui_fps.c_str());
         const ImVec2 gui_window_size = ImGui::GetWindowSize();
-        gui_draw_list->AddText(ImVec2(gui_window_size.x - text_size.x - 4.0f, 4.0f), 0xFFFFFFFF, gui_fps.c_str());
+        gui_draw_list->AddText(
+            ImVec2(gui_window_size.x - text_size.x - 4.0f, 4.0f), 0xFFFFFFFF, gui_fps.c_str());
 
         ImGui::End();
 
@@ -390,8 +397,8 @@ void Gui() {
 
         ImGui::Begin(
             "overlay", nullptr,
-            ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs |
-                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+            ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration |
+                ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
         ImGui::SetWindowPos(ImVec2(minX, minY));
         ImGui::SetWindowSize(ImVec2(maxX - minX, maxY - minY));
         ImDrawList *overlay_draw_list = ImGui::GetBackgroundDrawList();
@@ -399,15 +406,19 @@ void Gui() {
         std::string overlay_fps = "FPS: " + std::to_string((i32)overlay_io.Framerate);
         extern glm::ivec4 window_size;
         overlay_draw_list->AddText(
-            ImVec2((f32)window_size.x + 4.0f, (f32)window_size.y + 4.0f), 0xFFFFFFFF, overlay_fps.c_str());
+            ImVec2((f32)window_size.x + 4.0f, (f32)window_size.y + 4.0f), 0xFFFFFFFF,
+            overlay_fps.c_str());
 
         if (config.visuals.debug_window) {
             // frame
-            overlay_draw_list->AddRect(ImVec2(minX, minY), ImVec2(maxX - minX, maxY - minY), 0xFFFFFFFF, 0.0f, 0, 8.0f);
+            overlay_draw_list->AddRect(
+                ImVec2(minX, minY), ImVec2(maxX - minX, maxY - minY), 0xFFFFFFFF, 0.0f, 0, 8.0f);
 
             // cross
-            overlay_draw_list->AddLine(ImVec2(minX, minY), ImVec2(maxX - minX, maxY - minY), 0xFFFFFFFF, 4.0f);
-            overlay_draw_list->AddLine(ImVec2(minX, maxY - minY), ImVec2(maxX - minX, minY), 0xFFFFFFFF, 4.0f);
+            overlay_draw_list->AddLine(
+                ImVec2(minX, minY), ImVec2(maxX - minX, maxY - minY), 0xFFFFFFFF, 4.0f);
+            overlay_draw_list->AddLine(
+                ImVec2(minX, maxY - minY), ImVec2(maxX - minX, minY), 0xFFFFFFFF, 4.0f);
         }
 
         vinfo_lock.lock();
@@ -418,7 +429,8 @@ void Gui() {
                 ImU32 color;
                 if (config.visuals.draw_skeleton == DrawStyle::DrawColor) {
                     color = IM_COL32(
-                        config.visuals.skeleton_color.x * 255, config.visuals.skeleton_color.y * 255,
+                        config.visuals.skeleton_color.x * 255,
+                        config.visuals.skeleton_color.y * 255,
                         config.visuals.skeleton_color.z * 255, 255);
                 } else {
                     color = health_color;
@@ -473,7 +485,8 @@ void Gui() {
                     bottom_left, ImVec2(bottom_left.x, bottom_left.y - height / 4.0f), color,
                     config.visuals.line_width);
                 overlay_draw_list->AddLine(
-                    bottom_left, ImVec2(bottom_left.x + width / 4.0f, bottom_left.y), color, config.visuals.line_width);
+                    bottom_left, ImVec2(bottom_left.x + width / 4.0f, bottom_left.y), color,
+                    config.visuals.line_width);
                 overlay_draw_list->AddLine(
                     bottom_right, ImVec2(bottom_right.x, bottom_right.y - height / 4.0f), color,
                     config.visuals.line_width);
@@ -481,13 +494,17 @@ void Gui() {
                     bottom_right, ImVec2(bottom_right.x - width / 4.0f, bottom_right.y), color,
                     config.visuals.line_width);
                 overlay_draw_list->AddLine(
-                    top_left, ImVec2(top_left.x, top_left.y + height / 4.0f), color, config.visuals.line_width);
+                    top_left, ImVec2(top_left.x, top_left.y + height / 4.0f), color,
+                    config.visuals.line_width);
                 overlay_draw_list->AddLine(
-                    top_left, ImVec2(top_left.x + width / 4.0f, top_left.y), color, config.visuals.line_width);
+                    top_left, ImVec2(top_left.x + width / 4.0f, top_left.y), color,
+                    config.visuals.line_width);
                 overlay_draw_list->AddLine(
-                    top_right, ImVec2(top_right.x, top_right.y + height / 4.0f), color, config.visuals.line_width);
+                    top_right, ImVec2(top_right.x, top_right.y + height / 4.0f), color,
+                    config.visuals.line_width);
                 overlay_draw_list->AddLine(
-                    top_right, ImVec2(top_right.x - width / 4.0f, top_right.y), color, config.visuals.line_width);
+                    top_right, ImVec2(top_right.x - width / 4.0f, top_right.y), color,
+                    config.visuals.line_width);
             }
 
             if (config.visuals.draw_health) {
@@ -495,12 +512,14 @@ void Gui() {
                 // adjust height based on health
                 const ImVec2 health_top =
                     ImVec2(top_left.x - 4.0f, bottom_left.y - height * (f32)player.health / 100.0f);
-                overlay_draw_list->AddLine(health_bottom, health_top, health_color, config.visuals.line_width);
+                overlay_draw_list->AddLine(
+                    health_bottom, health_top, health_color, config.visuals.line_width);
             }
 
             if (config.visuals.draw_armor) {
                 const ImVec2 armor_bottom = ImVec2(bottom_left.x - 8, bottom_left.y);
-                const ImVec2 armor_top = ImVec2(top_left.x - 8, bottom_left.y - height * (f32)player.armor / 100.0f);
+                const ImVec2 armor_top =
+                    ImVec2(top_left.x - 8, bottom_left.y - height * (f32)player.armor / 100.0f);
                 overlay_draw_list->AddLine(
                     armor_bottom, armor_top,
                     IM_COL32(
@@ -510,14 +529,18 @@ void Gui() {
             }
 
             if (config.visuals.draw_name) {
-                const ImVec2 text_size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, player.name.c_str());
-                const ImVec2 name_position = ImVec2(top.x - text_size.x / 2.0f, top_left.y - font_size);
-                overlay_draw_list->AddText(font, font_size, name_position, 0xFFFFFFFF, player.name.c_str());
+                const ImVec2 text_size =
+                    font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, player.name.c_str());
+                const ImVec2 name_position =
+                    ImVec2(top.x - text_size.x / 2.0f, top_left.y - font_size);
+                overlay_draw_list->AddText(
+                    font, font_size, name_position, 0xFFFFFFFF, player.name.c_str());
             }
 
             if (config.visuals.draw_weapon) {
                 const ImVec2 weapon_position = ImVec2(bottom_left.x, bottom_left.y);
-                overlay_draw_list->AddText(font, font_size, weapon_position, 0xFFFFFFFF, player.weapon.c_str());
+                overlay_draw_list->AddText(
+                    font, font_size, weapon_position, 0xFFFFFFFF, player.weapon.c_str());
             }
 
             f32 offset = font_size;
@@ -531,7 +554,8 @@ void Gui() {
             if (config.visuals.draw_tags && player.has_defuser) {
                 const ImVec2 defuser_position = ImVec2(bottom_left.x, bottom_left.y + offset);
                 offset += font_size;
-                overlay_draw_list->AddText(font, font_size, defuser_position, 0xFFFFFFFF, "defuser");
+                overlay_draw_list->AddText(
+                    font, font_size, defuser_position, 0xFFFFFFFF, "defuser");
             }
 
             if (config.visuals.draw_tags && player.has_bomb) {
@@ -548,23 +572,28 @@ void Gui() {
                     continue;
                 }
                 const auto position = position_opt.value();
-                overlay_draw_list->AddText(ImVec2(position.x, position.y), 0xFFFFFFFF, entity.name.c_str());
+                overlay_draw_list->AddText(
+                    ImVec2(position.x, position.y), 0xFFFFFFFF, entity.name.c_str());
             }
         }
 
         extern MiscInfo misc_info;
         // sniper crosshair
-        if (config.visuals.sniper_crosshair && WeaponClassFromString(misc_info.held_weapon) == WeaponClass::Sniper) {
+        if (config.visuals.sniper_crosshair &&
+            WeaponClassFromString(misc_info.held_weapon) == WeaponClass::Sniper) {
             const f32 crosshair_size = 32.0f;
-            const ImVec2 center =
-                ImVec2((f32)window_size.x + (f32)window_size.z / 2.0f, (f32)window_size.y + (f32)window_size.w / 2.0f);
+            const ImVec2 center = ImVec2(
+                (f32)window_size.x + (f32)window_size.z / 2.0f,
+                (f32)window_size.y + (f32)window_size.w / 2.0f);
             const ImU32 color = IM_COL32(
                 config.visuals.crosshair_color.x * 255, config.visuals.crosshair_color.y * 255,
                 config.visuals.crosshair_color.z * 255, 255);
             overlay_draw_list->AddLine(
-                ImVec2(center.x - crosshair_size, center.y), ImVec2(center.x + crosshair_size, center.y), color);
+                ImVec2(center.x - crosshair_size, center.y),
+                ImVec2(center.x + crosshair_size, center.y), color);
             overlay_draw_list->AddLine(
-                ImVec2(center.x, center.y - crosshair_size), ImVec2(center.x, center.y + crosshair_size), color);
+                ImVec2(center.x, center.y - crosshair_size),
+                ImVec2(center.x, center.y + crosshair_size), color);
         }
 
         vinfo_lock.unlock();
@@ -588,7 +617,8 @@ void Gui() {
             save_timer = end_time;
         }
 
-        const auto us = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+        const auto us =
+            std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
         const auto frame_time = std::chrono::microseconds(1000000 / config.visuals.overlay_fps);
         std::this_thread::sleep_for(frame_time - us);
         // glfwPollEvents();

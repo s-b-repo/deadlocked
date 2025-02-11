@@ -17,7 +17,8 @@ void Rcs() {
     Player local_player = local_player_opt.value();
 
     const WeaponClass weapon_class = local_player.GetWeaponClass();
-    if (weapon_class != WeaponClass::Smg && weapon_class != WeaponClass::Rifle && weapon_class != WeaponClass::Heavy) {
+    if (weapon_class != WeaponClass::Smg && weapon_class != WeaponClass::Rifle &&
+        weapon_class != WeaponClass::Heavy) {
         return;
     }
 
@@ -31,7 +32,8 @@ void Rcs() {
     const f32 sensitivity = Sensitivity() * local_player.FovMultiplier();
     const glm::vec2 xy = target.aim_punch * glm::vec2(-0.5f);
 
-    glm::vec2 mouse_angle = glm::vec2(((xy.y * 2.0f) / sensitivity) / -0.022f, ((xy.x * 2.0f) / sensitivity) / 0.022f);
+    glm::vec2 mouse_angle =
+        glm::vec2(((xy.y * 2.0f) / sensitivity) / -0.022f, ((xy.x * 2.0f) / sensitivity) / 0.022f);
     glm::vec2 delta = mouse_angle - mouse_movement;
 
     mouse_movement += glm::round(delta);

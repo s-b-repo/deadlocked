@@ -93,11 +93,13 @@ std::optional<u64> Process::GetModuleBaseAddress(const char *module_name) {
         const std::string address_str = line.substr(0, index);
         u64 address = std::stoull(address_str, nullptr, 16);
         if (address == 0) {
-            Log(LogLevel::Warning, "address for module " + std::string(module_name) + " was 0, input string was \"" +
-                                       line + "\", extracted address was " + address_str);
+            Log(LogLevel::Warning, "address for module " + std::string(module_name) +
+                                       " was 0, input string was \"" + line +
+                                       "\", extracted address was " + address_str);
             continue;
         } else {
-            Log(LogLevel::Debug, "module " + std::string(module_name) + " found at " + std::to_string(address));
+            Log(LogLevel::Debug,
+                "module " + std::string(module_name) + " found at " + std::to_string(address));
             return address;
         }
     }
@@ -109,7 +111,8 @@ std::optional<u64> Process::GetModuleBaseAddress(const char *module_name) {
 u64 Process::ModuleSize(u64 module_address) {
     const u64 section_header_offset = Read<u64>(module_address + ELF_SECTION_HEADER_OFFSET);
     const u64 section_header_entry_size = Read<u16>(module_address + ELF_SECTION_HEADER_ENTRY_SIZE);
-    const u64 section_header_num_entries = Read<u16>(module_address + ELF_SECTION_HEADER_NUM_ENTRIES);
+    const u64 section_header_num_entries =
+        Read<u16>(module_address + ELF_SECTION_HEADER_NUM_ENTRIES);
 
     return section_header_offset + section_header_entry_size * section_header_num_entries;
 }
@@ -124,8 +127,8 @@ std::vector<u8> Process::DumpModule(u64 module_address) {
     return ReadBytes(module_address, module_size);
 }
 
-std::optional<u64> Process::ScanPattern(std::vector<u8> pattern, std::vector<bool> mask, u64 length,
-                                        u64 module_address) {
+std::optional<u64> Process::ScanPattern(
+    std::vector<u8> pattern, std::vector<bool> mask, u64 length, u64 module_address) {
     const auto module = DumpModule(module_address);
     if (module.size() < 500) {
         return std::nullopt;
@@ -154,13 +157,15 @@ u64 Process::GetRelativeAddress(u64 instruction, u64 offset, u64 instruction_siz
 }
 
 std::optional<u64> Process::GetInterfaceOffset(u64 module_address, const char *interface_name) {
-    const std::optional<u64> create_interface_opt = GetModuleExport(module_address, "CreateInterface");
+    const std::optional<u64> create_interface_opt =
+        GetModuleExport(module_address, "CreateInterface");
     if (!create_interface_opt.has_value()) {
         Log(LogLevel::Error, "could not find CreateInterface export");
         return std::nullopt;
     }
     const u64 create_interface = create_interface_opt.value();
-    const std::optional<u64> export_address_opt = GetRelativeAddress(create_interface, 0x01, 0x05) + 0x10;
+    const std::optional<u64> export_address_opt =
+        GetRelativeAddress(create_interface, 0x01, 0x05) + 0x10;
     if (!export_address_opt.has_value()) {
         return std::nullopt;
     }
@@ -207,8 +212,8 @@ std::optional<u64> Process::GetModuleExport(u64 module_address, const char *expo
         symbol_table += add;
     }
 
-    Log(LogLevel::Warning,
-        "could not find export " + std::string(export_name) + " in module at " + std::to_string(module_address));
+    Log(LogLevel::Warning, "could not find export " + std::string(export_name) + " in module at " +
+                               std::to_string(module_address));
     return std::nullopt;
 }
 
@@ -253,8 +258,8 @@ std::optional<u64> Process::GetSegmentFromPht(u64 module_address, u64 tag) {
         }
     }
 
-    Log(LogLevel::Error,
-        "could not find tag " + std::to_string(tag) + " in program header table at " + std::to_string(module_address));
+    Log(LogLevel::Error, "could not find tag " + std::to_string(tag) +
+                             " in program header table at " + std::to_string(module_address));
     return std::nullopt;
 }
 

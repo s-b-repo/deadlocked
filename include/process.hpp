@@ -36,7 +36,8 @@ class Process {
     std::optional<u64> GetModuleBaseAddress(const char *module_name);
     u64 ModuleSize(u64 module_address);
     std::vector<u8> DumpModule(u64 module_address);
-    std::optional<u64> ScanPattern(std::vector<u8> pattern, std::vector<bool> mask, u64 length, u64 module_address);
+    std::optional<u64> ScanPattern(
+        std::vector<u8> pattern, std::vector<bool> mask, u64 length, u64 module_address);
     u64 GetRelativeAddress(u64 instruction, u64 offset, u64 instrution_size);
     std::optional<u64> GetInterfaceOffset(u64 module_address, const char *interface_name);
     std::optional<u64> GetModuleExport(u64 module_address, const char *export_name);

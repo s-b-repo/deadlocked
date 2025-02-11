@@ -4,7 +4,8 @@
 #include "mouse.hpp"
 
 void Aimbot() {
-    if (!config.aimbot.enabled || !target.player.has_value() || !IsButtonPressed(config.aimbot.hotkey)) {
+    if (!config.aimbot.enabled || !target.player.has_value() ||
+        !IsButtonPressed(config.aimbot.hotkey)) {
         return;
     }
 
@@ -39,7 +40,8 @@ void Aimbot() {
     }
 
     const auto view_angles = local_player.ViewAngles();
-    if (AnglesToFov(view_angles, target_angle) > (config.aimbot.fov * DistanceScale(target.distance))) {
+    if (AnglesToFov(view_angles, target_angle) >
+        (config.aimbot.fov * DistanceScale(target.distance))) {
         return;
     }
 
@@ -55,7 +57,8 @@ void Aimbot() {
 
     const auto sensitivity = Sensitivity() * local_player.FovMultiplier();
 
-    const auto xy = glm::vec2(aim_angles.y / sensitivity * 50.0f, -aim_angles.x / sensitivity * 50.0f);
+    const auto xy =
+        glm::vec2(aim_angles.y / sensitivity * 50.0f, -aim_angles.x / sensitivity * 50.0f);
     glm::vec2 smooth_angles(0.0f);
     if (!config.aimbot.aim_lock && config.aimbot.smooth > 1.0f) {
         smooth_angles = glm::vec2(xy.x / config.aimbot.smooth, xy.y / config.aimbot.smooth);

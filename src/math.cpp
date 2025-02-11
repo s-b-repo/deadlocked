@@ -56,13 +56,14 @@ extern glm::mat4 view_matrix;
 extern glm::ivec4 window_size;
 
 std::optional<glm::vec2> WorldToScreen(const glm::vec3 &position) {
-    auto screen_position = glm::vec2(view_matrix[0].x * position.x + view_matrix[0].y * position.y +
-                                         view_matrix[0].z * position.z + view_matrix[0].w,
-                                     view_matrix[1].x * position.x + view_matrix[1].y * position.y +
-                                         view_matrix[1].z * position.z + view_matrix[1].w);
+    auto screen_position = glm::vec2(
+        view_matrix[0].x * position.x + view_matrix[0].y * position.y +
+            view_matrix[0].z * position.z + view_matrix[0].w,
+        view_matrix[1].x * position.x + view_matrix[1].y * position.y +
+            view_matrix[1].z * position.z + view_matrix[1].w);
 
-    const f32 w = view_matrix[3].x * position.x + view_matrix[3].y * position.y + view_matrix[3].z * position.z +
-                  view_matrix[3].w;
+    const f32 w = view_matrix[3].x * position.x + view_matrix[3].y * position.y +
+                  view_matrix[3].z * position.z + view_matrix[3].w;
 
     if (w < 0.01f) {
         return std::nullopt;

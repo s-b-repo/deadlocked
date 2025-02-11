@@ -50,12 +50,13 @@ AimbotConfig AimbotConfig::from_toml(const toml::table &tbl) {
 }
 
 toml::table TriggerbotConfig::to_toml() const {
-    return toml::table{{"hotkey", static_cast<int>(hotkey)},
-                       {"delay_min", delay_min},
-                       {"delay_max", delay_max},
-                       {"enabled", enabled},
-                       {"visibility_check", visibility_check},
-                       {"flash_check", flash_check}};
+    return toml::table{
+        {"hotkey", static_cast<int>(hotkey)},
+        {"delay_min", delay_min},
+        {"delay_max", delay_max},
+        {"enabled", enabled},
+        {"visibility_check", visibility_check},
+        {"flash_check", flash_check}};
 }
 
 TriggerbotConfig TriggerbotConfig::from_toml(const toml::table &tbl) {
@@ -103,7 +104,8 @@ VisualsConfig VisualsConfig::from_toml(const toml::table &tbl) {
     cfg.line_width = tbl["line_width"].value_or(cfg.line_width);
     cfg.font_size = tbl["font_size"].value_or(cfg.font_size);
     cfg.draw_box = static_cast<DrawStyle>(tbl["draw_box"].value_or(static_cast<int>(cfg.draw_box)));
-    cfg.draw_skeleton = static_cast<DrawStyle>(tbl["draw_skeleton"].value_or(static_cast<int>(cfg.draw_skeleton)));
+    cfg.draw_skeleton =
+        static_cast<DrawStyle>(tbl["draw_skeleton"].value_or(static_cast<int>(cfg.draw_skeleton)));
     cfg.enabled = tbl["enabled"].value_or(cfg.enabled);
     cfg.draw_health = tbl["draw_health"].value_or(cfg.draw_health);
     cfg.draw_armor = tbl["draw_armor"].value_or(cfg.draw_armor);
@@ -144,10 +146,12 @@ toml::table Config::to_toml() const {
 
 Config Config::from_toml(const toml::table &tbl) {
     Config cfg;
-    if (auto table_aimbot = tbl["aimbot"].as_table()) cfg.aimbot = AimbotConfig::from_toml(*table_aimbot);
+    if (auto table_aimbot = tbl["aimbot"].as_table())
+        cfg.aimbot = AimbotConfig::from_toml(*table_aimbot);
     if (auto table_triggerbot = tbl["triggerbot"].as_table())
         cfg.triggerbot = TriggerbotConfig::from_toml(*table_triggerbot);
-    if (auto table_visuals = tbl["visuals"].as_table()) cfg.visuals = VisualsConfig::from_toml(*table_visuals);
+    if (auto table_visuals = tbl["visuals"].as_table())
+        cfg.visuals = VisualsConfig::from_toml(*table_visuals);
     if (auto table_misc = tbl["misc"].as_table()) cfg.misc = MiscConfig::from_toml(*table_misc);
     return cfg;
 }

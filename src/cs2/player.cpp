@@ -195,7 +195,9 @@ bool Player::IsValid() const {
     return true;
 }
 
-bool Player::IsFlashed() const { return process.Read<f32>(pawn + offsets.pawn.flash_duration) > 0.2f; }
+bool Player::IsFlashed() const {
+    return process.Read<f32>(pawn + offsets.pawn.flash_duration) > 0.2f;
+}
 
 void Player::NoFlash(f32 max_alpha) const {
     if (max_alpha < 0.0f) {
@@ -218,7 +220,9 @@ void Player::SetFov(i32 fov) const {
     }
 }
 
-glm::vec2 Player::ViewAngles() const { return process.Read<glm::vec2>(pawn + offsets.pawn.view_angles); }
+glm::vec2 Player::ViewAngles() const {
+    return process.Read<glm::vec2>(pawn + offsets.pawn.view_angles);
+}
 
 glm::vec2 Player::AimPunch() const {
     const u64 length = process.Read<u64>(pawn + offsets.pawn.aim_punch_cache);
@@ -254,7 +258,8 @@ bool Player::HasBomb() const {
         return false;
     }
     const u64 length = process.Read<u64>(weapon_service + offsets.weapon_service.weapons);
-    const u64 weapon_list = process.Read<u64>(weapon_service + offsets.weapon_service.weapons + 0x08);
+    const u64 weapon_list =
+        process.Read<u64>(weapon_service + offsets.weapon_service.weapons + 0x08);
     for (u64 i = 0; i < length; i++) {
         const u64 weapon_index = process.Read<u32>(weapon_list + (0x04 * i)) & 0xFFF;
         // CEntityInstance
