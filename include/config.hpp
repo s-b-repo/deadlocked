@@ -45,6 +45,7 @@ struct VisualsConfig {
 
     i32 overlay_fps;
     f32 line_width;
+    f32 font_size;
 
     DrawStyle draw_box;
     DrawStyle draw_skeleton;
@@ -56,6 +57,7 @@ struct VisualsConfig {
     bool draw_tags;
     bool dropped_weapons;
     bool sniper_crosshair;
+    bool dynamic_font;
     bool debug_window;
 };
 

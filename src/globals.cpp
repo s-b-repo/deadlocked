@@ -53,6 +53,7 @@ Config DefaultConfig() {
 
                           .overlay_fps = 120,
                           .line_width = 2.0f,
+                          .font_size = 16.0f,
 
                           .draw_box = DrawStyle::DrawColor,
                           .draw_skeleton = DrawStyle::DrawHealth,
@@ -64,6 +65,7 @@ Config DefaultConfig() {
                           .draw_tags = true,
                           .dropped_weapons = true,
                           .sniper_crosshair = false,
+                          .dynamic_font = true,
                           .debug_window = false,
                       },
                   .misc = {

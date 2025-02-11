@@ -301,6 +301,9 @@ void Gui() {
 
             ImGui::Checkbox("Player Tags (helmet, defuser, bomb)", &config.visuals.draw_tags);
 
+            ImGui::Checkbox("Dynamic Font Size", &config.visuals.dynamic_font);
+            ImGui::DragFloat("Static Font Size", &config.visuals.font_size, 0.02f, 1.0f, 50.0f, "%.1f");
+
             ImGui::Checkbox("Dropped Weapons", &config.visuals.dropped_weapons);
             ImGui::SameLine();
             ImGui::Checkbox("Sniper Crosshair", &config.visuals.sniper_crosshair);
@@ -439,6 +442,11 @@ void Gui() {
             const f32 height = bottom.y - top.y;
             const f32 width = height / 2.0f;
             const f32 half_width = width / 2.0f;
+            f32 font_size = config.visuals.dynamic_font ? half_width : config.visuals.font_size;
+            if (font_size > 20.0f) {
+                font_size = 20.0f;
+            }
+            ImFont *font = overlay_io.Fonts->Fonts[0];
 
             const ImVec2 bottom_left = ImVec2(bottom.x - half_width, bottom.y);
             const ImVec2 bottom_right = ImVec2(bottom.x + half_width, bottom.y);
@@ -492,33 +500,34 @@ void Gui() {
             }
 
             if (config.visuals.draw_name) {
-                const ImVec2 name_position = ImVec2(top_left.x, top_left.y - 18.0f);
-                overlay_draw_list->AddText(name_position, 0xFFFFFFFF, player.name.c_str());
+                const ImVec2 text_size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, player.name.c_str());
+                const ImVec2 name_position = ImVec2(top.x - text_size.x / 2.0f, top_left.y - font_size);
+                overlay_draw_list->AddText(font, font_size, name_position, 0xFFFFFFFF, player.name.c_str());
             }
 
             if (config.visuals.draw_weapon) {
                 const ImVec2 weapon_position = ImVec2(bottom_left.x, bottom_left.y);
-                overlay_draw_list->AddText(weapon_position, 0xFFFFFFFF, player.weapon.c_str());
+                overlay_draw_list->AddText(font, font_size, weapon_position, 0xFFFFFFFF, player.weapon.c_str());
             }
 
-            f32 offset = 16.0f;
+            f32 offset = font_size;
 
             if (config.visuals.draw_tags && player.has_helmet) {
                 const ImVec2 helmet_position = ImVec2(bottom_left.x, bottom_left.y + offset);
-                offset += 16.0f;
-                overlay_draw_list->AddText(helmet_position, 0xFFFFFFFF, "helmet");
+                offset += font_size;
+                overlay_draw_list->AddText(font, font_size, helmet_position, 0xFFFFFFFF, "helmet");
             }
 
             if (config.visuals.draw_tags && player.has_defuser) {
                 const ImVec2 defuser_position = ImVec2(bottom_left.x, bottom_left.y + offset);
-                offset += 16.0f;
-                overlay_draw_list->AddText(defuser_position, 0xFFFFFFFF, "defuser");
+                offset += font_size;
+                overlay_draw_list->AddText(font, font_size, defuser_position, 0xFFFFFFFF, "defuser");
             }
 
             if (config.visuals.draw_tags && player.has_bomb) {
                 const ImVec2 bomb_position = ImVec2(bottom_left.x, bottom_left.y + offset);
-                offset += 16.0f;
-                overlay_draw_list->AddText(bomb_position, 0xFFFFFFFF, "bomb");
+                offset += font_size;
+                overlay_draw_list->AddText(font, font_size, bomb_position, 0xFFFFFFFF, "bomb");
             }
         }
 
