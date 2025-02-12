@@ -111,11 +111,11 @@ void Gui() {
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    const i32 width = 600;
+    const i32 width = 620;
     const i32 height = 400;
     // gui window
     SDL_Window *gui_window =
-        SDL_CreateWindow("deadlocked", 600, 400, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+        SDL_CreateWindow("deadlocked", width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if (!gui_window) {
         Log(LogLevel::Error, "could not create gui window");
         return;
@@ -378,12 +378,25 @@ void Gui() {
             ImGui::EndChild();
             ImGui::EndTabItem();
         }
+
         if (ImGui::BeginTabItem("Config")) {
             ImVec2 available = ImGui::GetContentRegionAvail();
             ImGui::BeginChild("tab_items_config", available);
 
-            if (ImGui::Button("reset config")) {
+            if (ImGui::Button("Reset Config")) {
                 ResetConfig();
+            }
+
+            ImGui::EndChild();
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Misc")) {
+            ImVec2 available = ImGui::GetContentRegionAvail();
+            ImGui::BeginChild("tab_items_misc", available);
+
+            if (ImGui::Button("Report Issue")) {
+                std::system("xdg-open https://github.com/avitran0/deadlocked");
             }
 
             ImGui::EndChild();
@@ -397,7 +410,7 @@ void Gui() {
         const ImVec2 text_size = ImGui::CalcTextSize(gui_fps.c_str());
         const ImVec2 gui_window_size = ImGui::GetWindowSize();
         gui_draw_list->AddText(
-            ImVec2(gui_window_size.x - text_size.x - 4.0f, 6.0f), 0xFFFFFFFF, gui_fps.c_str());
+            ImVec2(gui_window_size.x - text_size.x - 4.0f, 12.0f), 0xFFFFFFFF, gui_fps.c_str());
 
         const ImVec2 version_text_size = ImGui::CalcTextSize(VERSION);
         gui_draw_list->AddText(
