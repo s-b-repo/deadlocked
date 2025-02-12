@@ -4,7 +4,6 @@ project(deadlocked CXX)
 set(CMAKE_CXX_STANDARD 20)
 
 file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/resources/JetBrainsMono.ttf DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/resources)
 
 add_executable(deadlocked ${SOURCE_FILES})
 target_include_directories(deadlocked PRIVATE include)

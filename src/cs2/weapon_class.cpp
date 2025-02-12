@@ -1,5 +1,7 @@
 #include "cs2/weapon_class.hpp"
 
+#include <unordered_map>
+
 WeaponClass WeaponClassFromString(const std::string &name) {
     static const std::unordered_map<std::string, WeaponClass> weaponMap = {
         // Knives

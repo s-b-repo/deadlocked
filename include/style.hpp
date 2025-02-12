@@ -1,6 +1,8 @@
 #include <imgui.h>
 
-void Style() {
+#include "types.hpp"
+
+void Style(f32 scale) {
     ImGuiStyle &style = ImGui::GetStyle();
 
     style.Alpha = 1.0f;
@@ -87,4 +89,6 @@ void Style() {
     style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
     style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(1.0f, 1.0f, 1.0f, 0.31f);
+
+    style.ScaleAllSizes(scale);
 }

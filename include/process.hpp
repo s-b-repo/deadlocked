@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "cs2/offsets.hpp"
 #include "types.hpp"
 
 class Process {

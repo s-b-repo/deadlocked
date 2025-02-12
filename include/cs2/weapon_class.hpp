@@ -1,5 +1,4 @@
 #include <string>
-#include <unordered_map>
 
 enum class WeaponClass {
     Unknown,

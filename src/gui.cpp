@@ -8,10 +8,10 @@
 
 #include <chrono>
 #include <filesystem>
-#include <iostream>
 #include <log.hpp>
 #include <thread>
 
+#include "SDL3/SDL_video.h"
 #include "config.hpp"
 #include "cs2/cs2.hpp"
 #include "font.hpp"
@@ -92,6 +92,8 @@ void Gui() {
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
+    const i32 width = 600;
+    const i32 height = 400;
     // gui window
     SDL_Window *gui_window =
         SDL_CreateWindow("deadlocked", 600, 400, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
@@ -130,13 +132,17 @@ void Gui() {
     SDL_ShowWindow(overlay);
     SDL_ShowWindow(gui_window);
 
+    const f32 scale = SDL_GetWindowDisplayScale(gui_window);
+
+    SDL_SetWindowSize(gui_window, width * scale, height * scale);
+
     ImGui::SetCurrentContext(gui_ctx);
-    Style();
+    Style(scale);
 
     ImGuiIO &gui_io = ImGui::GetIO();
     gui_io.IniFilename = nullptr;
     if (std::filesystem::exists(std::filesystem::path(FONT))) {
-        gui_io.Fonts->AddFontFromMemoryTTF(jet_brains_mono, jet_brains_mono_len, 20);
+        gui_io.Fonts->AddFontFromMemoryTTF(font, font_len, 20.0f * scale);
     } else {
         Log(LogLevel::Warning, "font not found: " + std::string(FONT));
     }
@@ -145,12 +151,11 @@ void Gui() {
     ImGui_ImplOpenGL3_Init("#version 130");
 
     ImGui::SetCurrentContext(overlay_ctx);
-    Style();
 
     ImGuiIO &overlay_io = ImGui::GetIO();
     overlay_io.IniFilename = nullptr;
     if (std::filesystem::exists(std::filesystem::path(FONT))) {
-        overlay_io.Fonts->AddFontFromMemoryTTF(jet_brains_mono, jet_brains_mono_len, 20);
+        overlay_io.Fonts->AddFontFromMemoryTTF(font, font_len, 20.0f * scale);
     } else {
         Log(LogLevel::Warning, "font not found: " + std::string(FONT));
     }

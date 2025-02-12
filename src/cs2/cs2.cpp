@@ -1,6 +1,5 @@
 #include "cs2/cs2.hpp"
 
-#include <iostream>
 #include <thread>
 
 #include "config.hpp"
@@ -480,8 +479,7 @@ std::optional<std::string> GetEntityType(const u64 entity) {
 
     std::string name = process.ReadString(name_pointer);
 
-    size_t position = std::string::npos;
-    if (position = name.find("weapon_") != std::string::npos) {
+    if (name.find("weapon_") != std::string::npos) {
         name = name.substr(7);
         return name;
     }

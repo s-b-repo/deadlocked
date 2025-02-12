@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include "log.hpp"
+#include "types.hpp"
 
 i32 mouse = 0;
 
