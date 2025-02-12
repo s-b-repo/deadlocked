@@ -6,6 +6,8 @@
 #include "toml.hpp"
 #include "types.hpp"
 
+#define VERSION "v5.0.0"
+
 #define FONT "resources/JetBrainsMono.ttf"
 
 // imvec4 toml helper functions

@@ -375,12 +375,18 @@ void Gui() {
         ImGui::EndTabBar();
 
         ImDrawList *gui_draw_list = ImGui::GetForegroundDrawList();
-        ImGui::SetCursorScreenPos(ImVec2(0.0f, 0.0f));
         std::string gui_fps = "FPS: " + std::to_string((i32)gui_io.Framerate);
         const ImVec2 text_size = ImGui::CalcTextSize(gui_fps.c_str());
         const ImVec2 gui_window_size = ImGui::GetWindowSize();
         gui_draw_list->AddText(
-            ImVec2(gui_window_size.x - text_size.x - 4.0f, 4.0f), 0xFFFFFFFF, gui_fps.c_str());
+            ImVec2(gui_window_size.x - text_size.x - 4.0f, 6.0f), 0xFFFFFFFF, gui_fps.c_str());
+
+        const ImVec2 version_text_size = ImGui::CalcTextSize(VERSION);
+        gui_draw_list->AddText(
+            ImVec2(
+                gui_window_size.x - version_text_size.x - 4.0f,
+                gui_window_size.y - version_text_size.y - 4.0f),
+            0xFFFFFFFF, VERSION);
 
         ImGui::End();
 

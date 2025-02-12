@@ -15,11 +15,9 @@ target_sources(deadlocked PRIVATE imgui/imgui.cpp imgui/imgui_demo.cpp imgui/img
     imgui/imgui_tables.cpp imgui/imgui_widgets.cpp
     imgui/backends/imgui_impl_sdl3.cpp imgui/backends/imgui_impl_opengl3.cpp)
 
-#add_subdirectory(glfw)
 add_subdirectory(glm)
 add_subdirectory(sdl)
 
-#target_link_libraries(deadlocked PRIVATE glfw)
 target_link_libraries(deadlocked PRIVATE glm::glm)
 target_link_libraries(deadlocked PRIVATE OpenGL)
 target_link_libraries(deadlocked PRIVATE SDL3::SDL3)
