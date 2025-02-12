@@ -26,7 +26,16 @@ simple cs2 aimbot and esp, for linux only.
   - player name
   - weapon name
   - player tags (helmet, defuser, bomb)
+  - dropped weapons
+- triggerbot
+  - min/max delay
+  - hotkey
+  - visibility check
+  - flash check
+  - scope check
 - standalone rcs
+- misc
+  - sniper crosshair
 - unsafe
   - noflash
     - max flash alpha
