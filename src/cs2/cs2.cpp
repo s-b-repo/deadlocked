@@ -511,16 +511,16 @@ f32 DistanceScale(f32 distance) {
     }
 }
 
-void FindTarget() {
+bool FindTarget() {
     const auto local_player_opt = Player::LocalPlayer();
     if (!local_player_opt.has_value()) {
-        return;
+        return false;
     }
     Player local_player = local_player_opt.value();
 
     const u8 local_team = local_player.Team();
     if (local_team != TEAM_CT && local_team != TEAM_T) {
-        return;
+        return false;
     }
 
     // note to self: forgetting to clear this caused such a retarded memory leak
@@ -548,11 +548,16 @@ void FindTarget() {
         players.push_back(player);
     }
 
+    if (players.size() == 0) {
+        target.Reset();
+        return false;
+    }
+
     const WeaponClass weapon_class = local_player.GetWeaponClass();
     if (weapon_class == WeaponClass::Unknown || weapon_class == WeaponClass::Grenade ||
         weapon_class == WeaponClass::Grenade) {
         target.Reset();
-        return;
+        return true;
     }
 
     const auto view_angles = local_player.ViewAngles();
@@ -568,11 +573,6 @@ void FindTarget() {
         }
     }
     target.aim_punch = aim_punch;
-
-    if (players.size() == 0) {
-        target.Reset();
-        return;
-    }
 
     f32 smallest_fov = 360.0f;
     const auto eye_position = local_player.EyePosition();
@@ -608,7 +608,7 @@ void FindTarget() {
     }
 
     if (!target.player.has_value()) {
-        return;
+        return true;
     }
 
     // update target angle
@@ -628,9 +628,18 @@ void FindTarget() {
             target.bone_index = bone;
         }
     }
+
+    return true;
 }
 
 extern std::mutex vinfo_lock;
+
+void ClearVisualInfo() {
+    vinfo_lock.lock();
+    players.clear();
+    entity_info.clear();
+    vinfo_lock.unlock();
+}
 
 void VisualInfo() {
     vinfo_lock.lock();
@@ -711,14 +720,16 @@ void VisualInfo() {
 }
 
 void Run() {
+    VisualInfo();
+    if (!FindTarget()) {
+        ClearVisualInfo();
+        return;
+    }
+
     FovChanger();
     NoFlash();
     Rcs();
 
-    FindTarget();
-
     Aimbot();
     Triggerbot();
-
-    VisualInfo();
 }

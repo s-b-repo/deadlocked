@@ -44,6 +44,26 @@ ImU32 HealthColor(i32 health) {
     return IM_COL32(r, g, 0, 255);
 }
 
+const ImU32 black = 0xFF000000;
+void OutlineText(
+    ImDrawList *draw_list, ImFont *font, f32 size, const ImVec2 position, const ImU32 color,
+    const char *text) {
+    draw_list->AddText(font, size, ImVec2(position.x - 1, position.y), black, text);
+    draw_list->AddText(font, size, ImVec2(position.x + 1, position.y), black, text);
+    draw_list->AddText(font, size, ImVec2(position.x, position.y - 1), black, text);
+    draw_list->AddText(font, size, ImVec2(position.x, position.y + 1), black, text);
+    draw_list->AddText(font, size, position, color, text);
+}
+
+void OutlineText(
+    ImDrawList *draw_list, const ImVec2 position, const ImU32 color, const char *text) {
+    draw_list->AddText(ImVec2(position.x - 1, position.y), black, text);
+    draw_list->AddText(ImVec2(position.x + 1, position.y), black, text);
+    draw_list->AddText(ImVec2(position.x, position.y - 1), black, text);
+    draw_list->AddText(ImVec2(position.x, position.y + 1), black, text);
+    draw_list->AddText(position, color, text);
+}
+
 void Gui() {
     SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
 
@@ -354,6 +374,8 @@ void Gui() {
             ImVec2 available = ImGui::GetContentRegionAvail();
             ImGui::BeginChild("tab_items_colors", available);
 
+            ImGui::ColorEdit3("Text", &config.visuals.text_color.x);
+
             ImGui::ColorEdit3("Box", &config.visuals.box_color.x);
 
             ImGui::ColorEdit3("Skeleton", &config.visuals.skeleton_color.x);
@@ -418,10 +440,14 @@ void Gui() {
         ImGui::SetWindowSize(ImVec2(maxX - minX, maxY - minY));
         ImDrawList *overlay_draw_list = ImGui::GetBackgroundDrawList();
 
+        const ImU32 text_color = IM_COL32(
+            config.visuals.text_color.x * 255, config.visuals.text_color.y * 255,
+            config.visuals.text_color.z * 255, 255);
+
         std::string overlay_fps = "FPS: " + std::to_string((i32)overlay_io.Framerate);
         extern glm::ivec4 window_size;
         overlay_draw_list->AddText(
-            ImVec2((f32)window_size.x + 4.0f, (f32)window_size.y + 4.0f), 0xFFFFFFFF,
+            ImVec2((f32)window_size.x + 4.0f, (f32)window_size.y + 4.0f), text_color,
             overlay_fps.c_str());
 
         if (config.visuals.debug_window) {
@@ -474,9 +500,10 @@ void Gui() {
             const f32 height = bottom.y - top.y;
             const f32 width = height / 2.0f;
             const f32 half_width = width / 2.0f;
-            f32 font_size = config.visuals.dynamic_font ? half_width : config.visuals.font_size;
-            if (font_size > 20.0f) {
-                font_size = 20.0f;
+            f32 font_size =
+                (config.visuals.dynamic_font ? half_width : config.visuals.font_size) * scale;
+            if (font_size > 20.0f * scale) {
+                font_size = 20.0f * scale;
             }
             ImFont *font = overlay_io.Fonts->Fonts[0];
 
@@ -548,14 +575,16 @@ void Gui() {
                     font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, player.name.c_str());
                 const ImVec2 name_position =
                     ImVec2(top.x - text_size.x / 2.0f, top_left.y - font_size);
-                overlay_draw_list->AddText(
-                    font, font_size, name_position, 0xFFFFFFFF, player.name.c_str());
+                OutlineText(
+                    overlay_draw_list, font, font_size, name_position, text_color,
+                    player.name.c_str());
             }
 
             if (config.visuals.draw_weapon) {
                 const ImVec2 weapon_position = ImVec2(bottom_left.x, bottom_left.y);
-                overlay_draw_list->AddText(
-                    font, font_size, weapon_position, 0xFFFFFFFF, player.weapon.c_str());
+                OutlineText(
+                    overlay_draw_list, font, font_size, weapon_position, text_color,
+                    player.weapon.c_str());
             }
 
             f32 offset = font_size;
@@ -563,20 +592,21 @@ void Gui() {
             if (config.visuals.draw_tags && player.has_helmet) {
                 const ImVec2 helmet_position = ImVec2(bottom_left.x, bottom_left.y + offset);
                 offset += font_size;
-                overlay_draw_list->AddText(font, font_size, helmet_position, 0xFFFFFFFF, "helmet");
+                OutlineText(
+                    overlay_draw_list, font, font_size, helmet_position, text_color, "helmet");
             }
 
             if (config.visuals.draw_tags && player.has_defuser) {
                 const ImVec2 defuser_position = ImVec2(bottom_left.x, bottom_left.y + offset);
                 offset += font_size;
-                overlay_draw_list->AddText(
-                    font, font_size, defuser_position, 0xFFFFFFFF, "defuser");
+                OutlineText(
+                    overlay_draw_list, font, font_size, defuser_position, text_color, "defuser");
             }
 
             if (config.visuals.draw_tags && player.has_bomb) {
                 const ImVec2 bomb_position = ImVec2(bottom_left.x, bottom_left.y + offset);
                 offset += font_size;
-                overlay_draw_list->AddText(font, font_size, bomb_position, 0xFFFFFFFF, "bomb");
+                OutlineText(overlay_draw_list, font, font_size, bomb_position, text_color, "bomb");
             }
         }
 
@@ -587,8 +617,9 @@ void Gui() {
                     continue;
                 }
                 const auto position = position_opt.value();
-                overlay_draw_list->AddText(
-                    ImVec2(position.x, position.y), 0xFFFFFFFF, entity.name.c_str());
+                OutlineText(
+                    overlay_draw_list, ImVec2(position.x, position.y), 0xFFFFFFFF,
+                    entity.name.c_str());
             }
         }
 

@@ -74,6 +74,7 @@ TriggerbotConfig TriggerbotConfig::from_toml(const toml::table &tbl) {
 
 toml::table VisualsConfig::to_toml() const {
     return toml::table{
+        {"text_color", imvec4_to_array(text_color)},
         {"box_color", imvec4_to_array(box_color)},
         {"skeleton_color", imvec4_to_array(skeleton_color)},
         {"armor_color", imvec4_to_array(armor_color)},
@@ -97,6 +98,7 @@ toml::table VisualsConfig::to_toml() const {
 
 VisualsConfig VisualsConfig::from_toml(const toml::table &tbl) {
     VisualsConfig cfg;
+    if (auto arr = tbl["text_color"].as_array()) cfg.text_color = array_to_imvec4(*arr);
     if (auto arr = tbl["box_color"].as_array()) cfg.box_color = array_to_imvec4(*arr);
     if (auto arr = tbl["skeleton_color"].as_array()) cfg.skeleton_color = array_to_imvec4(*arr);
     if (auto arr = tbl["armor_color"].as_array()) cfg.armor_color = array_to_imvec4(*arr);

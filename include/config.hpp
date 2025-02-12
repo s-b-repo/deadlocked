@@ -52,6 +52,7 @@ struct TriggerbotConfig {
 };
 
 struct VisualsConfig {
+    ImVec4 text_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ImVec4 box_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ImVec4 skeleton_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ImVec4 armor_color = ImVec4(0.0f, 0.0f, 1.0f, 1.0f);
