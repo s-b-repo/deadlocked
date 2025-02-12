@@ -7,7 +7,6 @@
 #include <imgui_impl_sdl3.h>
 
 #include <chrono>
-#include <filesystem>
 #include <log.hpp>
 #include <thread>
 
@@ -161,11 +160,7 @@ void Gui() {
 
     ImGuiIO &gui_io = ImGui::GetIO();
     gui_io.IniFilename = nullptr;
-    if (std::filesystem::exists(std::filesystem::path(FONT))) {
-        gui_io.Fonts->AddFontFromMemoryTTF(font, font_len, 20.0f * scale);
-    } else {
-        Log(LogLevel::Warning, "font not found: " + std::string(FONT));
-    }
+    gui_io.Fonts->AddFontFromMemoryTTF(font, font_len, 20.0f * scale);
 
     ImGui_ImplSDL3_InitForOpenGL(gui_window, gui_gl);
     ImGui_ImplOpenGL3_Init("#version 130");
@@ -174,11 +169,7 @@ void Gui() {
 
     ImGuiIO &overlay_io = ImGui::GetIO();
     overlay_io.IniFilename = nullptr;
-    if (std::filesystem::exists(std::filesystem::path(FONT))) {
-        overlay_io.Fonts->AddFontFromMemoryTTF(font, font_len, 20.0f * scale);
-    } else {
-        Log(LogLevel::Warning, "font not found: " + std::string(FONT));
-    }
+    overlay_io.Fonts->AddFontFromMemoryTTF(font, font_len, 20.0f * scale);
 
     ImGui_ImplSDL3_InitForOpenGL(overlay, overlay_gl);
     ImGui_ImplOpenGL3_Init("#version 130");
@@ -446,9 +437,9 @@ void Gui() {
 
         std::string overlay_fps = "FPS: " + std::to_string((i32)overlay_io.Framerate);
         extern glm::ivec4 window_size;
-        overlay_draw_list->AddText(
-            ImVec2((f32)window_size.x + 4.0f, (f32)window_size.y + 4.0f), text_color,
-            overlay_fps.c_str());
+        OutlineText(
+            overlay_draw_list, ImVec2((f32)window_size.x + 4.0f, (f32)window_size.y + 4.0f),
+            text_color, overlay_fps.c_str());
 
         if (config.visuals.debug_window) {
             // frame
@@ -581,7 +572,9 @@ void Gui() {
             }
 
             if (config.visuals.draw_weapon) {
-                const ImVec2 weapon_position = ImVec2(bottom_left.x, bottom_left.y);
+                const ImVec2 text_size =
+                    font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, player.weapon.c_str());
+                const ImVec2 weapon_position = ImVec2(bottom.x - text_size.x / 2.0f, bottom_left.y);
                 OutlineText(
                     overlay_draw_list, font, font_size, weapon_position, text_color,
                     player.weapon.c_str());
@@ -590,21 +583,27 @@ void Gui() {
             f32 offset = font_size;
 
             if (config.visuals.draw_tags && player.has_helmet) {
-                const ImVec2 helmet_position = ImVec2(bottom_left.x, bottom_left.y + offset);
+                const ImVec2 text_size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, "helmet");
+                const ImVec2 helmet_position =
+                    ImVec2(bottom.x - text_size.x / 2.0f, bottom_left.y + offset);
                 offset += font_size;
                 OutlineText(
                     overlay_draw_list, font, font_size, helmet_position, text_color, "helmet");
             }
 
             if (config.visuals.draw_tags && player.has_defuser) {
-                const ImVec2 defuser_position = ImVec2(bottom_left.x, bottom_left.y + offset);
+                const ImVec2 text_size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, "defuser");
+                const ImVec2 defuser_position =
+                    ImVec2(bottom.x - text_size.x / 2.0f, bottom_left.y + offset);
                 offset += font_size;
                 OutlineText(
                     overlay_draw_list, font, font_size, defuser_position, text_color, "defuser");
             }
 
             if (config.visuals.draw_tags && player.has_bomb) {
-                const ImVec2 bomb_position = ImVec2(bottom_left.x, bottom_left.y + offset);
+                const ImVec2 text_size = font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, "bomb");
+                const ImVec2 bomb_position =
+                    ImVec2(bottom.x - text_size.x / 2.0f, bottom_left.y + offset);
                 offset += font_size;
                 OutlineText(overlay_draw_list, font, font_size, bomb_position, text_color, "bomb");
             }
