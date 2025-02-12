@@ -3,6 +3,10 @@ project(deadlocked CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    message(FATAL_ERROR "this only works on linux.")
+endif()
+
 file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
 
 add_executable(deadlocked ${SOURCE_FILES})
