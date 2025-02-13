@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sys/uio.h>
+#include <unistd.h>
 
 #include <glm/glm.hpp>
 #include <optional>
@@ -9,24 +10,37 @@
 
 #include "types.hpp"
 
+extern bool file_mem;
+
 class Process {
   public:
     i32 pid;
+    i32 mem = -1;
 
     template <typename T>
     T Read(u64 address) {
-        T value;
-        const struct iovec local_iov = {.iov_base = &value, .iov_len = sizeof(T)};
-        const struct iovec remote_iov = {.iov_base = (void *)address, .iov_len = sizeof(T)};
-        process_vm_readv(pid, &local_iov, 1, &remote_iov, 1, 0);
-        return value;
+        if (!file_mem) {
+            T value;
+            const struct iovec local_iov = {.iov_base = &value, .iov_len = sizeof(T)};
+            const struct iovec remote_iov = {.iov_base = (void *)address, .iov_len = sizeof(T)};
+            process_vm_readv(pid, &local_iov, 1, &remote_iov, 1, 0);
+            return value;
+        } else {
+            T value;
+            pread(mem, &value, sizeof(value), address);
+            return value;
+        }
     }
 
     template <typename T>
     void Write(u64 address, T value) {
-        const struct iovec local_iov = {.iov_base = &value, .iov_len = sizeof(T)};
-        const struct iovec remote_iov = {.iov_base = (void *)address, .iov_len = sizeof(T)};
-        process_vm_writev(pid, &local_iov, 1, &remote_iov, 1, 0);
+        if (!file_mem) {
+            const struct iovec local_iov = {.iov_base = &value, .iov_len = sizeof(T)};
+            const struct iovec remote_iov = {.iov_base = (void *)address, .iov_len = sizeof(T)};
+            process_vm_writev(pid, &local_iov, 1, &remote_iov, 1, 0);
+        } else {
+            pwrite(mem, &value, sizeof(value), address);
+        }
     }
 
     std::string ReadString(u64 address);

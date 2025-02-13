@@ -43,7 +43,12 @@ std::optional<Process> OpenProcess(i32 pid) {
     if (!ValidatePid(pid)) {
         return std::nullopt;
     }
-    return Process{.pid = pid};
+    if (!file_mem) {
+        return Process{.pid = pid};
+    } else {
+        return Process{
+            .pid = pid, .mem = open(("/proc/" + std::to_string(pid) + "/mem").c_str(), O_RDWR)};
+    }
 }
 
 std::string Process::ReadString(u64 address) {
