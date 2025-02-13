@@ -6,7 +6,7 @@
 #include "toml.hpp"
 #include "types.hpp"
 
-#define VERSION "v5.0.2"
+#define VERSION "v5.0.3"
 
 #define FONT "resources/JetBrainsMono.ttf"
 

@@ -57,6 +57,11 @@ simple cs2 aimbot and esp, for linux only.
 
 - execute the run script: `./run.sh`
 
+## flags
+
+- `--file-mem`: if process_vm_readv does not work/you get an error that it cannot get the resource offset
+- `--scale=X`: override gui scale
+
 ## faq
 
 ### what desktop environments and window managers are supported?
