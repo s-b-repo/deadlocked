@@ -29,6 +29,10 @@ void Rcs() {
         return;
     }
 
+    if (glm::length(target.aim_punch) < 0.01) {
+        return;
+    }
+
     const f32 sensitivity = Sensitivity() * local_player.FovMultiplier();
     const glm::vec2 xy = target.aim_punch * glm::vec2(-0.5f);
 
