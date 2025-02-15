@@ -13,6 +13,7 @@
 
 #include "SDL3/SDL_error.h"
 #include "SDL3/SDL_video.h"
+#include "colors.hpp"
 #include "config.hpp"
 #include "cs2/cs2.hpp"
 #include "font.hpp"
@@ -65,6 +66,15 @@ void OutlineText(
     draw_list->AddText(ImVec2(position.x, position.y + 1), black, text);
     draw_list->AddText(position, color, text);
 }
+
+void PushButtonStyle(const ImVec4 color) {
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.12f, 0.12f, 0.16f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(color.x, color.y, color.z, 0.6f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
+}
+
+void PopButtonStyle() { ImGui::PopStyleColor(4); }
 
 void Gui() {
     SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
@@ -183,7 +193,9 @@ void Gui() {
     SDL_SetWindowSize(gui_window, width * scale, height * scale);
 
     ImGui::SetCurrentContext(gui_ctx);
-    Style(scale);
+    Style();
+    SetScale(scale);
+    SetAccentColor(config.accent_color);
 
     ImGuiIO &gui_io = ImGui::GetIO();
     gui_io.IniFilename = nullptr;
@@ -425,6 +437,69 @@ void Gui() {
             if (ImGui::Button("Report Issue")) {
                 std::system("xdg-open https://github.com/avitran0/deadlocked");
             }
+
+            ImGui::Text("Accent Color");
+
+            PushButtonStyle(Colors::RED);
+            if (ImGui::Button("Red")) {
+                SetAccentColor(Colors::RED);
+                config.accent_color = Colors::RED;
+            }
+            PopButtonStyle();
+
+            ImGui::SameLine();
+
+            PushButtonStyle(Colors::ORANGE);
+            if (ImGui::Button("Orange")) {
+                SetAccentColor(Colors::ORANGE);
+                config.accent_color = Colors::ORANGE;
+            }
+            PopButtonStyle();
+
+            ImGui::SameLine();
+
+            PushButtonStyle(Colors::YELLOW);
+            if (ImGui::Button("Yellow")) {
+                SetAccentColor(Colors::YELLOW);
+                config.accent_color = Colors::YELLOW;
+            }
+            PopButtonStyle();
+
+            ImGui::SameLine();
+
+            PushButtonStyle(Colors::GREEN);
+            if (ImGui::Button("Green")) {
+                SetAccentColor(Colors::GREEN);
+                config.accent_color = Colors::GREEN;
+            }
+            PopButtonStyle();
+
+            ImGui::SameLine();
+
+            PushButtonStyle(Colors::CYAN);
+            if (ImGui::Button("Cyan")) {
+                SetAccentColor(Colors::CYAN);
+                config.accent_color = Colors::CYAN;
+            }
+            PopButtonStyle();
+
+            ImGui::SameLine();
+
+            PushButtonStyle(Colors::BLUE);
+            if (ImGui::Button("Blue")) {
+                SetAccentColor(Colors::BLUE);
+                config.accent_color = Colors::BLUE;
+            }
+            PopButtonStyle();
+
+            ImGui::SameLine();
+
+            PushButtonStyle(Colors::PURPLE);
+            if (ImGui::Button("Purple")) {
+                SetAccentColor(Colors::PURPLE);
+                config.accent_color = Colors::PURPLE;
+            }
+            PopButtonStyle();
 
             ImGui::EndChild();
             ImGui::EndTabItem();

@@ -145,7 +145,8 @@ toml::table Config::to_toml() const {
         {"aimbot", aimbot.to_toml()},
         {"triggerbot", triggerbot.to_toml()},
         {"visuals", visuals.to_toml()},
-        {"misc", misc.to_toml()}};
+        {"misc", misc.to_toml()},
+        {"accent_color", imvec4_to_array(accent_color)}};
 }
 
 Config Config::from_toml(const toml::table &tbl) {
@@ -157,5 +158,7 @@ Config Config::from_toml(const toml::table &tbl) {
     if (auto table_visuals = tbl["visuals"].as_table())
         cfg.visuals = VisualsConfig::from_toml(*table_visuals);
     if (auto table_misc = tbl["misc"].as_table()) cfg.misc = MiscConfig::from_toml(*table_misc);
+
+    if (auto arr = tbl["accent_color"].as_array()) cfg.accent_color = array_to_imvec4(*arr);
     return cfg;
 }

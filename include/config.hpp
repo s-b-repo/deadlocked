@@ -3,6 +3,7 @@
 #include <imgui.h>
 
 #include "key_code.hpp"
+#include "colors.hpp"
 #include "toml.hpp"
 #include "types.hpp"
 
@@ -95,6 +96,8 @@ struct Config {
     TriggerbotConfig triggerbot;
     VisualsConfig visuals;
     MiscConfig misc;
+
+    ImVec4 accent_color = Colors::BLUE;
 
     toml::table to_toml() const;
     static Config from_toml(const toml::table &table);
