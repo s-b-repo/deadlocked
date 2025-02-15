@@ -217,7 +217,7 @@ void Gui() {
 
     bool should_close = false;
     auto save_timer = std::chrono::steady_clock::now();
-    const std::chrono::seconds save_interval(5);
+    const std::chrono::seconds save_interval(1);
     while (!should_close) {
         auto start_time = std::chrono::steady_clock::now();
 
