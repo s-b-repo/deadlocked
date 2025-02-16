@@ -30,3 +30,5 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug" AND CMAKE_C_COMPILER_ID MATCHES "GNU")
     "-Wdouble-promotion" "-Wno-unused-parameter" "-Wno-unused-function"
     "-Wno-sign-conversion")
 endif()
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
