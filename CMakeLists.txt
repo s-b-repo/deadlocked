@@ -12,14 +12,14 @@ file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
 add_executable(deadlocked ${SOURCE_FILES})
 target_include_directories(deadlocked PRIVATE include)
 
-target_include_directories(deadlocked PRIVATE imgui)
-target_include_directories(deadlocked PRIVATE imgui/backends)
-target_sources(deadlocked PRIVATE imgui/imgui.cpp imgui/imgui_demo.cpp imgui/imgui_draw.cpp
-    imgui/imgui_tables.cpp imgui/imgui_widgets.cpp
-    imgui/backends/imgui_impl_sdl3.cpp imgui/backends/imgui_impl_opengl3.cpp)
+target_include_directories(deadlocked PRIVATE lib/imgui)
+target_include_directories(deadlocked PRIVATE lib/imgui/backends)
+target_sources(deadlocked PRIVATE lib/imgui/imgui.cpp lib/imgui/imgui_demo.cpp lib/imgui/imgui_draw.cpp
+    lib/imgui/imgui_tables.cpp lib/imgui/imgui_widgets.cpp
+    lib/imgui/backends/imgui_impl_sdl3.cpp lib/imgui/backends/imgui_impl_opengl3.cpp)
 
-add_subdirectory(glm)
-add_subdirectory(sdl)
+add_subdirectory(lib/glm)
+add_subdirectory(lib/sdl)
 
 target_link_libraries(deadlocked PRIVATE glm::glm)
 target_link_libraries(deadlocked PRIVATE OpenGL)
