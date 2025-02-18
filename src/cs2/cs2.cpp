@@ -22,14 +22,14 @@ extern std::vector<EntityInfo> entity_info;
 extern glm::mat4 view_matrix;
 extern glm::ivec4 window_size;
 extern MiscInfo misc_info;
-extern bool should_quit;
+extern Flags flags;
 
 void CS2() {
     Log(LogLevel::Info, "game thread started");
     while (true) {
         const auto clock = std::chrono::steady_clock::now();
 
-        if (should_quit) {
+        if (flags.should_quit) {
             break;
         }
 
@@ -51,7 +51,7 @@ void CS2() {
             // window
             for (i32 i = 0; i < 100; i++) {
                 config_lock.lock();
-                if (should_quit) {
+                if (flags.should_quit) {
                     return;
                 }
                 config_lock.unlock();

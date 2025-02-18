@@ -17,8 +17,7 @@ std::vector<EntityInfo> entity_info;
 glm::mat4 view_matrix;
 glm::ivec4 window_size;
 MiscInfo misc_info;
-bool should_quit = false;
-bool file_mem = false;
+Flags flags;
 
 std::string ConfigPath() {
     // current executable directory

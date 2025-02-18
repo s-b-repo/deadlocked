@@ -2,8 +2,8 @@
 
 #include <imgui.h>
 
-#include "key_code.hpp"
 #include "colors.hpp"
+#include "key_code.hpp"
 #include "toml.hpp"
 #include "types.hpp"
 
@@ -101,6 +101,13 @@ struct Config {
 
     toml::table to_toml() const;
     static Config from_toml(const toml::table &table);
+};
+
+struct Flags {
+    bool should_quit = false;
+    // whether or not to read memory from file or via process_vm_readv
+    bool file_mem = false;
+    bool no_visuals = false;
 };
 
 void SaveConfig();

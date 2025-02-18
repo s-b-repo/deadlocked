@@ -8,9 +8,10 @@
 #include <string>
 #include <vector>
 
+#include "config.hpp"
 #include "types.hpp"
 
-extern bool file_mem;
+extern Flags flags;
 
 class Process {
   public:
@@ -19,7 +20,7 @@ class Process {
 
     template <typename T>
     T Read(u64 address) {
-        if (!file_mem) {
+        if (!flags.file_mem) {
             T value;
             const struct iovec local_iov = {.iov_base = &value, .iov_len = sizeof(T)};
             const struct iovec remote_iov = {.iov_base = (void *)address, .iov_len = sizeof(T)};
@@ -34,7 +35,7 @@ class Process {
 
     template <typename T>
     void Write(u64 address, T value) {
-        if (!file_mem) {
+        if (!flags.file_mem) {
             const struct iovec local_iov = {.iov_base = &value, .iov_len = sizeof(T)};
             const struct iovec remote_iov = {.iov_base = (void *)address, .iov_len = sizeof(T)};
             process_vm_writev(pid, &local_iov, 1, &remote_iov, 1, 0);

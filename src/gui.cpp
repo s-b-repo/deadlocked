@@ -158,8 +158,18 @@ void Gui() {
     SDL_SetWindowPosition(temp, 0, 0);
 
     // overlay window
+    i32 overlay_width, overlay_height;
+    // make window not visible when flag is set
+    if (flags.no_visuals) {
+        overlay_width = 1;
+        overlay_height = 1;
+    } else {
+        overlay_width = maxX - minX;
+        overlay_height = maxY - minY;
+    }
+
     SDL_Window *overlay = SDL_CreatePopupWindow(
-        temp, 0, 0, maxX - minX, maxY - minY,
+        temp, 0, 0, overlay_width, overlay_height,
         SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_NOT_FOCUSABLE |
             SDL_WINDOW_OPENGL | SDL_WINDOW_TOOLTIP | SDL_WINDOW_TRANSPARENT);
     if (!overlay) {
@@ -792,8 +802,7 @@ void Gui() {
     }
 
     config_lock.lock();
-    extern bool should_quit;
-    should_quit = true;
+    flags.should_quit = true;
     config_lock.unlock();
     cs2.join();
 

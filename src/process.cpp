@@ -43,7 +43,7 @@ std::optional<Process> OpenProcess(i32 pid) {
     if (!ValidatePid(pid)) {
         return std::nullopt;
     }
-    if (!file_mem) {
+    if (!flags.file_mem) {
         return Process{.pid = pid};
     } else {
         return Process{
