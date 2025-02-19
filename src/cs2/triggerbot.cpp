@@ -38,7 +38,12 @@ void Triggerbot() {
         return;
     }
 
-    if (!local_player.HasEntityInCrosshair()) {
+    auto crosshair_entity = local_player.EntityInCrosshair();
+    if (!crosshair_entity.has_value()) {
+        return;
+    }
+
+    if (crosshair_entity->Team() == local_player.Team()) {
         return;
     }
 

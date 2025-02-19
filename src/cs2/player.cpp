@@ -1,4 +1,5 @@
 #include "cs2/player.hpp"
+#include <optional>
 
 #include "cs2/cs2.hpp"
 
@@ -287,21 +288,21 @@ bool Player::HasBomb() const {
     return false;
 }
 
-bool Player::HasEntityInCrosshair() const {
+std::optional<Player> Player::EntityInCrosshair() const {
     const i32 index = process.Read<i32>(pawn + offsets.pawn.crosshair_entity);
     if (index == -1) {
-        return false;
+        return std::nullopt;
     }
 
     auto entity = Player::ClientEntity(index);
     if (!entity.has_value()) {
-        return false;
+        return std::nullopt;
     }
     const Player player = Player{.controller = 0, .pawn = entity.value()};
     if (!player.IsValid()) {
-        return false;
+        return std::nullopt;
     }
-    return true;
+    return player;
 }
 
 bool Player::IsScoped() const { return process.Read<u8>(pawn + offsets.pawn.scoped) != 0; }

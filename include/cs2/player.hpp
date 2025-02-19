@@ -41,7 +41,8 @@ class Player {
     bool HasDefuser() const;
     bool HasHelmet() const;
     bool HasBomb() const;
-    bool HasEntityInCrosshair() const;
+    // returns player with pawn only, no controller set
+    std::optional<Player> EntityInCrosshair() const;
     bool IsScoped() const;
 
     bool Equals(Player &other) { return pawn == other.pawn && controller == other.controller; }
