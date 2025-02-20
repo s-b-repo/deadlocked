@@ -18,24 +18,14 @@ target_sources(deadlocked PRIVATE lib/imgui/imgui.cpp lib/imgui/imgui_demo.cpp l
     lib/imgui/imgui_tables.cpp lib/imgui/imgui_widgets.cpp
     lib/imgui/backends/imgui_impl_sdl3.cpp lib/imgui/backends/imgui_impl_opengl3.cpp)
 
-set(OATPP_MODULES_LOCATION CUSTOM)
-set(OATPP_DIR_SRC "${CMAKE_CURRENT_SOURCE_DIR}/lib/oatpp/src")
-set(OATPP_DIR_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/oatpp/build/src")
-set(OATPP_BUILD_TESTS OFF CACHE BOOL "disable oatpp tests" FORCE)
-set(OATPP_BUILD_EXAMPLES OFF CACHE BOOL "disable oatpp examples" FORCE)
-
 set(SDL_TESTS OFF CACHE BOOL "disable sdl tests" FORCE)
 set(SDL_EXAMPLES OFF CACHE BOOL "disable sdl examples" FORCE)
 set(SDL_INSTALL_DOCS OFF CACHE BOOL "disable sdl docs" FORCE)
 
 add_subdirectory(lib/glm)
-add_subdirectory(lib/oatpp)
-add_subdirectory(lib/oatpp-websocket)
 add_subdirectory(lib/sdl)
 
 target_link_libraries(deadlocked PRIVATE glm::glm)
-target_link_libraries(deadlocked PRIVATE oatpp)
-target_link_libraries(deadlocked PRIVATE oatpp-websocket)
 target_link_libraries(deadlocked PRIVATE OpenGL)
 target_link_libraries(deadlocked PRIVATE SDL3::SDL3)
 

@@ -32,6 +32,7 @@ struct AimbotConfig {
     bool visibility_check = true;
     bool multibone = true;
     bool flash_check = true;
+    bool fov_circle = false;
     bool rcs = false;
 
     toml::table to_toml() const;

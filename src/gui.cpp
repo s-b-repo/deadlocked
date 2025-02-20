@@ -279,6 +279,8 @@ void Gui() {
             ImGui::DragInt("Start Bullet", &config.aimbot.start_bullet, 0.05f, 0, 10);
 
             ImGui::Checkbox("Multibone", &config.aimbot.multibone);
+            ImGui::SameLine();
+            ImGui::Checkbox("FOV Circle", &config.aimbot.fov_circle);
 
             ImGui::Checkbox("Visibility Check", &config.aimbot.visibility_check);
             ImGui::SameLine();
@@ -754,6 +756,16 @@ void Gui() {
             }
 
             extern MiscInfo misc_info;
+            // fov circle
+            if (config.aimbot.fov_circle && misc_info.in_game) {
+                const f32 pawn_fov = config.misc.fov_changer ? config.misc.desired_fov : 90.0f;
+                const f32 radius = tan(config.aimbot.fov / 180.f * M_PI / 2.f) /
+                                   tan(pawn_fov / 180.f * M_PI / 2.f) * window_size.x;
+                const ImVec2 center = ImVec2(
+                    window_size.x + window_size.z / 2.0f, window_size.y + window_size.w / 2.0f);
+                overlay_draw_list->AddCircle(center, radius, 0xFFFFFFFF);
+            }
+
             // sniper crosshair
             if (config.visuals.sniper_crosshair &&
                 WeaponClassFromString(misc_info.held_weapon) == WeaponClass::Sniper) {

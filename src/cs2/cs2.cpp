@@ -36,9 +36,11 @@ void CS2() {
         if (IsValid()) {
             config_lock.lock();
             Run();
+            misc_info.in_game = true;
             config_lock.unlock();
         } else {
             Setup();
+            misc_info.in_game = false;
         }
 
         const auto end_time = std::chrono::steady_clock::now();

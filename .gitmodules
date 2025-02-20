@@ -7,9 +7,3 @@
 [submodule "sdl"]
 	path = lib/sdl
 	url = https://github.com/libsdl-org/sdl
-[submodule "lib/oatpp"]
-	path = lib/oatpp
-	url = https://github.com/oatpp/oatpp
-[submodule "lib/oatpp-websocket"]
-	path = lib/oatpp-websocket
-	url = https://github.com/oatpp/oatpp-websocket

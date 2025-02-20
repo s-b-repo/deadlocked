@@ -31,6 +31,7 @@ toml::table AimbotConfig::to_toml() const {
         {"visibility_check", visibility_check},
         {"multibone", multibone},
         {"flash_check", flash_check},
+        {"fov_circle", fov_circle},
         {"rcs", rcs}};
 }
 
@@ -45,6 +46,7 @@ AimbotConfig AimbotConfig::from_toml(const toml::table &tbl) {
     cfg.visibility_check = tbl["visibility_check"].value_or(cfg.visibility_check);
     cfg.multibone = tbl["multibone"].value_or(cfg.multibone);
     cfg.flash_check = tbl["flash_check"].value_or(cfg.flash_check);
+    cfg.fov_circle = tbl["fov_circle"].value_or(cfg.fov_circle);
     cfg.rcs = tbl["rcs"].value_or(cfg.rcs);
     return cfg;
 }
