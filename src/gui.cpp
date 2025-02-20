@@ -155,7 +155,7 @@ void Gui() {
         Log(LogLevel::Error, SDL_GetError());
         return;
     }
-    SDL_SetWindowPosition(temp, 0, 0);
+    SDL_SetWindowPosition(temp, minX, minY);
 
     // overlay window
     i32 overlay_width, overlay_height;
@@ -176,7 +176,8 @@ void Gui() {
         Log(LogLevel::Error, "could not create overlay window");
         return;
     }
-    SDL_SetWindowPosition(overlay, minX, minY);
+    // inherits position from parent window
+    // SDL_SetWindowPosition(overlay, minX, minY);
     SDL_GLContext overlay_gl = SDL_GL_CreateContext(overlay);
     if (!overlay_gl) {
         Log(LogLevel::Error, "failed to initialize opengl context for overlay window");
