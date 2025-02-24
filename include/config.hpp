@@ -15,10 +15,10 @@
 toml::array imvec4_to_array(const ImVec4 &vec);
 ImVec4 array_to_imvec4(const toml::array &arr);
 
-enum DrawStyle : u8 {
-    DrawNone,
-    DrawColor,
-    DrawHealth,
+enum class DrawStyle : u8 {
+    None,
+    Color,
+    Health,
 };
 
 struct AimbotConfig {
@@ -64,8 +64,8 @@ struct VisualsConfig {
     f32 line_width = 2.0;
     f32 font_size = 16.0;
 
-    DrawStyle draw_box = DrawStyle::DrawColor;
-    DrawStyle draw_skeleton = DrawStyle::DrawHealth;
+    DrawStyle draw_box = DrawStyle::Color;
+    DrawStyle draw_skeleton = DrawStyle::Health;
     bool enabled = true;
     bool draw_health = true;
     bool draw_armor = true;

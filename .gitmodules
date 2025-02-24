@@ -7,3 +7,6 @@
 [submodule "sdl"]
 	path = lib/sdl
 	url = https://github.com/libsdl-org/sdl
+[submodule "lib/libhv"]
+	path = lib/libhv
+	url = https://github.com/ithewei/libhv

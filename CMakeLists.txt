@@ -18,16 +18,20 @@ target_sources(deadlocked PRIVATE lib/imgui/imgui.cpp lib/imgui/imgui_demo.cpp l
     lib/imgui/imgui_tables.cpp lib/imgui/imgui_widgets.cpp
     lib/imgui/backends/imgui_impl_sdl3.cpp lib/imgui/backends/imgui_impl_opengl3.cpp)
 
+target_include_directories(deadlocked PRIVATE lib/libhv/include)
+
 set(SDL_TESTS OFF CACHE BOOL "disable sdl tests" FORCE)
 set(SDL_EXAMPLES OFF CACHE BOOL "disable sdl examples" FORCE)
 set(SDL_INSTALL_DOCS OFF CACHE BOOL "disable sdl docs" FORCE)
 
 add_subdirectory(lib/glm)
 add_subdirectory(lib/sdl)
+add_subdirectory(lib/libhv)
 
 target_link_libraries(deadlocked PRIVATE glm::glm)
 target_link_libraries(deadlocked PRIVATE OpenGL)
 target_link_libraries(deadlocked PRIVATE SDL3::SDL3)
+target_link_libraries(deadlocked PRIVATE hv)
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug" AND CMAKE_C_COMPILER_ID MATCHES "GNU")
     target_compile_options(deadlocked PRIVATE "-g3" "-Wall" "-Wextra" "-Wconversion"

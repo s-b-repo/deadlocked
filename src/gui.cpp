@@ -18,6 +18,7 @@
 #include "cs2/cs2.hpp"
 #include "font.hpp"
 #include "math.hpp"
+#include "radar.hpp"
 #include "style.hpp"
 #include "types.hpp"
 
@@ -225,6 +226,7 @@ void Gui() {
     ImGui_ImplOpenGL3_Init("#version 130");
 
     std::thread cs2(CS2);
+    std::thread radar(Radar);
 
     bool should_close = false;
     auto save_timer = std::chrono::steady_clock::now();
@@ -340,33 +342,32 @@ void Gui() {
             ImGui::Text("Draw Box");
             ImGui::SameLine();
             ImGui::PushID("draw_box");
-            if (ImGui::RadioButton("None", config.visuals.draw_box == DrawStyle::DrawNone)) {
-                config.visuals.draw_box = DrawStyle::DrawNone;
+            if (ImGui::RadioButton("None", config.visuals.draw_box == DrawStyle::None)) {
+                config.visuals.draw_box = DrawStyle::None;
             }
             ImGui::SameLine();
-            if (ImGui::RadioButton("Color", config.visuals.draw_box == DrawStyle::DrawColor)) {
-                config.visuals.draw_box = DrawStyle::DrawColor;
+            if (ImGui::RadioButton("Color", config.visuals.draw_box == DrawStyle::Color)) {
+                config.visuals.draw_box = DrawStyle::Color;
             }
             ImGui::SameLine();
-            if (ImGui::RadioButton("Health", config.visuals.draw_box == DrawStyle::DrawHealth)) {
-                config.visuals.draw_box = DrawStyle::DrawHealth;
+            if (ImGui::RadioButton("Health", config.visuals.draw_box == DrawStyle::Health)) {
+                config.visuals.draw_box = DrawStyle::Health;
             }
             ImGui::PopID();
 
             ImGui::Text("Draw Skeleton");
             ImGui::SameLine();
             ImGui::PushID("draw_skeleton");
-            if (ImGui::RadioButton("None", config.visuals.draw_skeleton == DrawStyle::DrawNone)) {
-                config.visuals.draw_skeleton = DrawStyle::DrawNone;
+            if (ImGui::RadioButton("None", config.visuals.draw_skeleton == DrawStyle::None)) {
+                config.visuals.draw_skeleton = DrawStyle::None;
             }
             ImGui::SameLine();
-            if (ImGui::RadioButton("Color", config.visuals.draw_skeleton == DrawStyle::DrawColor)) {
-                config.visuals.draw_skeleton = DrawStyle::DrawColor;
+            if (ImGui::RadioButton("Color", config.visuals.draw_skeleton == DrawStyle::Color)) {
+                config.visuals.draw_skeleton = DrawStyle::Color;
             }
             ImGui::SameLine();
-            if (ImGui::RadioButton(
-                    "Health", config.visuals.draw_skeleton == DrawStyle::DrawHealth)) {
-                config.visuals.draw_skeleton = DrawStyle::DrawHealth;
+            if (ImGui::RadioButton("Health", config.visuals.draw_skeleton == DrawStyle::Health)) {
+                config.visuals.draw_skeleton = DrawStyle::Health;
             }
             ImGui::PopID();
 
@@ -585,9 +586,9 @@ void Gui() {
             for (auto player : player_info) {
                 const ImU32 health_color = HealthColor(player.health);
 
-                if (config.visuals.draw_skeleton != DrawStyle::DrawNone) {
+                if (config.visuals.draw_skeleton != DrawStyle::None) {
                     ImU32 color;
-                    if (config.visuals.draw_skeleton == DrawStyle::DrawColor) {
+                    if (config.visuals.draw_skeleton == DrawStyle::Color) {
                         color = IM_COL32(
                             config.visuals.skeleton_color.x * 255,
                             config.visuals.skeleton_color.y * 255,
@@ -632,11 +633,11 @@ void Gui() {
                 const ImVec2 top_left = ImVec2(top.x - half_width, top.y);
                 const ImVec2 top_right = ImVec2(top.x + half_width, top.y);
 
-                if (config.visuals.draw_box != DrawStyle::DrawNone) {
+                if (config.visuals.draw_box != DrawStyle::None) {
                     // four corners, each a quarter of the width/height
                     // convert imvec4 to imu32
                     ImU32 color;
-                    if (config.visuals.draw_box == DrawStyle::DrawColor) {
+                    if (config.visuals.draw_box == DrawStyle::Color) {
                         color = IM_COL32(
                             config.visuals.box_color.x * 255, config.visuals.box_color.y * 255,
                             config.visuals.box_color.z * 255, 255);

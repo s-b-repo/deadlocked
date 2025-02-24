@@ -40,10 +40,11 @@ app.ws("/", (ws, req) => {
         } else if (content["type"] === "client") {
             // client data request
             const id = content["uuid"];
-            if (!id) {
-                return;
+            if (id && id in games) {
+                ws.send(JSON.stringify(games[id]));
+            } else {
+                ws.send("not found");
             }
-            ws.send(games[id]);
         }
     });
 
