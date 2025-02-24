@@ -1,5 +1,7 @@
 #include "math.hpp"
 
+#include "globals.hpp"
+
 f32 ToDegrees(const f32 value) { return value * 180.0f / M_PI; }
 
 glm::vec2 AnglesFromVector(const glm::vec3 &forward) {
@@ -51,9 +53,6 @@ void Vec2Clamp(glm::vec2 &vec) {
     }
     vec.y = fmodf((vec.y + 180.0f), 360.0f) - 180.0f;
 }
-
-extern glm::mat4 view_matrix;
-extern glm::ivec4 window_size;
 
 std::optional<glm::vec2> WorldToScreen(const glm::vec3 &position) {
     auto screen_position = glm::vec2(

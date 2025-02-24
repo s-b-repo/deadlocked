@@ -17,17 +17,11 @@
 #include "config.hpp"
 #include "cs2/cs2.hpp"
 #include "font.hpp"
+#include "globals.hpp"
 #include "math.hpp"
 #include "radar.hpp"
 #include "style.hpp"
 #include "types.hpp"
-
-extern std::mutex config_lock;
-extern Config config;
-extern std::mutex vinfo_lock;
-extern std::vector<PlayerInfo> player_info;
-extern std::vector<EntityInfo> entity_info;
-extern MiscInfo misc_info;
 
 ImU32 HealthColor(i32 health) {
     // smooth gradient from 100 (green) over 50 (yellow) to 0 (red)
@@ -565,7 +559,6 @@ void Gui() {
             config.visuals.text_color.z * 255, 255);
 
         std::string overlay_fps = "FPS: " + std::to_string((i32)overlay_io.Framerate);
-        extern glm::ivec4 window_size;
         OutlineText(
             overlay_draw_list, ImVec2((f32)window_size.x + 4.0f, (f32)window_size.y + 4.0f),
             text_color, overlay_fps.c_str());
@@ -757,7 +750,6 @@ void Gui() {
                 }
             }
 
-            extern MiscInfo misc_info;
             // fov circle
             if (config.aimbot.fov_circle && misc_info.in_game) {
                 const f32 pawn_fov = config.misc.fov_changer ? config.misc.desired_fov : 90.0f;

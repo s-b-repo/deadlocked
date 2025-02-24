@@ -9,9 +9,8 @@
 #include <vector>
 
 #include "config.hpp"
+#include "globals.hpp"
 #include "types.hpp"
-
-extern Flags flags;
 
 class Process {
   public:

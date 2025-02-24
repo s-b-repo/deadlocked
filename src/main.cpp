@@ -1,10 +1,7 @@
-#include "cs2/cs2.hpp"
+#include "globals.hpp"
 #include "gui.hpp"
 #include "log.hpp"
 #include "mouse.hpp"
-
-extern MiscInfo misc_info;
-extern Flags flags;
 
 int main(int argc, char *argv[]) {
     for (int i = 0; i < argc; i++) {
