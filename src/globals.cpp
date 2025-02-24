@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "config.hpp"
-#include "cs2/cs2.hpp"
+#include "cs2/info.hpp"
 #include "log.hpp"
 
 std::mutex config_lock;
