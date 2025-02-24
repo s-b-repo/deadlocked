@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Radar</title>
+    </head>
+    <body>
+        <h1>Radar</h1>
+
+        <script>
+            const gameId = URLSearchParams().get("game");
+            if (!gameId) {
+                console.error("no game id query parameter");
+                return;
+            }
+
+            console.info(`game id: ${id}`);
+        </script>
+    </body>
+</html>
