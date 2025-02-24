@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include "config.hpp"
 #include "cs2/info.hpp"
 
