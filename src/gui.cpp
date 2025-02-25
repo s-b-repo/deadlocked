@@ -426,22 +426,14 @@ void Gui() {
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("Config")) {
-            ImVec2 available = ImGui::GetContentRegionAvail();
-            ImGui::BeginChild("tab_items_config", available);
-
-            if (ImGui::Button("Reset Config")) {
-                ResetConfig();
-            }
-
-            ImGui::EndChild();
-            ImGui::EndTabItem();
-        }
-
         if (ImGui::BeginTabItem("Misc")) {
             ImVec2 available = ImGui::GetContentRegionAvail();
             ImGui::BeginChild("tab_items_misc", available);
 
+            if (ImGui::Button("Reset Config")) {
+                ResetConfig();
+            }
+            ImGui::SameLine();
             if (ImGui::Button("Report Issue")) {
                 std::system("xdg-open https://github.com/avitran0/deadlocked");
             }
@@ -541,6 +533,8 @@ void Gui() {
 
         // overlay
         SDL_GL_MakeCurrent(overlay, overlay_gl);
+        SDL_SetWindowPosition(temp, 0, 0);
+        SDL_SetWindowPosition(overlay, minX, minY);
         ImGui::SetCurrentContext(overlay_ctx);
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
@@ -754,10 +748,11 @@ void Gui() {
             if (config.aimbot.fov_circle && misc_info.in_game) {
                 const f32 pawn_fov = config.misc.fov_changer ? config.misc.desired_fov : 90.0f;
                 const f32 radius = tan(config.aimbot.fov / 180.f * M_PI / 2.f) /
-                                   tan(pawn_fov / 180.f * M_PI / 2.f) * window_size.x;
+                                   tan(pawn_fov / 180.f * M_PI / 2.f) * window_size.x / 2.0f;
                 const ImVec2 center = ImVec2(
                     window_size.x + window_size.z / 2.0f, window_size.y + window_size.w / 2.0f);
-                overlay_draw_list->AddCircle(center, radius, 0xFFFFFFFF);
+                overlay_draw_list->AddCircle(
+                    center, radius, 0xFFFFFFFF, 0, config.visuals.line_width);
             }
 
             // sniper crosshair
