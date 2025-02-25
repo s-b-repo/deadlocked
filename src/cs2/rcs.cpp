@@ -10,19 +10,18 @@ void Rcs() {
         return;
     }
 
-    const auto local_player_opt = Player::LocalPlayer();
-    if (!local_player_opt.has_value()) {
+    const auto local_player = Player::LocalPlayer();
+    if (!local_player) {
         return;
     }
-    Player local_player = local_player_opt.value();
 
-    const WeaponClass weapon_class = local_player.GetWeaponClass();
+    const WeaponClass weapon_class = local_player->GetWeaponClass();
     if (weapon_class != WeaponClass::Smg && weapon_class != WeaponClass::Rifle &&
         weapon_class != WeaponClass::Heavy) {
         return;
     }
 
-    const i32 shots_fired = local_player.ShotsFired();
+    const i32 shots_fired = local_player->ShotsFired();
 
     if (shots_fired < 1) {
         mouse_movement = glm::vec2(0.0f);
@@ -33,7 +32,7 @@ void Rcs() {
         return;
     }
 
-    const f32 sensitivity = Sensitivity() * local_player.FovMultiplier();
+    const f32 sensitivity = Sensitivity() * local_player->FovMultiplier();
     const glm::vec2 xy = target.aim_punch * glm::vec2(-0.5f);
 
     glm::vec2 mouse_angle =

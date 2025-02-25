@@ -71,6 +71,44 @@ void PushButtonStyle(const ImVec4 color) {
 
 void PopButtonStyle() { ImGui::PopStyleColor(4); }
 
+struct InputTextCallback_UserData {
+    std::string *Str;
+    ImGuiInputTextCallback ChainCallback;
+    void *ChainCallbackUserData;
+};
+
+static int InputTextCallback(ImGuiInputTextCallbackData *data) {
+    InputTextCallback_UserData *user_data = (InputTextCallback_UserData *)data->UserData;
+    if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
+        // Resize string callback
+        // If for some reason we refuse the new length (BufTextLen) and/or capacity (BufSize) we
+        // need to set them back to what we want.
+        std::string *str = user_data->Str;
+        IM_ASSERT(data->Buf == str->c_str());
+        str->resize(data->BufTextLen);
+        data->Buf = (char *)str->c_str();
+    } else if (user_data->ChainCallback) {
+        // Forward to user callback, if any
+        data->UserData = user_data->ChainCallbackUserData;
+        return user_data->ChainCallback(data);
+    }
+    return 0;
+}
+
+bool InputText(
+    const char *label, std::string *str, ImGuiInputTextFlags flags = 0,
+    ImGuiInputTextCallback callback = nullptr, void *user_data = nullptr) {
+    IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
+    flags |= ImGuiInputTextFlags_CallbackResize;
+
+    InputTextCallback_UserData cb_user_data;
+    cb_user_data.Str = str;
+    cb_user_data.ChainCallback = callback;
+    cb_user_data.ChainCallbackUserData = user_data;
+    return ImGui::InputText(
+        label, (char *)str->c_str(), str->capacity() + 1, flags, InputTextCallback, &cb_user_data);
+}
+
 void Gui() {
     SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
 
@@ -426,6 +464,32 @@ void Gui() {
             ImGui::EndTabItem();
         }
 
+        if (ImGui::BeginTabItem("Radar")) {
+            ImVec2 available = ImGui::GetContentRegionAvail();
+            ImGui::BeginChild("tab_items_radar", available);
+
+            const auto status = radar_connected ? "Connected" : "Disconnected";
+            ImGui::Text("Radar Status: ");
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_Text, radar_connected ? Colors::GREEN : Colors::YELLOW);
+            ImGui::Text(status);
+            ImGui::PopStyleColor();
+
+            if (radar_connected) {
+                if (ImGui::Button("Open Radar")) {
+                    std::string url_base = config.misc.radar_url;
+                    url_base.replace(0, 5, "http://");
+                    const std::string command = "xdg-open " + url_base + "/?game=" + uuid;
+                    system(command.c_str());
+                }
+            }
+
+            InputText("Radar URL", &config.misc.radar_url);
+
+            ImGui::EndChild();
+            ImGui::EndTabItem();
+        }
+
         if (ImGui::BeginTabItem("Misc")) {
             ImVec2 available = ImGui::GetContentRegionAvail();
             ImGui::BeginChild("tab_items_misc", available);
@@ -569,8 +633,12 @@ void Gui() {
                 ImVec2(minX, maxY - minY), ImVec2(maxX - minX, minY), 0xFFFFFFFF, 4.0f);
         }
         if (config.visuals.enabled) {
-            vinfo_lock.lock();
+            vinfo_lock.lock_shared();
             for (auto player : player_info) {
+                if (!misc_info.is_ffa && player.team == local_player.team) {
+                    continue;
+                }
+
                 const ImU32 health_color = HealthColor(player.health);
 
                 if (config.visuals.draw_skeleton != DrawStyle::None) {
@@ -586,9 +654,9 @@ void Gui() {
                     for (auto connection : player.bones) {
                         const auto bone1 = WorldToScreen(connection.first);
                         const auto bone2 = WorldToScreen(connection.second);
-                        if (bone1.has_value() && bone2.has_value()) {
-                            const ImVec2 start = ImVec2(bone1.value().x, bone1.value().y);
-                            const ImVec2 end = ImVec2(bone2.value().x, bone2.value().y);
+                        if (bone1 && bone2) {
+                            const ImVec2 start = ImVec2(bone1->x, bone1->y);
+                            const ImVec2 end = ImVec2(bone2->x, bone2->y);
                             overlay_draw_list->AddLine(
                                 start, end, color, config.visuals.line_width);
                         }
@@ -598,12 +666,12 @@ void Gui() {
                 const auto bottom_opt = WorldToScreen(player.position);
                 const auto top_opt = WorldToScreen(player.head + glm::vec3(0.0f, 0.0f, 8.0f));
 
-                if (!bottom_opt.has_value() || !top_opt.has_value()) {
+                if (!bottom_opt || !top_opt) {
                     continue;
                 }
 
-                const ImVec2 bottom = ImVec2(bottom_opt.value().x, bottom_opt.value().y);
-                const ImVec2 top = ImVec2(bottom.x, bottom.y + (top_opt.value().y - bottom.y));
+                const ImVec2 bottom = ImVec2(bottom_opt->x, bottom_opt->y);
+                const ImVec2 top = ImVec2(bottom.x, bottom.y + (top_opt->y - bottom.y));
 
                 const f32 height = bottom.y - top.y;
                 const f32 width = height / 2.0f;
@@ -733,13 +801,12 @@ void Gui() {
 
             if (config.visuals.dropped_weapons) {
                 for (auto entity : entity_info) {
-                    const auto position_opt = WorldToScreen(entity.position);
-                    if (!position_opt.has_value()) {
+                    const auto position = WorldToScreen(entity.position);
+                    if (!position) {
                         continue;
                     }
-                    const auto position = position_opt.value();
                     OutlineText(
-                        overlay_draw_list, ImVec2(position.x, position.y), 0xFFFFFFFF,
+                        overlay_draw_list, ImVec2(position->x, position->y), 0xFFFFFFFF,
                         entity.name.c_str());
                 }
             }
@@ -773,7 +840,7 @@ void Gui() {
                     ImVec2(center.x, center.y + crosshair_size), color);
             }
 
-            vinfo_lock.unlock();
+            vinfo_lock.unlock_shared();
         }
 
         ImGui::End();

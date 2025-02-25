@@ -127,6 +127,7 @@ VisualsConfig VisualsConfig::from_toml(const toml::table &tbl) {
 
 toml::table MiscConfig::to_toml() const {
     return toml::table{
+        {"radar_url", radar_url},
         {"max_flash_alpha", max_flash_alpha},
         {"desired_fov", desired_fov},
         {"no_flash", no_flash},
@@ -135,6 +136,7 @@ toml::table MiscConfig::to_toml() const {
 
 MiscConfig MiscConfig::from_toml(const toml::table &tbl) {
     MiscConfig cfg;
+    cfg.radar_url = tbl["radar_url"].value_or(cfg.radar_url);
     cfg.max_flash_alpha = tbl["max_flash_alpha"].value_or(cfg.max_flash_alpha);
     cfg.desired_fov = tbl["desired_fov"].value_or(cfg.desired_fov);
     cfg.no_flash = tbl["no_flash"].value_or(cfg.no_flash);

@@ -23,7 +23,7 @@ app.ws("/", (ws, req) => {
     console.info("new websocket connection established");
 
     ws.on("message", (message) => {
-        console.info(`received websocket message: ${message}`);
+        // console.info(`received websocket message: ${message}`);
         const content = JSON.parse(message);
 
         if (content["type"] === "server") {

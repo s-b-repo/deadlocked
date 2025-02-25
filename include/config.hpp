@@ -7,7 +7,7 @@
 #include "toml.hpp"
 #include "types.hpp"
 
-#define VERSION "v5.0.3"
+#define VERSION "v5.1.0"
 
 #define FONT "resources/JetBrainsMono.ttf"
 
@@ -82,6 +82,8 @@ struct VisualsConfig {
 };
 
 struct MiscConfig {
+    std::string radar_url = "ws://localhost:5000";
+
     f32 max_flash_alpha = 0.0f;
     i32 desired_fov = 90;
 

@@ -14,6 +14,7 @@ Config config = LoadConfig();
 std::mutex vinfo_lock;
 std::vector<PlayerInfo> player_info;
 std::vector<EntityInfo> entity_info;
+PlayerInfo local_player;
 glm::mat4 view_matrix;
 glm::ivec4 window_size;
 MiscInfo misc_info;

@@ -34,6 +34,7 @@ struct ConvarOffsets {
 struct PlayerControllerOffsets {
     u64 name = 0;          // Pointer -> String (m_sSanitizedPlayerName)
     u64 pawn = 0;          // Pointer -> Pawn (m_hPawn)
+    u64 steam_id = 0;      // u64 (m_steamID)
     u64 desired_fov = 0;   // u32 (m_iDesiredFOV)
     u64 owner_entity = 0;  // Handle -> Pawn (m_hOwnerEntity)
 

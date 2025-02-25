@@ -19,6 +19,7 @@ class Player {
     i32 Health() const;
     i32 Armor() const;
     std::string Name() const;
+    u64 SteamID() const;
     u8 Team() const;
     u8 LifeState() const;
     std::string WeaponName() const;
@@ -41,9 +42,12 @@ class Player {
     bool HasDefuser() const;
     bool HasHelmet() const;
     bool HasBomb() const;
+    std::optional<u64> SpectatorTarget() const;
     // returns player with pawn only, no controller set
     std::optional<Player> EntityInCrosshair() const;
     bool IsScoped() const;
 
-    bool Equals(Player &other) { return pawn == other.pawn && controller == other.controller; }
+    bool Equals(const Player &other) const {
+        return pawn == other.pawn && controller == other.controller;
+    }
 };

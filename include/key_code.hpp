@@ -1,7 +1,7 @@
 #include <map>
 
 enum KeyCode {
-    None,
+    KeyNone,
     Key0,
     Key1,
     Key2,

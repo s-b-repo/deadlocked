@@ -12,8 +12,8 @@ void Triggerbot() {
         return;
     }
 
-    if (next_shot.has_value()) {
-        const auto time = next_shot.value();
+    if (next_shot) {
+        const auto time = *next_shot;
         const auto now = std::chrono::steady_clock::now();
         if (now > time) {
             MouseLeftPress();
@@ -23,27 +23,26 @@ void Triggerbot() {
         return;
     }
 
-    const auto local_player_opt = Player::LocalPlayer();
-    if (!local_player_opt.has_value()) {
-        return;
-    }
-    Player local_player = local_player_opt.value();
-
-    if (config.triggerbot.flash_check && local_player.IsFlashed()) {
+    const auto local_player = Player::LocalPlayer();
+    if (!local_player) {
         return;
     }
 
-    if (config.triggerbot.scope_check && local_player.GetWeaponClass() == WeaponClass::Sniper &&
-        !local_player.IsScoped()) {
+    if (config.triggerbot.flash_check && local_player->IsFlashed()) {
         return;
     }
 
-    auto crosshair_entity = local_player.EntityInCrosshair();
-    if (!crosshair_entity.has_value()) {
+    if (config.triggerbot.scope_check && local_player->GetWeaponClass() == WeaponClass::Sniper &&
+        !local_player->IsScoped()) {
         return;
     }
 
-    if (crosshair_entity->Team() == local_player.Team()) {
+    auto crosshair_entity = local_player->EntityInCrosshair();
+    if (!crosshair_entity) {
+        return;
+    }
+
+    if (crosshair_entity->Team() == local_player->Team()) {
         return;
     }
 

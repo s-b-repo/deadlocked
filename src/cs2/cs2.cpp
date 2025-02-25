@@ -71,27 +71,26 @@ bool IsValid() {
 }
 
 void Setup() {
-    const std::optional<i32> pid_opt = GetPid(PROCESS_NAME);
-    if (!pid_opt.has_value()) {
+    const std::optional<i32> pid = GetPid(PROCESS_NAME);
+    if (!pid) {
         is_valid = false;
         return;
     }
-    const i32 pid = pid_opt.value();
 
-    const std::optional<Process> process_opt = OpenProcess(pid);
-    if (!process_opt.has_value()) {
+    const std::optional<Process> new_process = OpenProcess(*pid);
+    if (!new_process) {
         is_valid = false;
         return;
     }
-    process = process_opt.value();
-    Log(LogLevel::Info, "game started, pid: " + std::to_string(pid));
+    process = *new_process;
+    Log(LogLevel::Info, "game started, pid: " + std::to_string(*pid));
 
-    const std::optional<Offsets> offsets_opt = FindOffsets();
-    if (!offsets_opt.has_value()) {
+    const std::optional<Offsets> new_offsets = FindOffsets();
+    if (!new_offsets) {
         is_valid = false;
         return;
     }
-    offsets = offsets_opt.value();
+    offsets = *new_offsets;
 
     is_valid = true;
 }
@@ -101,50 +100,50 @@ std::optional<Offsets> FindOffsets() {
 
     // get library base addresses, will fail if game is not yet fully loaded
     const auto client_address = process.GetModuleBaseAddress(CLIENT_LIB);
-    if (!client_address.has_value()) {
+    if (!client_address) {
         return std::nullopt;
     }
 
     const auto engine_address = process.GetModuleBaseAddress(ENGINE_LIB);
-    if (!engine_address.has_value()) {
+    if (!engine_address) {
         return std::nullopt;
     }
 
     const auto tier0_address = process.GetModuleBaseAddress(TIER0_LIB);
-    if (!tier0_address.has_value()) {
+    if (!tier0_address) {
         return std::nullopt;
     }
 
     const auto input_address = process.GetModuleBaseAddress(INPUT_LIB);
-    if (!input_address.has_value()) {
+    if (!input_address) {
         return std::nullopt;
     }
 
     const auto sdl_address = process.GetModuleBaseAddress(SDL_LIB);
-    if (!sdl_address.has_value()) {
+    if (!sdl_address) {
         return std::nullopt;
     }
 
     const auto matchmaking_address = process.GetModuleBaseAddress(MATCH_LIB);
-    if (!matchmaking_address.has_value()) {
+    if (!matchmaking_address) {
         return std::nullopt;
     }
 
-    offsets.library.client = client_address.value();
-    offsets.library.engine = engine_address.value();
-    offsets.library.tier0 = tier0_address.value();
-    offsets.library.input = input_address.value();
-    offsets.library.sdl = sdl_address.value();
-    offsets.library.matchmaking = matchmaking_address.value();
+    offsets.library.client = *client_address;
+    offsets.library.engine = *engine_address;
+    offsets.library.tier0 = *tier0_address;
+    offsets.library.input = *input_address;
+    offsets.library.sdl = *sdl_address;
+    offsets.library.matchmaking = *matchmaking_address;
 
     // used for player interface offset
     const auto resource_offset =
         process.GetInterfaceOffset(offsets.library.engine, "GameResourceServiceClientV0");
-    if (!resource_offset.has_value()) {
+    if (!resource_offset) {
         Log(LogLevel::Error, "failed to get resource offset");
         return std::nullopt;
     }
-    offsets.interface.resource = resource_offset.value();
+    offsets.interface.resource = *resource_offset;
     offsets.interface.entity = process.Read<u64>(offsets.interface.resource + 0x50);
     offsets.interface.player = offsets.interface.entity + 0x10;
 
@@ -152,26 +151,26 @@ std::optional<Offsets> FindOffsets() {
         {0x48, 0x83, 0x3D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x95, 0xC0, 0xC3},
         {true, true, true, false, false, false, false, true, true, true, true, true}, 12,
         offsets.library.client);
-    if (!local_player.has_value()) {
+    if (!local_player) {
         Log(LogLevel::Error, "failed to get local player offset");
         return std::nullopt;
     }
-    offsets.direct.local_player = process.GetRelativeAddress(local_player.value(), 0x03, 0x08);
+    offsets.direct.local_player = process.GetRelativeAddress(*local_player, 0x03, 0x08);
 
     const auto cvar_address = process.GetInterfaceOffset(offsets.library.tier0, "VEngineCvar0");
-    if (!cvar_address.has_value()) {
+    if (!cvar_address) {
         Log(LogLevel::Error, "failed to get cvar offset");
         return std::nullopt;
     }
-    offsets.interface.cvar = cvar_address.value();
+    offsets.interface.cvar = *cvar_address;
 
     const auto input_system_address =
         process.GetInterfaceOffset(offsets.library.input, "InputSystemVersion0");
-    if (!input_system_address.has_value()) {
+    if (!input_system_address) {
         Log(LogLevel::Error, "failed to get input offset");
         return std::nullopt;
     }
-    offsets.interface.input = input_system_address.value();
+    offsets.interface.input = *input_system_address;
 
     const auto view_matrix = process.ScanPattern(
         {0x48, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00, 0x4C, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00, 0x48,
@@ -196,11 +195,11 @@ std::optional<Offsets> FindOffsets() {
             true,
         },
         17, offsets.library.client);
-    if (!view_matrix.has_value()) {
+    if (!view_matrix) {
         Log(LogLevel::Error, "could not find view matrix offset");
         return std::nullopt;
     }
-    offsets.direct.view_matrix = process.GetRelativeAddress(view_matrix.value() + 0x07, 0x03, 0x07);
+    offsets.direct.view_matrix = process.GetRelativeAddress(*view_matrix + 0x07, 0x03, 0x07);
 
     offsets.direct.button_state =
         process.Read<u32>(process.GetInterfaceFunction(offsets.interface.input, 19) + 0x14);
@@ -216,23 +215,23 @@ std::optional<Offsets> FindOffsets() {
 
     const auto sdl_window_address =
         process.GetModuleExport(offsets.library.sdl, "SDL_GetKeyboardFocus");
-    if (!sdl_window_address.has_value()) {
+    if (!sdl_window_address) {
         Log(LogLevel::Error, "could not find sdl window offset");
     }
-    const u64 sdl_window = process.GetRelativeAddress(sdl_window_address.value(), 0x02, 0x06);
+    const u64 sdl_window = process.GetRelativeAddress(*sdl_window_address, 0x02, 0x06);
     const u64 sdl_window2 = process.Read<u64>(sdl_window);
     offsets.direct.sdl_window = process.GetRelativeAddress(sdl_window2, 0x03, 0x07);
 
     const auto ffa_address = process.GetConvar(offsets.interface.cvar, "mp_teammates_are_enemies");
-    if (!ffa_address.has_value()) {
+    if (!ffa_address) {
         Log(LogLevel::Error, "could not get mp_tammates_are_enemies convar offset");
     }
-    offsets.convar.ffa = ffa_address.value();
+    offsets.convar.ffa = *ffa_address;
     const auto sensitivity_address = process.GetConvar(offsets.interface.cvar, "sensitivity");
-    if (!sensitivity_address.has_value()) {
+    if (!sensitivity_address) {
         Log(LogLevel::Error, "could not get sensitivity convar offset");
     }
-    offsets.convar.sensitivity = sensitivity_address.value();
+    offsets.convar.sensitivity = *sensitivity_address;
 
     // dump all netvars from client lib
     const u64 base = offsets.library.client;
@@ -286,6 +285,11 @@ std::optional<Offsets> FindOffsets() {
                 continue;
             }
             offsets.controller.pawn = *(i32 *)(entry + 0x18);
+        } else if (name == std::string("m_steamID")) {
+            if (!network_enable || offsets.controller.steam_id != 0) {
+                continue;
+            }
+            offsets.controller.steam_id = *(i32 *)(entry + 0x18);
         } else if (name == std::string("m_iDesiredFOV")) {
             if (offsets.controller.desired_fov != 0) {
                 continue;
@@ -514,13 +518,12 @@ f32 DistanceScale(f32 distance) {
 }
 
 bool FindTarget() {
-    const auto local_player_opt = Player::LocalPlayer();
-    if (!local_player_opt.has_value()) {
+    const auto local_player = Player::LocalPlayer();
+    if (!local_player) {
         return false;
     }
-    Player local_player = local_player_opt.value();
 
-    const u8 local_team = local_player.Team();
+    const u8 local_team = local_player->Team();
     if (local_team != TEAM_CT && local_team != TEAM_T) {
         return false;
     }
@@ -530,26 +533,25 @@ bool FindTarget() {
     // note to self: forgetting to clear this caused such a retarded memory leak
     players.clear();
     for (u64 i = 1; i <= 64; i++) {
-        const auto player_opt = Player::Index(i);
-        if (!player_opt.has_value()) {
-            continue;
-        }
-        Player player = player_opt.value();
-
-        if (!player.IsValid()) {
+        const auto player = Player::Index(i);
+        if (!player) {
             continue;
         }
 
-        if (player.Equals(local_player)) {
+        if (!player->IsValid()) {
+            continue;
+        }
+
+        if (player->Equals(*local_player)) {
             target.local_pawn_index = i - 1;
         }
 
-        const u8 team = player.Team();
+        const u8 team = player->Team();
         if (!ffa && team == local_team) {
             continue;
         }
 
-        players.push_back(player);
+        players.push_back(*player);
     }
 
     if (players.size() == 0) {
@@ -557,18 +559,18 @@ bool FindTarget() {
         return false;
     }
 
-    const WeaponClass weapon_class = local_player.GetWeaponClass();
+    const WeaponClass weapon_class = local_player->GetWeaponClass();
     if (weapon_class == WeaponClass::Unknown || weapon_class == WeaponClass::Grenade ||
         weapon_class == WeaponClass::Grenade) {
         target.Reset();
         return true;
     }
 
-    const auto view_angles = local_player.ViewAngles();
-    const auto shots_fired = local_player.ShotsFired();
+    const auto view_angles = local_player->ViewAngles();
+    const auto shots_fired = local_player->ShotsFired();
     glm::vec2 aim_punch = glm::vec2(0.0f);
     if (weapon_class != WeaponClass::Sniper) {
-        const auto punch = local_player.AimPunch();
+        const auto punch = local_player->AimPunch();
         if (glm::length(punch) < 0.001f && shots_fired > 0) {
             aim_punch = target.aim_punch;
         } else {
@@ -578,9 +580,9 @@ bool FindTarget() {
     target.aim_punch = aim_punch;
 
     f32 smallest_fov = 360.0f;
-    const auto eye_position = local_player.EyePosition();
-    if (target.player.has_value()) {
-        if (!target.player.value().IsValid()) {
+    const auto eye_position = local_player->EyePosition();
+    if (target.player) {
+        if (!target.player->IsValid()) {
             target.Reset();
         }
     } else {
@@ -588,7 +590,7 @@ bool FindTarget() {
     }
 
     // update target player
-    if (!IsButtonPressed(config.aimbot.hotkey) || !target.player.has_value()) {
+    if (!IsButtonPressed(config.aimbot.hotkey) || !target.player) {
         for (auto player : players) {
             if (!ffa && local_team == player.Team()) {
                 continue;
@@ -610,15 +612,14 @@ bool FindTarget() {
         }
     }
 
-    if (!target.player.has_value()) {
+    if (!target.player) {
         return true;
     }
 
     // update target angle
     smallest_fov = 360.0f;
-    auto target_player = target.player.value();
     for (const auto bone : all_bones) {
-        const auto bone_position = target_player.BonePosition(bone);
+        const auto bone_position = target.player->BonePosition(bone);
         const auto distance = glm::distance(eye_position, bone_position);
         const auto angle = TargetAngle(eye_position, bone_position, aim_punch);
         const auto fov = AnglesToFov(view_angles, angle);
@@ -635,8 +636,6 @@ bool FindTarget() {
     return true;
 }
 
-extern std::mutex vinfo_lock;
-
 void ClearVisualInfo() {
     vinfo_lock.lock();
     players.clear();
@@ -646,6 +645,11 @@ void ClearVisualInfo() {
 
 void VisualInfo() {
     vinfo_lock.lock();
+    const auto local_player = Player::LocalPlayer();
+    if (!local_player) {
+        return;
+    }
+    const auto spectated_player = local_player->SpectatorTarget();
     std::vector<PlayerInfo> player_info_new;
     for (auto &player : players) {
         PlayerInfo info = {0};
@@ -654,10 +658,13 @@ void VisualInfo() {
         info.team = player.Team();
         info.position = player.Position();
         info.head = player.BonePosition(Bones::BoneHead);
+        info.view_angles = player.ViewAngles();
         info.has_defuser = player.HasDefuser();
         info.has_helmet = player.HasHelmet();
         info.has_bomb = player.HasBomb();
+        info.is_active = player.controller == spectated_player.value_or(0);
         info.name = player.Name();
+        info.steam_id = player.SteamID();
         info.weapon = player.WeaponName();
         info.bones = player.AllBones();
 
@@ -667,30 +674,28 @@ void VisualInfo() {
     // entities
     std::vector<EntityInfo> entity_info_new;
     for (u64 i = 64; i <= 1024; i++) {
-        const auto entity_opt = Player::ClientEntity(i);
-        if (!entity_opt.has_value()) {
+        const auto entity = Player::ClientEntity(i);
+        if (!entity) {
             continue;
         }
-        const u64 entity = entity_opt.value();
 
         // is a held weapon
-        if (EntityHasOwner(entity)) {
+        if (EntityHasOwner(*entity)) {
             continue;
         }
 
-        const auto name_opt = GetEntityType(entity);
-        if (!name_opt.has_value()) {
+        const auto name = GetEntityType(*entity);
+        if (!name) {
             continue;
         }
-        const auto name = name_opt.value();
 
-        const u64 gs_node = process.Read<u64>(entity + offsets.pawn.game_scene_node);
+        const u64 gs_node = process.Read<u64>(*entity + offsets.pawn.game_scene_node);
         if (!gs_node) {
             continue;
         }
         const auto position = process.Read<glm::vec3>(gs_node + offsets.game_scene_node.origin);
 
-        entity_info_new.push_back(EntityInfo{.name = name, .position = position});
+        entity_info_new.push_back(EntityInfo{.name = *name, .position = position});
     }
 
     if (player_info_new.size() > 0) {
@@ -713,12 +718,12 @@ void VisualInfo() {
         window_size = process.Read<glm::ivec4>(sdl_window + 0x18);
     }
 
-    std::optional<Player> local_player = Player::LocalPlayer();
-    if (local_player.has_value()) {
-        misc_info.held_weapon = local_player.value().WeaponName();
+    if (local_player) {
+        misc_info.held_weapon = local_player->WeaponName();
     } else {
         misc_info.held_weapon = "?";
     }
+    misc_info.is_ffa = IsFfa();
     vinfo_lock.unlock();
 }
 

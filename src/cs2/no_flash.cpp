@@ -2,15 +2,14 @@
 #include "cs2/features.hpp"
 
 void NoFlash() {
-    const auto local_player_opt = Player::LocalPlayer();
-    if (!local_player_opt.has_value()) {
+    const auto local_player = Player::LocalPlayer();
+    if (!local_player) {
         return;
     }
-    Player local_player = local_player_opt.value();
 
     if (config.misc.no_flash) {
-        local_player.NoFlash(config.misc.max_flash_alpha);
+        local_player->NoFlash(config.misc.max_flash_alpha);
     } else {
-        local_player.NoFlash(255.0f);
+        local_player->NoFlash(255.0f);
     }
 }

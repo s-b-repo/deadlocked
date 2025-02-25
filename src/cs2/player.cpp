@@ -1,4 +1,5 @@
 #include "cs2/player.hpp"
+
 #include <optional>
 
 #include "cs2/cs2.hpp"
@@ -10,10 +11,10 @@ std::optional<Player> Player::LocalPlayer() {
     }
 
     const auto pawn = Pawn(controller);
-    if (!pawn.has_value()) {
+    if (!pawn) {
         return std::nullopt;
     }
-    return Player{.controller = controller, .pawn = pawn.value()};
+    return Player{.controller = controller, .pawn = *pawn};
 }
 
 std::optional<u64> Player::ClientEntity(u64 index) {
@@ -33,15 +34,15 @@ std::optional<u64> Player::ClientEntity(u64 index) {
 
 std::optional<Player> Player::Index(u64 index) {
     const auto controller = ClientEntity(index);
-    if (!controller.has_value()) {
+    if (!controller) {
         return std::nullopt;
     }
 
-    const auto pawn = Pawn(controller.value());
-    if (!pawn.has_value()) {
+    const auto pawn = Pawn(*controller);
+    if (!pawn) {
         return std::nullopt;
     }
-    return Player{.controller = controller.value(), .pawn = pawn.value()};
+    return Player{.controller = *controller, .pawn = *pawn};
 }
 
 std::optional<u64> Player::Pawn(u64 controller) {
@@ -89,6 +90,8 @@ std::string Player::Name() const {
 
     return process.ReadString(name_address);
 }
+
+u64 Player::SteamID() const { return process.Read<u64>(controller + offsets.controller.steam_id); }
 
 u8 Player::Team() const { return process.Read<u8>(pawn + offsets.pawn.team); }
 
@@ -265,11 +268,11 @@ bool Player::HasBomb() const {
         const u64 weapon_index = process.Read<u32>(weapon_list + (0x04 * i)) & 0xFFF;
         // CEntityInstance
         const auto weapon_entity_instance = ClientEntity(weapon_index);
-        if (!weapon_entity_instance.has_value()) {
+        if (!weapon_entity_instance) {
             continue;
         }
         // CEntityIdentity, 0x10 = m_pEntity
-        const u64 weapon_entity_identity = process.Read<u64>(weapon_entity_instance.value() + 0x10);
+        const u64 weapon_entity_identity = process.Read<u64>(*weapon_entity_instance + 0x10);
         if (weapon_entity_identity == 0) {
             continue;
         }
@@ -288,17 +291,30 @@ bool Player::HasBomb() const {
     return false;
 }
 
+std::optional<u64> Player::SpectatorTarget() const {
+    const u64 observer_services = process.Read<u64>(pawn + offsets.pawn.observer_services);
+    if (!observer_services) {
+        return std::nullopt;
+    }
+
+    const u64 controller = process.Read<u32>(observer_services + offsets.observer_service.target);
+    if (!controller) {
+        return std::nullopt;
+    }
+    return controller;
+}
+
 std::optional<Player> Player::EntityInCrosshair() const {
     const i32 index = process.Read<i32>(pawn + offsets.pawn.crosshair_entity);
     if (index == -1) {
         return std::nullopt;
     }
 
-    auto entity = Player::ClientEntity(index);
-    if (!entity.has_value()) {
+    const auto entity = Player::ClientEntity(index);
+    if (!entity) {
         return std::nullopt;
     }
-    const Player player = Player{.controller = 0, .pawn = entity.value()};
+    const Player player = Player{.controller = 0, .pawn = *entity};
     if (!player.IsValid()) {
         return std::nullopt;
     }

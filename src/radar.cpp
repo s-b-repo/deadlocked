@@ -4,25 +4,29 @@
 #include <hv/WebSocketClient.h>
 
 #include <chrono>
-#include <string>
 #include <thread>
 
+#include "globals.hpp"
 #include "hv/hloop.h"
+#include "json.hpp"
 #include "log.hpp"
+
+std::string uuid;
+bool radar_connected;
 
 class RadarWebSocket : public hv::WebSocketClient {
   public:
-    std::string uuid;
-
     RadarWebSocket(hv::EventLoopPtr loop = nullptr) : hv::WebSocketClient(loop) {}
     ~RadarWebSocket() {}
 
-    void connect(std::string url) {
+    void connect(const std::string &url) {
         onopen = [this]() {
             Log(LogLevel::Debug, "websocket connection opened");
             send(R"({"type": "server"})");
+            radar_connected = true;
         };
 
+        // only message received should be id given to game
         onmessage = [this](const std::string &message) {
             Log(LogLevel::Debug, "message: " + message);
 
@@ -33,7 +37,10 @@ class RadarWebSocket : public hv::WebSocketClient {
             }
         };
 
-        onclose = [this]() { Log(LogLevel::Debug, "websocket connection closed"); };
+        onclose = [this]() {
+            Log(LogLevel::Debug, "websocket connection closed");
+            radar_connected = false;
+        };
 
         setPingInterval(10000);
 
@@ -48,11 +55,45 @@ class RadarWebSocket : public hv::WebSocketClient {
     }
 };
 
+RadarWebSocket ws;
+
 void Radar() {
-    RadarWebSocket ws;
     ws.connect("ws://localhost:5000");
     // if this is not here the thread just dies
     while (true) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        config_lock.lock();
+        if (ws.url != config.misc.radar_url) {
+            ws.close();
+            ws.open(config.misc.radar_url.c_str());
+        }
+        config_lock.unlock();
+
+        if (ws.isConnected()) {
+            nlohmann::json json;
+
+            vinfo_lock.lock_shared();
+            for (const auto player : player_info) {
+                json["data"]["players"].push_back(
+                    {{"name", player.name},
+                     {"health", player.health},
+                     {"armor", player.armor},
+                     {"position",
+                      {{"x", player.position.x},
+                       {"y", player.position.y},
+                       {"z", player.position.z}}},
+                     {"rotation", player.view_angles.y},
+                     {"team", player.team},
+                     {"weapon", player.weapon},
+                     {"is_active", player.is_active}});
+            }
+            vinfo_lock.unlock_shared();
+
+            json["type"] = "data";
+            json["uuid"] = uuid;
+
+            ws.send(json.dump());
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }

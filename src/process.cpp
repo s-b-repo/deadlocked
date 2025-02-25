@@ -161,21 +161,18 @@ u64 Process::GetRelativeAddress(u64 instruction, u64 offset, u64 instruction_siz
 }
 
 std::optional<u64> Process::GetInterfaceOffset(u64 module_address, const char *interface_name) {
-    const std::optional<u64> create_interface_opt =
-        GetModuleExport(module_address, "CreateInterface");
-    if (!create_interface_opt.has_value()) {
+    const std::optional<u64> create_interface = GetModuleExport(module_address, "CreateInterface");
+    if (!create_interface) {
         Log(LogLevel::Error, "could not find CreateInterface export");
         return std::nullopt;
     }
-    const u64 create_interface = create_interface_opt.value();
-    const std::optional<u64> export_address_opt =
-        GetRelativeAddress(create_interface, 0x01, 0x05) + 0x10;
-    if (!export_address_opt.has_value()) {
+    const std::optional<u64> export_address =
+        GetRelativeAddress(*create_interface, 0x01, 0x05) + 0x10;
+    if (!export_address) {
         return std::nullopt;
     }
-    const u64 export_address = export_address_opt.value();
 
-    u64 interface_entry = Read<u64>(export_address + 0x07 + Read<u32>(export_address + 0x03));
+    u64 interface_entry = Read<u64>(*export_address + 0x07 + Read<u32>(*export_address + 0x03));
 
     while (true) {
         const u64 entry_name_address = Read<u64>(interface_entry + 8);
@@ -197,23 +194,21 @@ std::optional<u64> Process::GetInterfaceOffset(u64 module_address, const char *i
 std::optional<u64> Process::GetModuleExport(u64 module_address, const char *export_name) {
     const u64 add = 0x18;
 
-    const std::optional<u64> string_table_opt = GetAddressFromDynamicSection(module_address, 0x05);
-    const std::optional<u64> symbol_table_opt = GetAddressFromDynamicSection(module_address, 0x06);
-    if (!string_table_opt.has_value() || !symbol_table_opt.has_value()) {
+    const std::optional<u64> string_table = GetAddressFromDynamicSection(module_address, 0x05);
+    std::optional<u64> symbol_table = GetAddressFromDynamicSection(module_address, 0x06);
+    if (!string_table || !symbol_table) {
         return std::nullopt;
     }
-    const u64 string_table = string_table_opt.value();
-    u64 symbol_table = symbol_table_opt.value();
 
-    symbol_table += add;
+    *symbol_table += add;
 
-    while (Read<u32>(symbol_table) != 0) {
-        const u64 st_name = Read<u32>(symbol_table);
-        const std::string name = ReadString(string_table + st_name);
+    while (Read<u32>(*symbol_table) != 0) {
+        const u64 st_name = Read<u32>(*symbol_table);
+        const std::string name = ReadString(*string_table + st_name);
         if (name == export_name) {
-            return Read<u64>(symbol_table + 0x08) + module_address;
+            return Read<u64>(*symbol_table + 0x08) + module_address;
         }
-        symbol_table += add;
+        *symbol_table += add;
     }
 
     Log(LogLevel::Warning, "could not find export " + std::string(export_name) + " in module at " +
@@ -222,16 +217,15 @@ std::optional<u64> Process::GetModuleExport(u64 module_address, const char *expo
 }
 
 std::optional<u64> Process::GetAddressFromDynamicSection(u64 module_address, u64 tag) {
-    const std::optional<u64> dynamic_section_offset_opt =
+    const std::optional<u64> dynamic_section_offset =
         GetSegmentFromPht(module_address, ELF_DYNAMIC_SECTION_PHT_TYPE);
-    if (!dynamic_section_offset_opt.has_value()) {
+    if (!dynamic_section_offset) {
         Log(LogLevel::Error, "could not find dynamic section in loaded elf");
         return std::nullopt;
     }
-    const u64 dynamic_section_offset = dynamic_section_offset_opt.value();
 
     const u64 register_size = 8;
-    u64 address = Read<u64>(dynamic_section_offset + 2 * register_size) + module_address;
+    u64 address = Read<u64>(*dynamic_section_offset + 2 * register_size) + module_address;
 
     while (true) {
         const u64 tag_address = address;
