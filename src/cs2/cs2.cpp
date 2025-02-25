@@ -525,6 +525,8 @@ bool FindTarget() {
         return false;
     }
 
+    const bool ffa = IsFfa();
+
     // note to self: forgetting to clear this caused such a retarded memory leak
     players.clear();
     for (u64 i = 1; i <= 64; i++) {
@@ -543,7 +545,7 @@ bool FindTarget() {
         }
 
         const u8 team = player.Team();
-        if (team == local_team) {
+        if (!ffa && team == local_team) {
             continue;
         }
 
@@ -563,7 +565,6 @@ bool FindTarget() {
     }
 
     const auto view_angles = local_player.ViewAngles();
-    const auto ffa = IsFfa();
     const auto shots_fired = local_player.ShotsFired();
     glm::vec2 aim_punch = glm::vec2(0.0f);
     if (weapon_class != WeaponClass::Sniper) {
