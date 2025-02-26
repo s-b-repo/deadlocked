@@ -633,7 +633,7 @@ void Gui() {
                 ImVec2(minX, maxY - minY), ImVec2(maxX - minX, minY), 0xFFFFFFFF, 4.0f);
         }
         if (config.visuals.enabled) {
-            vinfo_lock.lock_shared();
+            vinfo_lock.lock();
             for (auto player : enemy_info) {
                 if (!misc_info.is_ffa && player.team == local_player.team) {
                     continue;
@@ -840,7 +840,7 @@ void Gui() {
                     ImVec2(center.x, center.y + crosshair_size), color);
             }
 
-            vinfo_lock.unlock_shared();
+            vinfo_lock.unlock();
         }
 
         ImGui::End();

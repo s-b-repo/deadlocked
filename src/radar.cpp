@@ -71,7 +71,7 @@ void Radar() {
         if (ws.isConnected()) {
             nlohmann::json json;
 
-            vinfo_lock.lock_shared();
+            vinfo_lock.lock();
             for (const auto player : all_player_info) {
                 json["data"]["players"].push_back(
                     {{"name", player.name},
@@ -87,7 +87,7 @@ void Radar() {
                      {"is_active", player.is_active}});
             }
             json["data"]["map"] = misc_info.in_game ? misc_info.map_name : "";
-            vinfo_lock.unlock_shared();
+            vinfo_lock.unlock();
 
             json["type"] = "data";
             json["uuid"] = uuid;

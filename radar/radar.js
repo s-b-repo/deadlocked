@@ -4,7 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { v4 as uuidV4 } from "uuid";
 
-const PORT = 5000;
+const PORT = 6460;
 
 const app = express();
 expressWs(app);
@@ -16,7 +16,7 @@ const dirname = path.dirname(filename);
 const games = {};
 
 app.get("/", (req, res) => {
-    res.sendFile(path.join(dirname, "radar.html"));
+    res.sendFile(path.join(dirname, "dist/index.html"));
 });
 
 app.ws("/", (ws, req) => {
@@ -54,7 +54,7 @@ app.ws("/", (ws, req) => {
     });
 });
 
-app.use(express.static("assets"));
+app.use(express.static("dist"));
 
 app.listen(PORT, () => {
     console.info(`server started on port ${PORT}`);

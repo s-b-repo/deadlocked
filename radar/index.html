@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Radar</title>
+        <style>
+            @font-face {
+                font-family: "OpenSans";
+                src: url("/fonts/OpenSans.woff2");
+            }
+
+            :root {
+                --color-backdrop: #181820;
+                --color-base: #1e1e28;
+                --color-highlight: #323246;
+                --color-subtext: #b4b4b4;
+                --color-text: #ffffff;
+                --color-red: #f06464;
+                --color-orange: #f08c5a;
+                --color-yellow: #f0c878;
+                --color-green: #a0f082;
+                --color-teal: #50c8c8;
+                --color-blue: #6496f0;
+                --color-purple: #b478f0;
+                --color-dialog-bg: #00000050;
+
+                --font: "OpenSans", sans-serif;
+
+                --font-size-xlarge: 32px;
+                --font-size-large: 28px;
+                --font-size-medium: 24px;
+                --font-size-small: 20px;
+                --font-size-xsmall: 16px;
+
+                --transition-linear: all 0.2s linear;
+                --transition-ease: all 0.15s cubic-bezier(0.65, 0, 0.35, 1);
+
+                --border-text: 2px solid var(--color-text);
+                --border-blue: 2px solid var(--color-blue);
+            }
+
+            html {
+                background-color: var(--color-base);
+                font-family: var(--font);
+            }
+
+            body {
+                background-color: var(--color-base);
+                margin: 0;
+                height: 100dvh;
+                overflow: hidden;
+            }
+
+            #app {
+                height: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app"></div>
+        <script type="module" src="/src/main.ts"></script>
+    </body>
+</html>

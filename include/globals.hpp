@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mutex>
-#include <shared_mutex>
 
 #include "config.hpp"
 #include "cs2/info.hpp"
@@ -9,7 +8,7 @@
 extern std::mutex config_lock;
 extern Config config;
 
-extern std::shared_mutex vinfo_lock;
+extern std::mutex vinfo_lock;
 extern std::vector<PlayerInfo> all_player_info;
 extern std::vector<PlayerInfo> enemy_info;
 extern std::vector<EntityInfo> entity_info;

@@ -56,6 +56,7 @@ simple cs2 aimbot and esp, for linux only.
 ## running
 
 - execute the run script: `./run.sh`
+- for the radar, look [here](docs/radar.md)
 
 ## flags
 

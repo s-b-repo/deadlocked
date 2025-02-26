@@ -664,7 +664,8 @@ void VisualInfo() {
         info.has_defuser = player.HasDefuser();
         info.has_helmet = player.HasHelmet();
         info.has_bomb = player.HasBomb();
-        info.is_active = player.controller == spectated_player.value_or(0);
+        info.is_active = player.controller == local_player->controller ||
+                         player.controller == spectated_player.value_or(0);
         info.name = player.Name();
         info.steam_id = player.SteamID();
         info.weapon = player.WeaponName();
