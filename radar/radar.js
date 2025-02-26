@@ -35,15 +35,16 @@ app.ws("/", (ws, req) => {
             // server data
             const id = content["uuid"];
             if (id in games) {
-                games[id] = content["data"];
+                games[id] = content["data"] ?? {};
             }
         } else if (content["type"] === "client") {
             // client data request
             const id = content["uuid"];
             if (id && id in games) {
-                ws.send(JSON.stringify(games[id]));
+                const out = JSON.stringify(games[id]);
+                ws.send(out);
             } else {
-                ws.send("not found");
+                ws.send("{}");
             }
         }
     });
@@ -52,6 +53,8 @@ app.ws("/", (ws, req) => {
         console.info("closing connection");
     });
 });
+
+app.use(express.static("assets"));
 
 app.listen(PORT, () => {
     console.info(`server started on port ${PORT}`);

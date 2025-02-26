@@ -10,7 +10,8 @@ extern std::mutex config_lock;
 extern Config config;
 
 extern std::shared_mutex vinfo_lock;
-extern std::vector<PlayerInfo> player_info;
+extern std::vector<PlayerInfo> all_player_info;
+extern std::vector<PlayerInfo> enemy_info;
 extern std::vector<EntityInfo> entity_info;
 extern PlayerInfo local_player;
 extern glm::mat4 view_matrix;

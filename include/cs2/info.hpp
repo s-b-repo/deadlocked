@@ -30,6 +30,7 @@ struct EntityInfo {
 struct MiscInfo {
     f32 gui_scale = -1.0f;
     std::string held_weapon;
+    std::string map_name;
     bool in_game;
     bool is_ffa;
 };

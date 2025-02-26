@@ -1,5 +1,6 @@
 #include "cs2/cs2.hpp"
 
+#include <string>
 #include <thread>
 
 #include "config.hpp"
@@ -8,21 +9,13 @@
 #include "cs2/player.hpp"
 #include "log.hpp"
 #include "math.hpp"
+#include "process.hpp"
 
 bool is_valid = false;
 Process process = {0};
 Offsets offsets = {0};
 Target target;
 std::vector<Player> players;
-
-extern std::mutex config_lock;
-extern Config config;
-extern std::vector<PlayerInfo> player_info;
-extern std::vector<EntityInfo> entity_info;
-extern glm::mat4 view_matrix;
-extern glm::ivec4 window_size;
-extern MiscInfo misc_info;
-extern Flags flags;
 
 void CS2() {
     Log(LogLevel::Info, "game thread started");
@@ -212,6 +205,11 @@ std::optional<Offsets> FindOffsets() {
             true, false, false, false, false, false, true,  true, true,
         },
         19, offsets.library.matchmaking);
+    if (!game_types) {
+        Log(LogLevel::Error, "could not find map name offset");
+        return std::nullopt;
+    }
+    offsets.direct.game_types = process.GetRelativeAddress(*game_types, 0x03, 0x07);
 
     const auto sdl_window_address =
         process.GetModuleExport(offsets.library.sdl, "SDL_GetKeyboardFocus");
@@ -517,6 +515,12 @@ f32 DistanceScale(f32 distance) {
     }
 }
 
+std::string MapName() {
+    const u64 map_name_ptr = process.Read<u64>(offsets.direct.game_types + 288);
+    const std::string map_name = process.ReadString(map_name_ptr);
+    return map_name.length() > 4 ? map_name.substr(4) : "";
+}
+
 bool FindTarget() {
     const auto local_player = Player::LocalPlayer();
     if (!local_player) {
@@ -544,11 +548,6 @@ bool FindTarget() {
 
         if (player->Equals(*local_player)) {
             target.local_pawn_index = i - 1;
-        }
-
-        const u8 team = player->Team();
-        if (!ffa && team == local_team) {
-            continue;
         }
 
         players.push_back(*player);
@@ -649,8 +648,11 @@ void VisualInfo() {
     if (!local_player) {
         return;
     }
+    const auto local_team = local_player->Team();
+    const auto ffa = IsFfa();
     const auto spectated_player = local_player->SpectatorTarget();
-    std::vector<PlayerInfo> player_info_new;
+    std::vector<PlayerInfo> player_info_enemy;
+    std::vector<PlayerInfo> player_info_all;
     for (auto &player : players) {
         PlayerInfo info = {0};
         info.health = player.Health();
@@ -668,7 +670,10 @@ void VisualInfo() {
         info.weapon = player.WeaponName();
         info.bones = player.AllBones();
 
-        player_info_new.push_back(info);
+        player_info_all.push_back(info);
+        if (ffa || info.team != local_team) {
+            player_info_enemy.push_back(info);
+        }
     }
 
     // entities
@@ -698,10 +703,12 @@ void VisualInfo() {
         entity_info_new.push_back(EntityInfo{.name = *name, .position = position});
     }
 
-    if (player_info_new.size() > 0) {
-        player_info = player_info_new;
+    if (player_info_all.size() > 0) {
+        all_player_info = player_info_all;
+        enemy_info = player_info_enemy;
     } else {
-        player_info.clear();
+        all_player_info.clear();
+        enemy_info.clear();
     }
 
     if (entity_info_new.size() > 0) {
@@ -724,6 +731,7 @@ void VisualInfo() {
         misc_info.held_weapon = "?";
     }
     misc_info.is_ffa = IsFfa();
+    misc_info.map_name = MapName();
     vinfo_lock.unlock();
 }
 

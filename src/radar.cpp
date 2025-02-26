@@ -72,7 +72,7 @@ void Radar() {
             nlohmann::json json;
 
             vinfo_lock.lock_shared();
-            for (const auto player : player_info) {
+            for (const auto player : all_player_info) {
                 json["data"]["players"].push_back(
                     {{"name", player.name},
                      {"health", player.health},
@@ -86,12 +86,16 @@ void Radar() {
                      {"weapon", player.weapon},
                      {"is_active", player.is_active}});
             }
+            json["data"]["map"] = misc_info.in_game ? misc_info.map_name : "";
             vinfo_lock.unlock_shared();
 
             json["type"] = "data";
             json["uuid"] = uuid;
 
             ws.send(json.dump());
+        } else {
+            ws.open(ws.url.c_str());
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));

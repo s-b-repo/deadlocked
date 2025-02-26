@@ -634,7 +634,7 @@ void Gui() {
         }
         if (config.visuals.enabled) {
             vinfo_lock.lock_shared();
-            for (auto player : player_info) {
+            for (auto player : enemy_info) {
                 if (!misc_info.is_ffa && player.team == local_player.team) {
                     continue;
                 }

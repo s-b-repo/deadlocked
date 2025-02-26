@@ -24,6 +24,7 @@ struct DirectOffsets {
     u64 button_state = 0;
     u64 view_matrix = 0;
     u64 sdl_window = 0;
+    u64 game_types = 0;
 };
 
 struct ConvarOffsets {
