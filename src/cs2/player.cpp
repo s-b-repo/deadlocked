@@ -117,6 +117,8 @@ std::string Player::WeaponName() const {
     auto name = process.ReadString(weapon_name_pointer);
     if (name.find("weapon_") != std::string::npos) {
         name = name.substr(7);
+    } else {
+        name = "?";
     }
     return name;
 }

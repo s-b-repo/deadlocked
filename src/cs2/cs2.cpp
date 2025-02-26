@@ -646,13 +646,17 @@ void VisualInfo() {
     vinfo_lock.lock();
     const auto local_player = Player::LocalPlayer();
     if (!local_player) {
+        all_player_info.clear();
+        enemy_info.clear();
+        entity_info.clear();
+        vinfo_lock.unlock();
         return;
     }
     const auto local_team = local_player->Team();
     const auto ffa = IsFfa();
     const auto spectated_player = local_player->SpectatorTarget();
-    std::vector<PlayerInfo> player_info_enemy;
     std::vector<PlayerInfo> player_info_all;
+    std::vector<PlayerInfo> player_info_enemy;
     for (auto &player : players) {
         PlayerInfo info = {0};
         info.health = player.Health();
