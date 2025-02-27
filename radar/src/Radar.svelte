@@ -6,7 +6,7 @@
     import PlayerInfo from "./PlayerInfo.svelte";
 
     let ws: WebSocket | null = null;
-    let wsConnected = false;
+    let wsConnected = $state(false);
     let wsTimer: number | null = null;
 
     let radar: HTMLDivElement | undefined = $state();
@@ -95,6 +95,26 @@
 </script>
 
 <main>
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class={wsConnected ? "connected" : "disconnected"}
+    >
+        <path d="M7 12l5 5l-1.5 1.5a3.536 3.536 0 1 1 -5 -5l1.5 -1.5z" />
+        <path d="M17 12l-5 -5l1.5 -1.5a3.536 3.536 0 1 1 5 5l-1.5 1.5z" />
+        <path d="M3 21l2.5 -2.5" />
+        <path d="M18.5 5.5l2.5 -2.5" />
+        <path d="M10 11l-2 2" />
+        <path d="M13 14l-2 2" />
+    </svg>
+
     <div class="player-info">
         <h1 id="t">T</h1>
         {#each players.filter((player) => player.team === Team.T) as player}
@@ -177,6 +197,25 @@
 
     #ct {
         background-color: var(--color-blue);
+    }
+
+    svg {
+        position: fixed;
+        top: 1rem;
+        left: 50%;
+        width: 2rem;
+        height: 2rem;
+        border: var(--border-text);
+        border-radius: 0.5rem;
+        transform: translateX(-50%);
+    }
+
+    svg.connected {
+        stroke: var(--color-green);
+    }
+
+    svg.disconnected {
+        stroke: var(--color-red);
     }
 
     @media (max-aspect-ratio: 1 / 1) {
