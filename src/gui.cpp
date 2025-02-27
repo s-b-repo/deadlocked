@@ -898,4 +898,7 @@ void Gui() {
     SDL_DestroyWindow(gui_window);
     SDL_DestroyWindow(overlay);
     SDL_Quit();
+
+    // ignores radar thread which blocks if it cannot connect
+    std::exit(0);
 }

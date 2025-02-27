@@ -58,7 +58,7 @@ class RadarWebSocket : public hv::WebSocketClient {
 RadarWebSocket ws;
 
 void Radar() {
-    ws.connect("ws://localhost:5000");
+    ws.connect(config.misc.radar_url);
     // if this is not here the thread just dies
     while (true) {
         config_lock.lock();
