@@ -841,10 +841,10 @@ void Gui() {
                     config.visuals.crosshair_color.z * 255, 255);
                 overlay_draw_list->AddLine(
                     ImVec2(center.x - crosshair_size, center.y),
-                    ImVec2(center.x + crosshair_size, center.y), color);
+                    ImVec2(center.x + crosshair_size, center.y), color, config.visuals.line_width);
                 overlay_draw_list->AddLine(
                     ImVec2(center.x, center.y - crosshair_size),
-                    ImVec2(center.x, center.y + crosshair_size), color);
+                    ImVec2(center.x, center.y + crosshair_size), color, config.visuals.line_width);
             }
 
             vinfo_lock.unlock();
