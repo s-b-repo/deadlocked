@@ -81,9 +81,10 @@ void Radar() {
                       {{"x", player.position.x},
                        {"y", player.position.y},
                        {"z", player.position.z}}},
-                     {"rotation", player.view_angles.y},
+                     {"rotation", player.rotation},
                      {"team", player.team},
                      {"weapon", player.weapon},
+                     {"weapons", player.weapons},
                      {"is_active", player.is_active}});
             }
             json["data"]["map"] = misc_info.in_game ? misc_info.map_name : "";

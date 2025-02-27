@@ -1,8 +1,9 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { MAP_DATA } from "./map_data";
-    import type { Player } from "./player";
+    import { Team, type Player } from "./player";
     import PlayerDot from "./PlayerDot.svelte";
+    import PlayerInfo from "./PlayerInfo.svelte";
 
     let ws: WebSocket | null = null;
     let wsConnected = false;
@@ -94,6 +95,13 @@
 </script>
 
 <main>
+    <div class="player-info">
+        <h1 id="t">T</h1>
+        {#each players.filter((player) => player.team === Team.T) as player}
+            <PlayerInfo {player} />
+        {/each}
+    </div>
+
     <div
         bind:this={radar}
         id="radar"
@@ -116,22 +124,68 @@
             />
         {/each}
     </div>
+
+    <div class="player-info">
+        <h1 id="ct">CT</h1>
+        {#each players.filter((player) => player.team === Team.CT) as player}
+            <PlayerInfo {player} />
+        {/each}
+    </div>
 </main>
 
 <style>
     main {
         height: 100%;
         display: flex;
+        flex-direction: row;
         align-items: center;
-        justify-content: center;
+        justify-content: space-evenly;
+    }
+
+    h1 {
+        margin: 0;
     }
 
     #radar {
-        height: 90dvh;
-        aspect-ratio: 1/1;
+        width: 90dvh;
+        aspect-ratio: 1 / 1;
         border: var(--border-text);
         position: relative;
         border-radius: 0.5rem;
         background-size: cover;
+    }
+
+    .player-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        min-width: 20rem;
+        margin: 0 1rem;
+        text-align: center;
+    }
+
+    #t,
+    #ct {
+        border-radius: 0.5rem;
+        color: var(--color-base);
+        padding: 0.5rem;
+    }
+
+    #t {
+        background-color: var(--color-orange);
+    }
+
+    #ct {
+        background-color: var(--color-blue);
+    }
+
+    @media (max-aspect-ratio: 1 / 1) {
+        #radar {
+            width: 90%;
+        }
+
+        .player-info {
+            display: none;
+        }
     }
 </style>

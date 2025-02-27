@@ -23,12 +23,14 @@ class Player {
     u8 Team() const;
     u8 LifeState() const;
     std::string WeaponName() const;
+    std::vector<std::string> AllWeapons() const;
     WeaponClass GetWeaponClass() const;
     u64 GameSceneNode() const;
     bool IsDormant() const;
     glm::vec3 Position() const;
     glm::vec3 EyePosition() const;
     glm::vec3 BonePosition(u64 bone_index) const;
+    f32 Rotation() const;
     i32 ShotsFired() const;
     f32 FovMultiplier() const;
     u64 SpottedMask() const;

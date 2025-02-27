@@ -6,6 +6,7 @@ export interface Player {
     rotation: number;
     team: number;
     weapon: string;
+    weapons: string[];
     is_active: boolean;
 }
 

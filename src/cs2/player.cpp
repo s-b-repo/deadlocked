@@ -123,6 +123,42 @@ std::string Player::WeaponName() const {
     return name;
 }
 
+std::vector<std::string> Player::AllWeapons() const {
+    std::vector<std::string> weapons;
+    const u64 weapon_service = process.Read<u64>(pawn + offsets.pawn.weapon_services);
+    if (!weapon_service) {
+        return weapons;
+    }
+    const u64 length = process.Read<u64>(weapon_service + offsets.weapon_service.weapons);
+    const u64 weapon_list =
+        process.Read<u64>(weapon_service + offsets.weapon_service.weapons + 0x08);
+    for (u64 i = 0; i < length; i++) {
+        const u64 weapon_index = process.Read<u32>(weapon_list + (0x04 * i)) & 0xFFF;
+        // CEntityInstance
+        const auto weapon_entity_instance = ClientEntity(weapon_index);
+        if (!weapon_entity_instance) {
+            continue;
+        }
+        // CEntityIdentity, 0x10 = m_pEntity
+        const u64 weapon_entity_identity = process.Read<u64>(*weapon_entity_instance + 0x10);
+        if (weapon_entity_identity == 0) {
+            continue;
+        }
+        // 0x20 = m_designerName (pointer -> string)
+        const u64 weapon_name_pointer = process.Read<u64>(weapon_entity_identity + 0x20);
+        if (weapon_name_pointer == 0) {
+            continue;
+        }
+
+        auto name = process.ReadString(weapon_name_pointer);
+        if (name.find("weapon_") != std::string::npos) {
+            weapons.push_back(name.substr(7));
+        }
+    }
+
+    return weapons;
+}
+
 WeaponClass Player::GetWeaponClass() const {
     const auto name = WeaponName();
     return WeaponClassFromString(name);
@@ -157,6 +193,8 @@ glm::vec3 Player::BonePosition(u64 bone_index) const {
 
     return process.Read<glm::vec3>(bone_data + (bone_index * 32));
 }
+
+f32 Player::Rotation() const { return process.Read<f32>(pawn + offsets.pawn.eye_angles + 0x04); }
 
 i32 Player::ShotsFired() const { return process.Read<i32>(pawn + offsets.pawn.shots_fired); }
 
@@ -258,7 +296,6 @@ bool Player::HasHelmet() const {
 }
 
 bool Player::HasBomb() const {
-    // return false;
     const u64 weapon_service = process.Read<u64>(pawn + offsets.pawn.weapon_services);
     if (!weapon_service) {
         return false;

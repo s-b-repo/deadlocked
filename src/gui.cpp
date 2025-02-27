@@ -482,6 +482,13 @@ void Gui() {
                     const std::string command = "xdg-open " + url_base + "/?game=" + uuid;
                     system(command.c_str());
                 }
+                ImGui::SameLine();
+                if (ImGui::Button("Copy Link")) {
+                    std::string url_base = config.misc.radar_url;
+                    url_base.replace(0, 5, "http://");
+                    const std::string link = url_base + "/?game=" + uuid;
+                    ImGui::SetClipboardText(link.c_str());
+                }
             }
 
             InputText("Radar URL", &config.misc.radar_url);

@@ -273,103 +273,108 @@ std::optional<Offsets> FindOffsets() {
 
         const auto name = std::string((char *)(name_pointer - base + client_dump));
 
-        if (name == std::string("m_sSanitizedPlayerName")) {
+        if (name == "m_sSanitizedPlayerName") {
             if (!network_enable || offsets.controller.name != 0) {
                 continue;
             }
             offsets.controller.name = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("m_hPawn")) {
+        } else if (name == "m_hPawn") {
             if (!network_enable || offsets.controller.pawn != 0) {
                 continue;
             }
             offsets.controller.pawn = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("m_steamID")) {
+        } else if (name == "m_steamID") {
             if (!network_enable || offsets.controller.steam_id != 0) {
                 continue;
             }
             offsets.controller.steam_id = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("m_iDesiredFOV")) {
+        } else if (name == "m_iDesiredFOV") {
             if (offsets.controller.desired_fov != 0) {
                 continue;
             }
             offsets.controller.desired_fov = *(i32 *)(entry + 0x08);
 
-        } else if (name == std::string("m_hOwnerEntity")) {
+        } else if (name == "m_hOwnerEntity") {
             if (!network_enable || offsets.controller.owner_entity != 0) {
                 continue;
             }
             offsets.controller.owner_entity = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("m_iHealth")) {
+        } else if (name == "m_iHealth") {
             if (!network_enable || offsets.pawn.health != 0) {
                 continue;
             }
             offsets.pawn.health = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("m_ArmorValue")) {
+        } else if (name == "m_ArmorValue") {
             if (!network_enable || offsets.pawn.armor != 0) {
                 continue;
             }
             offsets.pawn.armor = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("m_iTeamNum")) {
+        } else if (name == "m_iTeamNum") {
             if (!network_enable || offsets.pawn.team != 0) {
                 continue;
             }
             offsets.pawn.team = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("m_lifeState")) {
+        } else if (name == "m_lifeState") {
             if (!network_enable || offsets.pawn.life_state != 0) {
                 continue;
             }
             offsets.pawn.life_state = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("m_pClippingWeapon")) {
+        } else if (name == "m_pClippingWeapon") {
             if (offsets.pawn.weapon != 0) {
                 continue;
             }
             offsets.pawn.weapon = *(i32 *)(entry + 0x10);
-        } else if (name == std::string("m_flFOVSensitivityAdjust")) {
+        } else if (name == "m_flFOVSensitivityAdjust") {
             if (offsets.pawn.fov_multiplier != 0) {
                 continue;
             }
             offsets.pawn.fov_multiplier = *(i32 *)(entry + 0x08);
-        } else if (name == std::string("m_pGameSceneNode")) {
+        } else if (name == "m_pGameSceneNode") {
             if (offsets.pawn.game_scene_node != 0) {
                 continue;
             }
             offsets.pawn.game_scene_node = *(i32 *)(entry + 0x10);
-        } else if (name == std::string("m_vecViewOffset")) {
+        } else if (name == "m_vecViewOffset") {
             if (!network_enable || offsets.pawn.eye_offset != 0) {
                 continue;
             }
             offsets.pawn.eye_offset = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("m_aimPunchCache")) {
+        } else if (name == "m_aimPunchCache") {
             if (!network_enable || offsets.pawn.aim_punch_cache != 0) {
                 continue;
             }
             offsets.pawn.aim_punch_cache = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("m_iShotsFired")) {
+        } else if (name == "m_iShotsFired") {
             if (!network_enable || offsets.pawn.shots_fired != 0) {
                 continue;
             }
             offsets.pawn.shots_fired = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("v_angle")) {
+        } else if (name == "v_angle") {
             if (offsets.pawn.view_angles != 0) {
                 continue;
             }
             offsets.pawn.view_angles = *(i32 *)(entry + 0x08);
-        } else if (name == std::string("m_flFlashMaxAlpha")) {
+        } else if (name == "m_angEyeAngles") {
+            if (offsets.pawn.eye_angles != 0) {
+                continue;
+            }
+            offsets.pawn.eye_angles = *(i32 *)(entry + 0x10);
+        } else if (name == "m_flFlashMaxAlpha") {
             if (offsets.pawn.flash_alpha != 0) {
                 continue;
             }
             offsets.pawn.flash_alpha = *(i32 *)(entry + 0x10);
-        } else if (name == std::string("m_flFlashDuration")) {
+        } else if (name == "m_flFlashDuration") {
             if (offsets.pawn.flash_duration != 0) {
                 continue;
             }
             offsets.pawn.flash_duration = *(i32 *)(entry + 0x10);
-        } else if (name == std::string("m_bIsScoped")) {
+        } else if (name == "m_bIsScoped") {
             if (!network_enable || offsets.pawn.scoped != 0) {
                 continue;
             }
             offsets.pawn.scoped = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("m_entitySpottedState")) {
+        } else if (name == "m_entitySpottedState") {
             if (!network_enable || offsets.pawn.spotted_state != 0) {
                 continue;
             }
@@ -378,77 +383,77 @@ std::optional<Offsets> FindOffsets() {
                 continue;
             }
             offsets.pawn.spotted_state = offset;
-        } else if (name == std::string("m_iIDEntIndex")) {
+        } else if (name == "m_iIDEntIndex") {
             if (offsets.pawn.crosshair_entity != 0) {
                 continue;
             }
             offsets.pawn.crosshair_entity = *(i32 *)(entry + 0x10);
-        } else if (name == std::string("m_pObserverServices")) {
+        } else if (name == "m_pObserverServices") {
             if (offsets.pawn.observer_services != 0) {
                 continue;
             }
             offsets.pawn.observer_services = *(i32 *)(entry + 0x08);
-        } else if (name == std::string("m_pCameraServices")) {
+        } else if (name == "m_pCameraServices") {
             if (!network_enable || offsets.pawn.camera_services != 0) {
                 continue;
             }
             offsets.pawn.camera_services = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("m_pItemServices")) {
+        } else if (name == "m_pItemServices") {
             if (offsets.pawn.item_services != 0) {
                 continue;
             }
             offsets.pawn.item_services = *(i32 *)(entry + 0x08);
-        } else if (name == std::string("m_pWeaponServices")) {
+        } else if (name == "m_pWeaponServices") {
             if (offsets.pawn.weapon_services != 0) {
                 continue;
             }
             offsets.pawn.weapon_services = *(i32 *)(entry + 0x08);
-        } else if (name == std::string("m_bDormant")) {
+        } else if (name == "m_bDormant") {
             if (offsets.game_scene_node.dormant != 0) {
                 continue;
             }
             offsets.game_scene_node.dormant = *(i32 *)(entry + 0x08);
-        } else if (name == std::string("m_vecAbsOrigin")) {
+        } else if (name == "m_vecAbsOrigin") {
             if (!network_enable || offsets.game_scene_node.origin != 0) {
                 continue;
             }
             offsets.game_scene_node.origin = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("m_modelState")) {
+        } else if (name == "m_modelState") {
             if (offsets.game_scene_node.model_state != 0) {
                 continue;
             }
             offsets.game_scene_node.model_state = *(i32 *)(entry + 0x08);
-        } else if (name == std::string("m_bSpotted")) {
+        } else if (name == "m_bSpotted") {
             if (offsets.spotted_state.spotted != 0) {
                 continue;
             }
             offsets.spotted_state.spotted = *(i32 *)(entry + 0x10);
-        } else if (name == std::string("m_bSpottedByMask")) {
+        } else if (name == "m_bSpottedByMask") {
             if (!network_enable || offsets.spotted_state.mask != 0) {
                 continue;
             }
             offsets.spotted_state.mask = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("m_hObserverTarget")) {
+        } else if (name == "m_hObserverTarget") {
             if (offsets.observer_service.target != 0) {
                 continue;
             }
             offsets.observer_service.target = *(i32 *)(entry + 0x08);
-        } else if (name == std::string("m_iFOV")) {
+        } else if (name == "m_iFOV") {
             if (offsets.camera_service.fov != 0) {
                 continue;
             }
             offsets.camera_service.fov = *(i32 *)(entry + 0x08);
-        } else if (name == std::string("m_bHasDefuser")) {
+        } else if (name == "m_bHasDefuser") {
             if (offsets.item_service.has_defuser != 0) {
                 continue;
             }
             offsets.item_service.has_defuser = *(i32 *)(entry + 0x10);
-        } else if (name == std::string("m_bHasHelmet")) {
+        } else if (name == "m_bHasHelmet") {
             if (!network_enable || offsets.item_service.has_helmet != 0) {
                 continue;
             }
             offsets.item_service.has_helmet = *(i32 *)(entry + 0x18);
-        } else if (name == std::string("m_hMyWeapons")) {
+        } else if (name == "m_hMyWeapons") {
             if (offsets.weapon_service.weapons != 0) {
                 continue;
             }
@@ -664,7 +669,7 @@ void VisualInfo() {
         info.team = player.Team();
         info.position = player.Position();
         info.head = player.BonePosition(Bones::BoneHead);
-        info.view_angles = player.ViewAngles();
+        info.rotation = player.Rotation();
         info.has_defuser = player.HasDefuser();
         info.has_helmet = player.HasHelmet();
         info.has_bomb = player.HasBomb();
@@ -673,6 +678,7 @@ void VisualInfo() {
         info.name = player.Name();
         info.steam_id = player.SteamID();
         info.weapon = player.WeaponName();
+        info.weapons = player.AllWeapons();
         info.bones = player.AllBones();
 
         player_info_all.push_back(info);
