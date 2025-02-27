@@ -30,19 +30,19 @@ ImU32 HealthColor(i32 health) {
     u8 r, g;
 
     if (health <= 50) {
-        f32 factor = (f32)health / 50.0f;
+        const f32 factor = static_cast<f32>(health) / 50.0f;
         r = 255;
-        g = (u8)(255.0f * factor);
+        g = static_cast<u8>(255.0f * factor);
     } else {
-        f32 factor = (f32)(health - 50) / 50.0f;
-        r = (u8)(255.0f * (1.0f - factor));
+        const f32 factor = static_cast<f32>(health - 50) / 50.0f;
+        r = static_cast<u8>(255.0f * (1.0f - factor));
         g = 255;
     }
 
     return IM_COL32(r, g, 0, 255);
 }
 
-const ImU32 black = 0xFF000000;
+constexpr ImU32 black = 0xFF000000;
 void OutlineText(
     ImDrawList *draw_list, ImFont *font, f32 size, const ImVec2 position, const ImU32 color,
     const char *text) {
@@ -78,7 +78,7 @@ struct InputTextCallback_UserData {
 };
 
 static int InputTextCallback(ImGuiInputTextCallbackData *data) {
-    InputTextCallback_UserData *user_data = (InputTextCallback_UserData *)data->UserData;
+    const auto *user_data = static_cast<InputTextCallback_UserData *>(data->UserData);
     if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
         // Resize string callback
         // If for some reason we refuse the new length (BufTextLen) and/or capacity (BufSize) we
@@ -101,12 +101,13 @@ bool InputText(
     IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
     flags |= ImGuiInputTextFlags_CallbackResize;
 
-    InputTextCallback_UserData cb_user_data;
+    InputTextCallback_UserData cb_user_data{};
     cb_user_data.Str = str;
     cb_user_data.ChainCallback = callback;
     cb_user_data.ChainCallbackUserData = user_data;
     return ImGui::InputText(
-        label, (char *)str->c_str(), str->capacity() + 1, flags, InputTextCallback, &cb_user_data);
+        label, const_cast<char *>(str->c_str()), str->capacity() + 1, flags, InputTextCallback,
+        &cb_user_data);
 }
 
 void Gui() {
@@ -162,8 +163,8 @@ void Gui() {
     ImGuiContext *gui_ctx = ImGui::CreateContext();
     ImGuiContext *overlay_ctx = ImGui::CreateContext();
 
-    const i32 width = 620;
-    const i32 height = 400;
+    constexpr i32 width = 620;
+    constexpr i32 height = 400;
     // gui window
     SDL_Window *gui_window =
         SDL_CreateWindow("deadlocked", width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
@@ -234,7 +235,7 @@ void Gui() {
         Log(LogLevel::Info, "detected display scale: " + std::to_string(scale));
     }
 
-    SDL_SetWindowSize(gui_window, width * scale, height * scale);
+    SDL_SetWindowSize(gui_window, width * scale, static_cast<i32>(height) * scale);
 
     ImGui::SetCurrentContext(gui_ctx);
     Style();

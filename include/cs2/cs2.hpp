@@ -19,7 +19,7 @@ struct Target {
 
     void Reset() {
         player = std::nullopt;
-        bone_index = Bones::BonePelvis;
+        bone_index = Bones::Pelvis;
         angle = glm::vec2(0.0f);
         distance = 0.0f;
         local_pawn_index = 0;

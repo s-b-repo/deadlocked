@@ -1,7 +1,8 @@
 #include <algorithm>
 
-#include "cs2/cs2.hpp"
 #include "cs2/features.hpp"
+#include "cs2/player.hpp"
+#include "globals.hpp"
 
 void FovChanger() {
     const std::optional<Player> local_player = Player::LocalPlayer();

@@ -1,8 +1,9 @@
-#include "cs2/cs2.hpp"
 #include "cs2/features.hpp"
+#include "cs2/player.hpp"
+#include "globals.hpp"
 
 void NoFlash() {
-    const auto local_player = Player::LocalPlayer();
+    const std::optional<Player> local_player = Player::LocalPlayer();
     if (!local_player) {
         return;
     }

@@ -6,7 +6,7 @@
 
 ImVec4 accent_color = Colors::BLUE;
 
-void SetAccentColor(ImVec4 color) {
+void SetAccentColor(const ImVec4 &color) {
     accent_color = color;
     Style();
 }

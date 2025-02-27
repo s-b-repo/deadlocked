@@ -10,7 +10,7 @@
 #include "constants.hpp"
 #include "log.hpp"
 
-std::optional<i32> GetPid(std::string process_name) {
+std::optional<i32> GetPid(const std::string &process_name) {
     for (const auto &entry : std::filesystem::directory_iterator("/proc")) {
         if (!entry.is_directory()) {
             continue;
@@ -45,10 +45,9 @@ std::optional<Process> OpenProcess(i32 pid) {
     }
     if (!flags.file_mem) {
         return Process{.pid = pid};
-    } else {
-        return Process{
-            .pid = pid, .mem = open(("/proc/" + std::to_string(pid) + "/mem").c_str(), O_RDWR)};
     }
+    return Process{
+            .pid = pid, .mem = open(("/proc/" + std::to_string(pid) + "/mem").c_str(), O_RDWR)};
 }
 
 std::string Process::ReadString(u64 address) {
@@ -86,7 +85,7 @@ std::vector<u8> Process::ReadBytes(u64 address, u64 count) {
     return buffer;
 }
 
-std::optional<u64> Process::GetModuleBaseAddress(const char *module_name) {
+std::optional<u64> Process::GetModuleBaseAddress(const std::string &module_name) {
     std::ifstream maps("/proc/" + std::to_string(pid) + "/maps");
     std::string line;
     while (std::getline(maps, line)) {
@@ -160,7 +159,7 @@ u64 Process::GetRelativeAddress(u64 instruction, u64 offset, u64 instruction_siz
     return instruction + instruction_size + rip_address;
 }
 
-std::optional<u64> Process::GetInterfaceOffset(u64 module_address, const char *interface_name) {
+std::optional<u64> Process::GetInterfaceOffset(u64 module_address, const std::string &interface_name) {
     const std::optional<u64> create_interface = GetModuleExport(module_address, "CreateInterface");
     if (!create_interface) {
         Log(LogLevel::Error, "could not find CreateInterface export");
@@ -191,7 +190,7 @@ std::optional<u64> Process::GetInterfaceOffset(u64 module_address, const char *i
     return std::nullopt;
 }
 
-std::optional<u64> Process::GetModuleExport(u64 module_address, const char *export_name) {
+std::optional<u64> Process::GetModuleExport(u64 module_address, const std::string &export_name) {
     const u64 add = 0x18;
 
     const std::optional<u64> string_table = GetAddressFromDynamicSection(module_address, 0x05);
@@ -261,7 +260,7 @@ std::optional<u64> Process::GetSegmentFromPht(u64 module_address, u64 tag) {
     return std::nullopt;
 }
 
-std::optional<u64> Process::GetConvar(u64 convar_offset, const char *convar_name) {
+std::optional<u64> Process::GetConvar(u64 convar_offset, const std::string &convar_name) {
     if (convar_offset == 0) {
         return std::nullopt;
     }

@@ -46,20 +46,20 @@ class Process {
     std::string ReadString(u64 address);
     std::vector<u8> ReadBytes(u64 address, u64 count);
 
-    std::optional<u64> GetModuleBaseAddress(const char *module_name);
+    std::optional<u64> GetModuleBaseAddress(const std::string &module_name);
     u64 ModuleSize(u64 module_address);
     std::vector<u8> DumpModule(u64 module_address);
     std::optional<u64> ScanPattern(
         std::vector<u8> pattern, std::vector<bool> mask, u64 length, u64 module_address);
     u64 GetRelativeAddress(u64 instruction, u64 offset, u64 instrution_size);
-    std::optional<u64> GetInterfaceOffset(u64 module_address, const char *interface_name);
-    std::optional<u64> GetModuleExport(u64 module_address, const char *export_name);
+    std::optional<u64> GetInterfaceOffset(u64 module_address, const std::string &interface_name);
+    std::optional<u64> GetModuleExport(u64 module_address, const std::string &export_name);
     std::optional<u64> GetAddressFromDynamicSection(u64 module_address, u64 tag);
     std::optional<u64> GetSegmentFromPht(u64 module_address, const u64 tag);
-    std::optional<u64> GetConvar(u64 convar_offset, const char *convar_name);
+    std::optional<u64> GetConvar(u64 convar_offset, const std::string &convar_name);
     u64 GetInterfaceFunction(u64 interface_address, u64 index);
 };
 
-std::optional<i32> GetPid(std::string process_name);
+std::optional<i32> GetPid(const std::string &process_name);
 bool ValidatePid(i32 pid);
 std::optional<Process> OpenProcess(i32 pid);

@@ -12,7 +12,7 @@ void Aimbot() {
         return;
     }
 
-    const auto local_player = Player::LocalPlayer();
+    const std::optional<Player> local_player = Player::LocalPlayer();
     if (!local_player) {
         return;
     }
@@ -28,15 +28,15 @@ void Aimbot() {
         }
     }
 
-    glm::vec2 target_angle(0.0);
+    glm::vec2 target_angle;
     if (config.aimbot.multibone) {
         target_angle = target.angle;
     } else {
-        const auto head_position = target.player->BonePosition(Bones::BoneHead);
+        const glm::vec3 head_position = target.player->BonePosition(Bones::Head);
         target_angle = TargetAngle(local_player->EyePosition(), head_position, target.aim_punch);
     }
 
-    const auto view_angles = local_player->ViewAngles();
+    const glm::vec2 view_angles = local_player->ViewAngles();
     if (AnglesToFov(view_angles, target_angle) >
         (config.aimbot.fov * DistanceScale(target.distance))) {
         return;
@@ -46,23 +46,23 @@ void Aimbot() {
         return;
     }
 
-    auto aim_angles = view_angles - target_angle;
+    glm::vec2 aim_angles{view_angles - target_angle};
     if (aim_angles.y < -180.0f) {
         aim_angles.y += 360.0f;
     }
     Vec2Clamp(aim_angles);
 
-    const auto sensitivity = Sensitivity() * local_player->FovMultiplier();
+    const f32 sensitivity = Sensitivity() * local_player->FovMultiplier();
 
-    const auto xy =
-        glm::vec2(aim_angles.y / sensitivity * 50.0f, -aim_angles.x / sensitivity * 50.0f);
-    glm::vec2 smooth_angles(0.0f);
+    const glm::vec2 xy{aim_angles.y / sensitivity * 50.0f, -aim_angles.x / sensitivity * 50.0f};
+    glm::vec2 smooth_angles;
     if (!config.aimbot.aim_lock && config.aimbot.smooth > 1.0f) {
-        smooth_angles = glm::vec2(xy.x / config.aimbot.smooth, xy.y / config.aimbot.smooth);
+        smooth_angles = glm::vec2{xy.x / config.aimbot.smooth, xy.y / config.aimbot.smooth};
     } else {
         smooth_angles = xy;
     }
 
-    glm::ivec2 smooth_int((i32)smooth_angles.x, (i32)smooth_angles.y);
+    const glm::ivec2 smooth_int(
+        static_cast<i32>(smooth_angles.x), static_cast<i32>(smooth_angles.y));
     MouseMove(smooth_int);
 }

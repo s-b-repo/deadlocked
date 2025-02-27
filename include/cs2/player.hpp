@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <optional>
 
+#include "cs2/bones.hpp"
 #include "types.hpp"
 #include "weapon_class.hpp"
 
@@ -29,7 +30,7 @@ class Player {
     bool IsDormant() const;
     glm::vec3 Position() const;
     glm::vec3 EyePosition() const;
-    glm::vec3 BonePosition(u64 bone_index) const;
+    glm::vec3 BonePosition(Bones bone_index) const;
     f32 Rotation() const;
     i32 ShotsFired() const;
     f32 FovMultiplier() const;

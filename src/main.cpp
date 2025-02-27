@@ -3,9 +3,9 @@
 #include "log.hpp"
 #include "mouse.hpp"
 
-int main(int argc, char *argv[]) {
+int main(const int argc, const char *argv[]) {
     for (int i = 0; i < argc; i++) {
-        const std::string arg = std::string(argv[i]);
+        const auto arg = std::string(argv[i]);
         if (arg == "--file-mem") {
             Log(LogLevel::Info, "reading memory from file");
             flags.file_mem = true;
