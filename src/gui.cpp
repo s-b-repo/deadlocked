@@ -322,7 +322,7 @@ void Gui() {
             ImGui::Checkbox("Flash Check", &config.aimbot.flash_check);
 
             ImGui::DragFloat(
-                "FOV", &config.aimbot.fov, 0.02f, 0.1f, 360.0f, "%.1f",
+                "FOV", &config.aimbot.fov, 0.2f, 0.1f, 360.0f, "%.1f",
                 ImGuiSliderFlags_Logarithmic);
 
             ImGui::Checkbox("Aim Lock", &config.aimbot.aim_lock);
