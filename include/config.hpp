@@ -11,7 +11,7 @@
 
 #define VERSION "v5.1.0"
 
-constexpr std::chrono::seconds save_interval{1};
+constexpr std::chrono::seconds save_interval {1};
 
 // imvec4 toml helper functions
 toml::array imvec4_to_array(const ImVec4 &vec);

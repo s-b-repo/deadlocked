@@ -1,3 +1,3 @@
 ---
-Checks: "clang-analyzer-*,google-*,modernize-*"
+Checks: "clang-analyzer-*,google-*,modernize-*,cppcoreguidelines-*,performance-*,readability-*"
 ...

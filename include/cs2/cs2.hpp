@@ -12,18 +12,18 @@
 struct Target {
     std::optional<Player> player = std::nullopt;
     Bones bone_index = Bones::Head;
-    glm::vec2 angle{0.0f};
-    f32 distance{0.0f};
-    u64 local_pawn_index{0};
-    glm::vec2 aim_punch{0.0f};
+    glm::vec2 angle {0.0f};
+    f32 distance {0.0f};
+    u64 local_pawn_index {0};
+    glm::vec2 aim_punch {0.0f};
 
     void Reset() {
         player = std::nullopt;
         bone_index = Bones::Pelvis;
-        angle = glm::vec2{0.0f};
+        angle = glm::vec2 {0.0f};
         distance = 0.0f;
         local_pawn_index = 0;
-        aim_punch = glm::vec2{0.0f};
+        aim_punch = glm::vec2 {0.0f};
     }
 };
 

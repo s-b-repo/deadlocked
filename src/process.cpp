@@ -44,10 +44,10 @@ std::optional<Process> OpenProcess(i32 pid) {
         return std::nullopt;
     }
     if (!flags.file_mem) {
-        return Process{.pid = pid};
+        return Process {.pid = pid};
     }
-    return Process{
-            .pid = pid, .mem = open(("/proc/" + std::to_string(pid) + "/mem").c_str(), O_RDWR)};
+    return Process {
+        .pid = pid, .mem = open(("/proc/" + std::to_string(pid) + "/mem").c_str(), O_RDWR)};
 }
 
 std::string Process::ReadString(u64 address) {
@@ -159,7 +159,8 @@ u64 Process::GetRelativeAddress(u64 instruction, u64 offset, u64 instruction_siz
     return instruction + instruction_size + rip_address;
 }
 
-std::optional<u64> Process::GetInterfaceOffset(u64 module_address, const std::string &interface_name) {
+std::optional<u64> Process::GetInterfaceOffset(
+    u64 module_address, const std::string &interface_name) {
     const std::optional<u64> create_interface = GetModuleExport(module_address, "CreateInterface");
     if (!create_interface) {
         Log(LogLevel::Error, "could not find CreateInterface export");

@@ -46,7 +46,7 @@ void Aimbot() {
         return;
     }
 
-    glm::vec2 aim_angles{view_angles - target_angle};
+    glm::vec2 aim_angles {view_angles - target_angle};
     if (aim_angles.y < -180.0f) {
         aim_angles.y += 360.0f;
     }
@@ -54,11 +54,11 @@ void Aimbot() {
 
     const f32 sensitivity = Sensitivity() * local_player->FovMultiplier();
 
-    const glm::vec2 xy{aim_angles.y / sensitivity * 25.0f, -aim_angles.x / sensitivity * 25.0f};
+    const glm::vec2 xy {aim_angles.y / sensitivity * 25.0f, -aim_angles.x / sensitivity * 25.0f};
     glm::vec2 smooth_angles;
     if (!config.aimbot.aim_lock && config.aimbot.smooth > 0.0f) {
         smooth_angles =
-            glm::vec2{xy.x / (config.aimbot.smooth + 1.0f), xy.y / (config.aimbot.smooth + 1.0f)};
+            glm::vec2 {xy.x / (config.aimbot.smooth + 1.0f), xy.y / (config.aimbot.smooth + 1.0f)};
     } else {
         smooth_angles = xy;
     }

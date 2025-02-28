@@ -21,7 +21,7 @@ ImVec4 array_to_imvec4(const toml::array &arr) {
 }
 
 toml::table AimbotConfig::to_toml() const {
-    return toml::table{
+    return toml::table {
         {"hotkey", static_cast<int>(hotkey)},
         {"start_bullet", start_bullet},
         {"fov", fov},
@@ -52,7 +52,7 @@ AimbotConfig AimbotConfig::from_toml(const toml::table &tbl) {
 }
 
 toml::table TriggerbotConfig::to_toml() const {
-    return toml::table{
+    return toml::table {
         {"hotkey", static_cast<int>(hotkey)},
         {"delay_min", delay_min},
         {"delay_max", delay_max},
@@ -75,7 +75,7 @@ TriggerbotConfig TriggerbotConfig::from_toml(const toml::table &tbl) {
 }
 
 toml::table VisualsConfig::to_toml() const {
-    return toml::table{
+    return toml::table {
         {"text_color", imvec4_to_array(text_color)},
         {"box_color", imvec4_to_array(box_color)},
         {"skeleton_color", imvec4_to_array(skeleton_color)},
@@ -126,7 +126,7 @@ VisualsConfig VisualsConfig::from_toml(const toml::table &tbl) {
 }
 
 toml::table MiscConfig::to_toml() const {
-    return toml::table{
+    return toml::table {
         {"radar_url", radar_url},
         {"max_flash_alpha", max_flash_alpha},
         {"desired_fov", desired_fov},
@@ -145,7 +145,7 @@ MiscConfig MiscConfig::from_toml(const toml::table &tbl) {
 }
 
 toml::table Config::to_toml() const {
-    return toml::table{
+    return toml::table {
         {"aimbot", aimbot.to_toml()},
         {"triggerbot", triggerbot.to_toml()},
         {"visuals", visuals.to_toml()},

@@ -39,7 +39,7 @@ class Player {
     bool IsValid() const;
     bool IsFlashed() const;
     void NoFlash(f32 max_alpha) const;
-    void SetFov(i32 fov) const;
+    void SetFov(const i32 fov) const;
     glm::vec2 ViewAngles() const;
     glm::vec2 AimPunch() const;
     bool HasDefuser() const;

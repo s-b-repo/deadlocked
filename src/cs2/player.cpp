@@ -15,7 +15,7 @@ std::optional<Player> Player::LocalPlayer() {
     if (!pawn) {
         return std::nullopt;
     }
-    return Player{.controller = controller, .pawn = *pawn};
+    return Player {.controller = controller, .pawn = *pawn};
 }
 
 std::optional<u64> Player::ClientEntity(const u64 index) {
@@ -43,11 +43,11 @@ std::optional<Player> Player::Index(const u64 index) {
     if (!pawn) {
         return std::nullopt;
     }
-    return Player{.controller = *controller, .pawn = *pawn};
+    return Player {.controller = *controller, .pawn = *pawn};
 }
 
 std::optional<u64> Player::Pawn(const u64 controller) {
-    const u64 v1 = process.Read<i32>(controller + offsets.controller.pawn);
+    const i32 v1 = process.Read<i32>(controller + offsets.controller.pawn);
     if (v1 == -1) {
         return std::nullopt;
     }
@@ -86,7 +86,7 @@ i32 Player::Armor() const {
 std::string Player::Name() const {
     const u64 name_address = process.Read<u64>(controller + offsets.controller.name);
     if (!name_address) {
-        return std::string{"?"};
+        return std::string {"?"};
     }
 
     return process.ReadString(name_address);
@@ -102,17 +102,17 @@ std::string Player::WeaponName() const {
     // CEntityInstance
     const u64 weapon_entity_instance = process.Read<u64>(pawn + offsets.pawn.weapon);
     if (!weapon_entity_instance) {
-        return std::string{"?"};
+        return std::string {"?"};
     }
     // CEntityIdentity, 0x10 = m_pEntity
     const u64 weapon_entity_identity = process.Read<u64>(weapon_entity_instance + 0x10);
     if (!weapon_entity_identity) {
-        return std::string{"?"};
+        return std::string {"?"};
     }
     // 0x20 = m_designerName (pointer -> string)
     const u64 weapon_name_pointer = process.Read<u64>(weapon_entity_identity + 0x20);
     if (!weapon_name_pointer) {
-        return std::string{"?"};
+        return std::string {"?"};
     }
 
     std::string name = process.ReadString(weapon_name_pointer);
@@ -208,10 +208,10 @@ std::vector<std::pair<glm::vec3, glm::vec3>> Player::AllBones() const {
         bones.insert({bone, position});
     }
 
-    std::vector<std::pair<glm::vec3, glm::vec3>> connections{bone_connections.size()};
+    std::vector<std::pair<glm::vec3, glm::vec3>> connections {bone_connections.size()};
 
     i32 i = 0;
-    for (const auto connection : bone_connections) {
+    for (const auto &connection : bone_connections) {
         connections[i] = {bones.at(connection.first), bones.at(connection.second)};
         i++;
     }
@@ -241,18 +241,20 @@ bool Player::IsFlashed() const {
 
 void Player::NoFlash(const f32 max_alpha) const {
     const f32 clamped_alpha = std::clamp(max_alpha, 0.0f, 255.0f);
-    if (process.Read<f32>(pawn + offsets.pawn.flash_alpha) != max_alpha) {
-        process.Write<f32>(pawn + offsets.pawn.flash_alpha, max_alpha);
+    if (process.Read<f32>(pawn + offsets.pawn.flash_alpha) != clamped_alpha) {
+        process.Write<f32>(pawn + offsets.pawn.flash_alpha, clamped_alpha);
     }
 }
 
-void Player::SetFov(i32 fov) const {
+void Player::SetFov(const i32 fov) const {
     const u64 camera_service = process.Read<u64>(pawn + offsets.pawn.camera_services);
     if (!camera_service) {
         return;
     }
-    if (process.Read<u32>(camera_service + offsets.camera_service.fov) != fov) {
-        process.Write<i32>(controller + offsets.controller.desired_fov, fov);
+    const i32 clamped_fov = std::clamp(fov, 1, 179);
+    if (process.Read<u32>(camera_service + offsets.camera_service.fov) !=
+        static_cast<u32>(clamped_fov)) {
+        process.Write<i32>(controller + offsets.controller.desired_fov, clamped_fov);
     }
 }
 
@@ -319,7 +321,7 @@ std::optional<Player> Player::EntityInCrosshair() const {
     if (!entity) {
         return std::nullopt;
     }
-    const Player player = Player{.controller = 0, .pawn = *entity};
+    const Player player = Player {.controller = 0, .pawn = *entity};
     if (!player.IsValid()) {
         return std::nullopt;
     }

@@ -12,11 +12,11 @@
 #include "math.hpp"
 #include "process.hpp"
 
-bool is_valid{false};
-Process process{};
-Offsets offsets{};
-Target target{};
-std::vector<Player> players{};
+bool is_valid {false};
+Process process {};
+Offsets offsets {};
+Target target {};
+std::vector<Player> players {};
 
 void CS2() {
     Log(LogLevel::Info, "game thread started");
@@ -574,7 +574,7 @@ bool FindTarget() {
 
     const glm::vec2 view_angles = local_player->ViewAngles();
     const i32 shots_fired = local_player->ShotsFired();
-    glm::vec2 aim_punch{0.0f};
+    glm::vec2 aim_punch {0.0f};
     if (weapon_class != WeaponClass::Sniper) {
         const glm::vec2 punch = local_player->AimPunch();
         if (glm::length(punch) < 0.001f && shots_fired > 0) {
@@ -585,7 +585,7 @@ bool FindTarget() {
     }
     target.aim_punch = aim_punch;
 
-    f32 smallest_fov{360.0f};
+    f32 smallest_fov {360.0f};
     const glm::vec3 eye_position = local_player->EyePosition();
     if (target.player) {
         if (!target.player->IsValid()) {
@@ -715,7 +715,7 @@ void VisualInfo() {
         }
         const auto position = process.Read<glm::vec3>(gs_node + offsets.game_scene_node.origin);
 
-        entity_info_new.push_back(EntityInfo{.name = *name, .position = position});
+        entity_info_new.push_back(EntityInfo {.name = *name, .position = position});
     }
 
     if (!player_info_all.empty()) {

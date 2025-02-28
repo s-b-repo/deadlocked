@@ -47,19 +47,19 @@ constexpr ImU32 black = 0xFF000000;
 void OutlineText(
     ImDrawList *draw_list, ImFont *font, const f32 size, const ImVec2 position, const ImU32 color,
     const char *text) {
-    draw_list->AddText(font, size, ImVec2{position.x - 1, position.y}, black, text);
-    draw_list->AddText(font, size, ImVec2{position.x + 1, position.y}, black, text);
-    draw_list->AddText(font, size, ImVec2{position.x, position.y - 1}, black, text);
-    draw_list->AddText(font, size, ImVec2{position.x, position.y + 1}, black, text);
+    draw_list->AddText(font, size, ImVec2 {position.x - 1, position.y}, black, text);
+    draw_list->AddText(font, size, ImVec2 {position.x + 1, position.y}, black, text);
+    draw_list->AddText(font, size, ImVec2 {position.x, position.y - 1}, black, text);
+    draw_list->AddText(font, size, ImVec2 {position.x, position.y + 1}, black, text);
     draw_list->AddText(font, size, position, color, text);
 }
 
 void OutlineText(
     ImDrawList *draw_list, const ImVec2 position, const ImU32 color, const char *text) {
-    draw_list->AddText(ImVec2{position.x - 1, position.y}, black, text);
-    draw_list->AddText(ImVec2{position.x + 1, position.y}, black, text);
-    draw_list->AddText(ImVec2{position.x, position.y - 1}, black, text);
-    draw_list->AddText(ImVec2{position.x, position.y + 1}, black, text);
+    draw_list->AddText(ImVec2 {position.x - 1, position.y}, black, text);
+    draw_list->AddText(ImVec2 {position.x + 1, position.y}, black, text);
+    draw_list->AddText(ImVec2 {position.x, position.y - 1}, black, text);
+    draw_list->AddText(ImVec2 {position.x, position.y + 1}, black, text);
     draw_list->AddText(position, color, text);
 }
 
@@ -102,7 +102,7 @@ bool InputText(
     IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
     flags |= ImGuiInputTextFlags_CallbackResize;
 
-    InputTextCallback_UserData cb_user_data{};
+    InputTextCallback_UserData cb_user_data {};
     cb_user_data.Str = str;
     cb_user_data.ChainCallback = callback;
     cb_user_data.ChainCallbackUserData = user_data;
@@ -127,10 +127,10 @@ void Gui() {
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     // get monitor sizes
-    i32 count{0};
-    i32 minX{0}, minY{0}, maxX{0}, maxY{0};
+    i32 count {0};
+    i32 minX {0}, minY {0}, maxX {0}, maxY {0};
     SDL_DisplayID *displays = SDL_GetDisplays(&count);
-    SDL_Rect bounds{};
+    SDL_Rect bounds {};
     for (i32 i = 0; i < count; i++) {
         SDL_GetDisplayBounds(displays[i], &bounds);
 
@@ -196,7 +196,7 @@ void Gui() {
     glm::ivec2 overlay_size;
     // make window not visible when flag is set
     if (flags.no_visuals) {
-        overlay_size = glm::ivec2{1};
+        overlay_size = glm::ivec2 {1};
     } else {
         overlay_size.x = maxX - minX;
         overlay_size.y = maxY - minY;
@@ -288,8 +288,8 @@ void Gui() {
             "deadlocked", nullptr,
             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
         ImGui::SetWindowSize(
-            ImVec2{static_cast<f32>(gui_vp_size.x), static_cast<f32>(gui_vp_size.y)});
-        ImGui::SetWindowPos(ImVec2{0.0f, 0.0f});
+            ImVec2 {static_cast<f32>(gui_vp_size.x), static_cast<f32>(gui_vp_size.y)});
+        ImGui::SetWindowPos(ImVec2 {0.0f, 0.0f});
 
         // tabs
         config_lock.lock();
@@ -588,11 +588,11 @@ void Gui() {
         const ImVec2 text_size = ImGui::CalcTextSize(gui_fps.c_str());
         const ImVec2 gui_window_size = ImGui::GetWindowSize();
         gui_draw_list->AddText(
-            ImVec2{gui_window_size.x - text_size.x - 4.0f, 12.0f}, 0xFFFFFFFF, gui_fps.c_str());
+            ImVec2 {gui_window_size.x - text_size.x - 4.0f, 12.0f}, 0xFFFFFFFF, gui_fps.c_str());
 
         const ImVec2 version_text_size = ImGui::CalcTextSize(VERSION);
         gui_draw_list->AddText(
-            ImVec2{
+            ImVec2 {
                 gui_window_size.x - version_text_size.x - 4.0f,
                 gui_window_size.y - version_text_size.y - 4.0f},
             0xFFFFFFFF, VERSION);
@@ -620,8 +620,8 @@ void Gui() {
             "overlay", nullptr,
             ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration |
                 ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-        ImGui::SetWindowPos(ImVec2{static_cast<f32>(minX), static_cast<f32>(minY)});
-        ImGui::SetWindowSize(ImVec2{static_cast<f32>(maxX - minX), static_cast<f32>(maxY - minY)});
+        ImGui::SetWindowPos(ImVec2 {static_cast<f32>(minX), static_cast<f32>(minY)});
+        ImGui::SetWindowSize(ImVec2 {static_cast<f32>(maxX - minX), static_cast<f32>(maxY - minY)});
         ImDrawList *overlay_draw_list = ImGui::GetBackgroundDrawList();
 
         const ImU32 text_color = IM_COL32(
@@ -632,24 +632,24 @@ void Gui() {
             "FPS: " + std::to_string(static_cast<i32>(overlay_io.Framerate) + 1);
         OutlineText(
             overlay_draw_list,
-            ImVec2{static_cast<f32>(window_size.x) + 4.0f, static_cast<f32>(window_size.y) + 4.0f},
+            ImVec2 {static_cast<f32>(window_size.x) + 4.0f, static_cast<f32>(window_size.y) + 4.0f},
             text_color, overlay_fps.c_str());
 
         if (config.visuals.debug_window) {
             // frame
             overlay_draw_list->AddRect(
-                ImVec2{static_cast<f32>(minX), static_cast<f32>(minY)},
-                ImVec2{static_cast<f32>(maxX - minX), static_cast<f32>(maxY - minY)}, 0xFFFFFFFF,
+                ImVec2 {static_cast<f32>(minX), static_cast<f32>(minY)},
+                ImVec2 {static_cast<f32>(maxX - minX), static_cast<f32>(maxY - minY)}, 0xFFFFFFFF,
                 0.0f, 0, 8.0f);
 
             // cross
             overlay_draw_list->AddLine(
-                ImVec2{static_cast<f32>(minX), static_cast<f32>(minY)},
-                ImVec2{static_cast<f32>(maxX - minX), static_cast<f32>(maxY - minY)}, 0xFFFFFFFF,
+                ImVec2 {static_cast<f32>(minX), static_cast<f32>(minY)},
+                ImVec2 {static_cast<f32>(maxX - minX), static_cast<f32>(maxY - minY)}, 0xFFFFFFFF,
                 4.0f);
             overlay_draw_list->AddLine(
-                ImVec2{static_cast<f32>(minX), static_cast<f32>(maxY - minY)},
-                ImVec2{static_cast<f32>(maxX - minX), static_cast<f32>(minY)}, 0xFFFFFFFF, 4.0f);
+                ImVec2 {static_cast<f32>(minX), static_cast<f32>(maxY - minY)},
+                ImVec2 {static_cast<f32>(maxX - minX), static_cast<f32>(minY)}, 0xFFFFFFFF, 4.0f);
         }
         if (config.visuals.enabled) {
             vinfo_lock.lock();
@@ -674,8 +674,8 @@ void Gui() {
                         const auto bone1 = WorldToScreen(first);
                         const auto bone2 = WorldToScreen(second);
                         if (bone1 && bone2) {
-                            const ImVec2 start{bone1->x, bone1->y};
-                            const ImVec2 end{bone2->x, bone2->y};
+                            const ImVec2 start {bone1->x, bone1->y};
+                            const ImVec2 end {bone2->x, bone2->y};
                             overlay_draw_list->AddLine(
                                 start, end, color, config.visuals.line_width);
                         }
@@ -689,8 +689,8 @@ void Gui() {
                     continue;
                 }
 
-                const ImVec2 bottom{bottom_opt->x, bottom_opt->y};
-                const ImVec2 top{bottom.x, bottom.y + (top_opt->y - bottom.y)};
+                const ImVec2 bottom {bottom_opt->x, bottom_opt->y};
+                const ImVec2 top {bottom.x, bottom.y + (top_opt->y - bottom.y)};
 
                 const f32 box_height = bottom.y - top.y;
                 const f32 box_width = box_height / 2.0f;
@@ -702,10 +702,10 @@ void Gui() {
                 }
                 ImFont *font = overlay_io.Fonts->Fonts[0];
 
-                const ImVec2 bottom_left{bottom.x - half_width, bottom.y};
-                const ImVec2 bottom_right{bottom.x + half_width, bottom.y};
-                const ImVec2 top_left{top.x - half_width, top.y};
-                const ImVec2 top_right{top.x + half_width, top.y};
+                const ImVec2 bottom_left {bottom.x - half_width, bottom.y};
+                const ImVec2 bottom_right {bottom.x + half_width, bottom.y};
+                const ImVec2 top_left {top.x - half_width, top.y};
+                const ImVec2 top_right {top.x + half_width, top.y};
 
                 if (config.visuals.draw_box != DrawStyle::None) {
                     // four corners, each a quarter of the width/height
@@ -719,35 +719,35 @@ void Gui() {
                         color = health_color;
                     }
                     overlay_draw_list->AddLine(
-                        bottom_left, ImVec2{bottom_left.x, bottom_left.y - box_height / 4.0f},
+                        bottom_left, ImVec2 {bottom_left.x, bottom_left.y - box_height / 4.0f},
                         color, config.visuals.line_width);
                     overlay_draw_list->AddLine(
-                        bottom_left, ImVec2{bottom_left.x + box_width / 4.0f, bottom_left.y}, color,
-                        config.visuals.line_width);
-                    overlay_draw_list->AddLine(
-                        bottom_right, ImVec2{bottom_right.x, bottom_right.y - box_height / 4.0f},
+                        bottom_left, ImVec2 {bottom_left.x + box_width / 4.0f, bottom_left.y},
                         color, config.visuals.line_width);
                     overlay_draw_list->AddLine(
-                        bottom_right, ImVec2{bottom_right.x - box_width / 4.0f, bottom_right.y},
+                        bottom_right, ImVec2 {bottom_right.x, bottom_right.y - box_height / 4.0f},
                         color, config.visuals.line_width);
                     overlay_draw_list->AddLine(
-                        top_left, ImVec2{top_left.x, top_left.y + box_height / 4.0f}, color,
+                        bottom_right, ImVec2 {bottom_right.x - box_width / 4.0f, bottom_right.y},
+                        color, config.visuals.line_width);
+                    overlay_draw_list->AddLine(
+                        top_left, ImVec2 {top_left.x, top_left.y + box_height / 4.0f}, color,
                         config.visuals.line_width);
                     overlay_draw_list->AddLine(
-                        top_left, ImVec2{top_left.x + box_width / 4.0f, top_left.y}, color,
+                        top_left, ImVec2 {top_left.x + box_width / 4.0f, top_left.y}, color,
                         config.visuals.line_width);
                     overlay_draw_list->AddLine(
-                        top_right, ImVec2{top_right.x, top_right.y + box_height / 4.0f}, color,
+                        top_right, ImVec2 {top_right.x, top_right.y + box_height / 4.0f}, color,
                         config.visuals.line_width);
                     overlay_draw_list->AddLine(
-                        top_right, ImVec2{top_right.x - box_width / 4.0f, top_right.y}, color,
+                        top_right, ImVec2 {top_right.x - box_width / 4.0f, top_right.y}, color,
                         config.visuals.line_width);
                 }
 
                 if (config.visuals.draw_health) {
-                    const ImVec2 health_bottom{bottom_left.x - 4.0f, bottom_left.y};
+                    const ImVec2 health_bottom {bottom_left.x - 4.0f, bottom_left.y};
                     // adjust height based on health
-                    const ImVec2 health_top{
+                    const ImVec2 health_top {
                         top_left.x - 4.0f,
                         bottom_left.y - box_height * static_cast<f32>(player.health) / 100.0f};
                     overlay_draw_list->AddLine(
@@ -755,8 +755,8 @@ void Gui() {
                 }
 
                 if (config.visuals.draw_armor) {
-                    const ImVec2 armor_bottom{bottom_left.x - 8, bottom_left.y};
-                    const ImVec2 armor_top{
+                    const ImVec2 armor_bottom {bottom_left.x - 8, bottom_left.y};
+                    const ImVec2 armor_top {
                         top_left.x - 8,
                         bottom_left.y - box_height * static_cast<f32>(player.armor) / 100.0f};
                     overlay_draw_list->AddLine(
@@ -770,7 +770,7 @@ void Gui() {
                 if (config.visuals.draw_name) {
                     const ImVec2 name_text_size =
                         font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, player.name.c_str());
-                    const ImVec2 name_position{
+                    const ImVec2 name_position {
                         top.x - name_text_size.x / 2.0f, top_left.y - font_size};
                     OutlineText(
                         overlay_draw_list, font, font_size, name_position, text_color,
@@ -780,7 +780,7 @@ void Gui() {
                 if (config.visuals.draw_weapon) {
                     const ImVec2 weapon_text_size =
                         font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, player.weapon.c_str());
-                    const ImVec2 weapon_position{
+                    const ImVec2 weapon_position {
                         bottom.x - weapon_text_size.x / 2.0f, bottom_left.y};
                     OutlineText(
                         overlay_draw_list, font, font_size, weapon_position, text_color,
@@ -792,7 +792,7 @@ void Gui() {
                 if (config.visuals.draw_tags && player.has_helmet) {
                     const ImVec2 helmet_text_size =
                         font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, "helmet");
-                    const ImVec2 helmet_position{
+                    const ImVec2 helmet_position {
                         bottom.x - helmet_text_size.x / 2.0f, bottom_left.y + offset};
                     offset += font_size;
                     OutlineText(
@@ -802,7 +802,7 @@ void Gui() {
                 if (config.visuals.draw_tags && player.has_defuser) {
                     const ImVec2 defuser_text_size =
                         font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, "defuser");
-                    const ImVec2 defuser_position{
+                    const ImVec2 defuser_position {
                         bottom.x - defuser_text_size.x / 2.0f, bottom_left.y + offset};
                     offset += font_size;
                     OutlineText(
@@ -813,7 +813,7 @@ void Gui() {
                 if (config.visuals.draw_tags && player.has_bomb) {
                     const ImVec2 bomb_text_size =
                         font->CalcTextSizeA(font_size, FLT_MAX, 0.0f, "bomb");
-                    const ImVec2 bomb_position{
+                    const ImVec2 bomb_position {
                         bottom.x - bomb_text_size.x / 2.0f, bottom_left.y + offset};
                     OutlineText(
                         overlay_draw_list, font, font_size, bomb_position, text_color, "bomb");
@@ -827,7 +827,7 @@ void Gui() {
                         continue;
                     }
                     OutlineText(
-                        overlay_draw_list, ImVec2{screen_position->x, screen_position->y},
+                        overlay_draw_list, ImVec2 {screen_position->x, screen_position->y},
                         0xFFFFFFFF, name.c_str());
                 }
             }
@@ -839,7 +839,7 @@ void Gui() {
                 const f32 radius = tanf(config.aimbot.fov / 180.f * M_PIf / 2.f) /
                                    tanf(pawn_fov / 180.f * M_PIf / 2.f) *
                                    static_cast<f32>(window_size.x) / 2.0f;
-                const ImVec2 center{
+                const ImVec2 center {
                     static_cast<f32>(window_size.x + window_size.z) / 2.0f,
                     static_cast<f32>(window_size.y + window_size.w) / 2.0f};
                 overlay_draw_list->AddCircle(
@@ -850,18 +850,18 @@ void Gui() {
             if (config.visuals.sniper_crosshair &&
                 WeaponClassFromString(misc_info.held_weapon) == WeaponClass::Sniper) {
                 constexpr f32 crosshair_size = 32.0f;
-                const ImVec2 center{
+                const ImVec2 center {
                     static_cast<f32>(window_size.x + window_size.z) / 2.0f,
                     static_cast<f32>(window_size.y + window_size.w) / 2.0f};
                 const ImU32 color = IM_COL32(
                     config.visuals.crosshair_color.x * 255, config.visuals.crosshair_color.y * 255,
                     config.visuals.crosshair_color.z * 255, 255);
                 overlay_draw_list->AddLine(
-                    ImVec2{center.x - crosshair_size, center.y},
-                    ImVec2{center.x + crosshair_size, center.y}, color, config.visuals.line_width);
+                    ImVec2 {center.x - crosshair_size, center.y},
+                    ImVec2 {center.x + crosshair_size, center.y}, color, config.visuals.line_width);
                 overlay_draw_list->AddLine(
-                    ImVec2{center.x, center.y - crosshair_size},
-                    ImVec2{center.x, center.y + crosshair_size}, color, config.visuals.line_width);
+                    ImVec2 {center.x, center.y - crosshair_size},
+                    ImVec2 {center.x, center.y + crosshair_size}, color, config.visuals.line_width);
             }
 
             vinfo_lock.unlock();

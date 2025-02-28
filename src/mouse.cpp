@@ -71,7 +71,7 @@ void MouseInit() {
 void MouseMove(const glm::ivec2 &coords) {
     Log(LogLevel::Debug,
         "mouse move: " + std::to_string(coords.x) + "/" + std::to_string(coords.y));
-    struct input_event ev = {0};
+    struct input_event ev {};
 
     // x
     ev.type = EV_REL;
@@ -94,7 +94,7 @@ void MouseMove(const glm::ivec2 &coords) {
 
 void MouseLeftPress() {
     Log(LogLevel::Debug, "pressed left mouse button");
-    struct input_event ev = {0};
+    struct input_event ev {};
 
     // y
     ev.type = EV_KEY;
@@ -111,7 +111,7 @@ void MouseLeftPress() {
 
 void MouseLeftRelease() {
     Log(LogLevel::Debug, "released left mouse button");
-    struct input_event ev = {0};
+    struct input_event ev {};
 
     // y
     ev.type = EV_KEY;
