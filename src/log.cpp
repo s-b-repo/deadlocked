@@ -24,5 +24,7 @@ void Log(LogLevel level, std::string message) {
     if (level < filter_level) {
         return;
     }
-    std::cout << "[" << LogLevelString(level) << "] " << message << "\n";
+    // prepare string beforehand to make this thread safe
+    std::string out = "[" + LogLevelString(level) + "] " + message + "\n";
+    std::cout << out;
 }

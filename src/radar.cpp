@@ -72,7 +72,7 @@ void Radar() {
             nlohmann::json json;
 
             vinfo_lock.lock();
-            for (const auto player : all_player_info) {
+            for (const PlayerInfo &player : all_player_info) {
                 json["data"]["players"].push_back(
                     {{"name", player.name},
                      {"health", player.health},

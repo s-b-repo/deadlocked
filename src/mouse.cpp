@@ -20,12 +20,12 @@ void MouseInit() {
             continue;
         }
 
-        const auto event_name = entry.path().filename().string();
+        const std::string event_name = entry.path().filename().string();
         if (event_name.rfind("event", 0) != 0) {
             continue;
         }
 
-        const auto path = "/sys/class/input/" + event_name + "/device/capabilities/rel";
+        const std::string path = "/sys/class/input/" + event_name + "/device/capabilities/rel";
         std::ifstream rel_file(path);
         if (!rel_file.is_open()) {
             continue;
@@ -48,13 +48,13 @@ void MouseInit() {
             continue;
         }
 
-        std::string device_name;
-        const auto name_path = "/sys/class/input/" + event_name + "/device/name";
+        const std::string name_path = "/sys/class/input/" + event_name + "/device/name";
         std::ifstream name_file(name_path);
         if (!name_file.is_open()) {
             continue;
         }
 
+        std::string device_name;
         std::getline(name_file, device_name);
         name_file.close();
 

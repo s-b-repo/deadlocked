@@ -23,7 +23,7 @@ void Triggerbot() {
         return;
     }
 
-    const auto local_player = Player::LocalPlayer();
+    const std::optional<Player> local_player = Player::LocalPlayer();
     if (!local_player) {
         return;
     }
@@ -37,7 +37,7 @@ void Triggerbot() {
         return;
     }
 
-    auto crosshair_entity = local_player->EntityInCrosshair();
+    const std::optional<Player> crosshair_entity = local_player->EntityInCrosshair();
     if (!crosshair_entity) {
         return;
     }
@@ -47,11 +47,12 @@ void Triggerbot() {
     }
 
     std::random_device dev;
-    std::mt19937 rng(dev());
-    const i32 mean = (config.triggerbot.delay_min + config.triggerbot.delay_max) / 2;
-    std::normal_distribution<f32> normal(
-        mean, (config.triggerbot.delay_max - config.triggerbot.delay_min) / 2.0f);
+    std::mt19937 rng{dev()};
+    const f32 mean =
+        static_cast<f32>(config.triggerbot.delay_min + config.triggerbot.delay_max) / 2.0f;
+    std::normal_distribution<f32> normal{
+        mean, (config.triggerbot.delay_max - config.triggerbot.delay_min) / 2.0f};
 
-    const i32 delay = (i32)normal(rng);
+    const i32 delay = static_cast<i32>(normal(rng));
     next_shot = std::chrono::steady_clock::now() + std::chrono::milliseconds(delay);
 }

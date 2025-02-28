@@ -12,10 +12,10 @@ toml::array imvec4_to_array(const ImVec4 &vec) {
 ImVec4 array_to_imvec4(const toml::array &arr) {
     ImVec4 vec;
     if (arr.size() >= 4) {
-        vec.x = arr[0].value_or(1.0f);
-        vec.y = arr[1].value_or(1.0f);
-        vec.z = arr[2].value_or(1.0f);
-        vec.w = arr[3].value_or(1.0f);
+        vec.x = arr[0].value_or(0.0f);
+        vec.y = arr[1].value_or(0.0f);
+        vec.z = arr[2].value_or(0.0f);
+        vec.w = arr[3].value_or(0.0f);
     }
     return vec;
 }

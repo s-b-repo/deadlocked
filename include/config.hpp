@@ -2,6 +2,8 @@
 
 #include <imgui.h>
 
+#include <chrono>
+
 #include "colors.hpp"
 #include "key_code.hpp"
 #include "toml.hpp"
@@ -9,7 +11,7 @@
 
 #define VERSION "v5.1.0"
 
-#define FONT "resources/JetBrainsMono.ttf"
+constexpr std::chrono::seconds save_interval{1};
 
 // imvec4 toml helper functions
 toml::array imvec4_to_array(const ImVec4 &vec);
