@@ -17,40 +17,40 @@ class Player {
     static std::optional<u64> Pawn(u64 controller);
     static std::optional<u64> ClientEntity(u64 index);
 
-    i32 Health() const;
-    i32 Armor() const;
-    std::string Name() const;
-    u64 SteamID() const;
-    u8 Team() const;
-    u8 LifeState() const;
-    std::string WeaponName() const;
-    std::vector<std::string> AllWeapons() const;
-    WeaponClass GetWeaponClass() const;
-    u64 GameSceneNode() const;
-    bool IsDormant() const;
-    glm::vec3 Position() const;
-    glm::vec3 EyePosition() const;
-    glm::vec3 BonePosition(Bones bone_index) const;
-    f32 Rotation() const;
-    i32 ShotsFired() const;
-    f32 FovMultiplier() const;
-    u64 SpottedMask() const;
-    std::vector<std::pair<glm::vec3, glm::vec3>> AllBones() const;
-    bool IsValid() const;
-    bool IsFlashed() const;
+    [[nodiscard]] i32 Health() const;
+    [[nodiscard]] i32 Armor() const;
+    [[nodiscard]] std::string Name() const;
+    [[nodiscard]] u64 SteamID() const;
+    [[nodiscard]] u8 Team() const;
+    [[nodiscard]] u8 LifeState() const;
+    [[nodiscard]] std::string WeaponName() const;
+    [[nodiscard]] std::vector<std::string> AllWeapons() const;
+    [[nodiscard]] WeaponClass GetWeaponClass() const;
+    [[nodiscard]] u64 GameSceneNode() const;
+    [[nodiscard]] bool IsDormant() const;
+    [[nodiscard]] glm::vec3 Position() const;
+    [[nodiscard]] glm::vec3 EyePosition() const;
+    [[nodiscard]] glm::vec3 BonePosition(Bones bone_index) const;
+    [[nodiscard]] f32 Rotation() const;
+    [[nodiscard]] i32 ShotsFired() const;
+    [[nodiscard]] f32 FovMultiplier() const;
+    [[nodiscard]] u64 SpottedMask() const;
+    [[nodiscard]] std::vector<std::pair<glm::vec3, glm::vec3>> AllBones() const;
+    [[nodiscard]] bool IsValid() const;
+    [[nodiscard]] bool IsFlashed() const;
     void NoFlash(f32 max_alpha) const;
-    void SetFov(const i32 fov) const;
-    glm::vec2 ViewAngles() const;
-    glm::vec2 AimPunch() const;
-    bool HasDefuser() const;
-    bool HasHelmet() const;
-    bool HasBomb() const;
-    std::optional<u64> SpectatorTarget() const;
+    void SetFov(i32 fov) const;
+    [[nodiscard]] glm::vec2 ViewAngles() const;
+    [[nodiscard]] glm::vec2 AimPunch() const;
+    [[nodiscard]] bool HasDefuser() const;
+    [[nodiscard]] bool HasHelmet() const;
+    [[nodiscard]] bool HasBomb() const;
+    [[nodiscard]] std::optional<u64> SpectatorTarget() const;
     // returns player with pawn only, no controller set
-    std::optional<Player> EntityInCrosshair() const;
-    bool IsScoped() const;
+    [[nodiscard]] std::optional<Player> EntityInCrosshair() const;
+    [[nodiscard]] bool IsScoped() const;
 
-    bool Equals(const Player &other) const {
+    [[nodiscard]] bool Equals(const Player &other) const {
         return pawn == other.pawn && controller == other.controller;
     }
 };

@@ -37,7 +37,7 @@ struct AimbotConfig {
     bool fov_circle = false;
     bool rcs = false;
 
-    toml::table to_toml() const;
+    [[nodiscard]] toml::table to_toml() const;
     static AimbotConfig from_toml(const toml::table &table);
 };
 
@@ -51,7 +51,7 @@ struct TriggerbotConfig {
     bool flash_check = true;
     bool scope_check = true;
 
-    toml::table to_toml() const;
+    [[nodiscard]] toml::table to_toml() const;
     static TriggerbotConfig from_toml(const toml::table &table);
 };
 
@@ -79,7 +79,7 @@ struct VisualsConfig {
     bool dynamic_font = false;
     bool debug_window = false;
 
-    toml::table to_toml() const;
+    [[nodiscard]] toml::table to_toml() const;
     static VisualsConfig from_toml(const toml::table &table);
 };
 
@@ -92,7 +92,7 @@ struct MiscConfig {
     bool no_flash = false;
     bool fov_changer = false;
 
-    toml::table to_toml() const;
+    [[nodiscard]] toml::table to_toml() const;
     static MiscConfig from_toml(const toml::table &table);
 };
 
@@ -104,7 +104,7 @@ struct Config {
 
     ImVec4 accent_color = Colors::BLUE;
 
-    toml::table to_toml() const;
+    [[nodiscard]] toml::table to_toml() const;
     static Config from_toml(const toml::table &table);
 };
 

@@ -9,6 +9,7 @@
 #include <chrono>
 #include <cmath>
 #include <log.hpp>
+#include <numbers>
 #include <string>
 #include <thread>
 
@@ -631,9 +632,8 @@ void Gui() {
         std::string overlay_fps =
             "FPS: " + std::to_string(static_cast<i32>(overlay_io.Framerate) + 1);
         OutlineText(
-            overlay_draw_list,
-            ImVec2 {static_cast<f32>(window_size.x) + 4.0f, static_cast<f32>(window_size.y) + 4.0f},
-            text_color, overlay_fps.c_str());
+            overlay_draw_list, ImVec2 {window_size.x + 4.0f, window_size.y + 4.0f}, text_color,
+            overlay_fps.c_str());
 
         if (config.visuals.debug_window) {
             // frame
@@ -836,12 +836,11 @@ void Gui() {
             if (config.aimbot.fov_circle && misc_info.in_game) {
                 const f32 pawn_fov =
                     config.misc.fov_changer ? static_cast<f32>(config.misc.desired_fov) : 90.0f;
-                const f32 radius = tanf(config.aimbot.fov / 180.f * M_PIf / 2.f) /
-                                   tanf(pawn_fov / 180.f * M_PIf / 2.f) *
-                                   static_cast<f32>(window_size.x) / 2.0f;
+                const f32 radius = tanf(config.aimbot.fov / 180.f * std::numbers::pi_v<f32> / 2.f) /
+                                   tanf(pawn_fov / 180.f * std::numbers::pi_v<f32> / 2.f) *
+                                   window_size.x / 2.0f;
                 const ImVec2 center {
-                    static_cast<f32>(window_size.x + window_size.z) / 2.0f,
-                    static_cast<f32>(window_size.y + window_size.w) / 2.0f};
+                    (window_size.x + window_size.z) / 2.0f, (window_size.y + window_size.w) / 2.0f};
                 overlay_draw_list->AddCircle(
                     center, radius, 0xFFFFFFFF, 0, config.visuals.line_width);
             }
@@ -851,8 +850,7 @@ void Gui() {
                 WeaponClassFromString(misc_info.held_weapon) == WeaponClass::Sniper) {
                 constexpr f32 crosshair_size = 32.0f;
                 const ImVec2 center {
-                    static_cast<f32>(window_size.x + window_size.z) / 2.0f,
-                    static_cast<f32>(window_size.y + window_size.w) / 2.0f};
+                    (window_size.x + window_size.z) / 2.0f, (window_size.y + window_size.w) / 2.0f};
                 const ImU32 color = IM_COL32(
                     config.visuals.crosshair_color.x * 255, config.visuals.crosshair_color.y * 255,
                     config.visuals.crosshair_color.z * 255, 255);

@@ -1,8 +1,10 @@
 #include "math.hpp"
 
+#include <numbers>
+
 #include "globals.hpp"
 
-f32 ToDegrees(const f32 value) { return value * 180.0f / M_PIf; }
+f32 ToDegrees(const f32 value) { return value * 180.0f / std::numbers::pi_v<f32>; }
 
 glm::vec2 AnglesFromVector(const glm::vec3 &forward) {
     f32 yaw = 0.0f;
@@ -24,7 +26,7 @@ glm::vec2 AnglesFromVector(const glm::vec3 &forward) {
         }
     }
 
-    return glm::vec2(pitch, yaw);
+    return {pitch, yaw};
 }
 
 f32 AnglesToFov(const glm::vec2 &view_angles, const glm::vec2 &aim_angles) {
@@ -55,7 +57,7 @@ void Vec2Clamp(glm::vec2 &vec) {
 }
 
 std::optional<glm::vec2> WorldToScreen(const glm::vec3 &position) {
-    glm::vec2 screen_position = glm::vec2 {
+    glm::vec2 screen_position {
         view_matrix[0].x * position.x + view_matrix[0].y * position.y +
             view_matrix[0].z * position.z + view_matrix[0].w,
         view_matrix[1].x * position.x + view_matrix[1].y * position.y +
@@ -71,18 +73,16 @@ std::optional<glm::vec2> WorldToScreen(const glm::vec3 &position) {
     screen_position.x /= w;
     screen_position.y /= w;
 
-    glm::vec2 xy {static_cast<f32>(window_size.z) * 0.5f, static_cast<f32>(window_size.w) * 0.5f};
+    const glm::vec2 xy {window_size.z * 0.5f, window_size.w * 0.5f};
 
-    screen_position.x = xy.x + 0.5f * screen_position.x * static_cast<f32>(window_size.z) + 0.5f;
-    screen_position.y = xy.y - 0.5f * screen_position.y * static_cast<f32>(window_size.w) + 0.5f;
+    screen_position.x = xy.x + 0.5f * screen_position.x * window_size.z + 0.5f;
+    screen_position.y = xy.y - 0.5f * screen_position.y * window_size.w + 0.5f;
 
-    screen_position.x += static_cast<f32>(window_size.x);
-    screen_position.y += static_cast<f32>(window_size.y);
+    screen_position.x += window_size.x;
+    screen_position.y += window_size.y;
 
-    if (screen_position.x < static_cast<f32>(window_size.x) ||
-        screen_position.x > static_cast<f32>(window_size.x + window_size.z) ||
-        screen_position.y < static_cast<f32>(window_size.y) ||
-        screen_position.y > static_cast<f32>(window_size.y + window_size.w)) {
+    if (screen_position.x < window_size.x || screen_position.x > window_size.x + window_size.z ||
+        screen_position.y < window_size.y || screen_position.y > window_size.y + window_size.w) {
         return std::nullopt;
     }
 

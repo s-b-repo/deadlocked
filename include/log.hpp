@@ -9,4 +9,4 @@ enum class LogLevel {
     Error,
 };
 
-void Log(LogLevel level, std::string message);
+void Log(LogLevel level, const std::string &message);

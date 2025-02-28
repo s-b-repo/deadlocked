@@ -103,7 +103,7 @@ void Style() {
     style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(1.0f, 1.0f, 1.0f, 0.31f);
 }
 
-void SetScale(f32 scale) {
+void SetScale(const f32 scale) {
     ImGuiStyle &style = ImGui::GetStyle();
     style.ScaleAllSizes(scale);
 }

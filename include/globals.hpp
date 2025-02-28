@@ -14,7 +14,7 @@ extern std::vector<PlayerInfo> enemy_info;
 extern std::vector<EntityInfo> entity_info;
 extern PlayerInfo local_player;
 extern glm::mat4 view_matrix;
-extern glm::ivec4 window_size;
+extern glm::vec4 window_size;
 extern MiscInfo misc_info;
 extern Flags flags;
 

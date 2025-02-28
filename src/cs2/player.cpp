@@ -174,7 +174,7 @@ glm::vec3 Player::Position() const {
 
 glm::vec3 Player::EyePosition() const {
     const glm::vec3 position = Position();
-    const glm::vec3 eye_offset = process.Read<glm::vec3>(pawn + offsets.pawn.eye_offset);
+    const auto eye_offset = process.Read<glm::vec3>(pawn + offsets.pawn.eye_offset);
 
     return position + eye_offset;
 }
@@ -211,8 +211,8 @@ std::vector<std::pair<glm::vec3, glm::vec3>> Player::AllBones() const {
     std::vector<std::pair<glm::vec3, glm::vec3>> connections {bone_connections.size()};
 
     i32 i = 0;
-    for (const auto &connection : bone_connections) {
-        connections[i] = {bones.at(connection.first), bones.at(connection.second)};
+    for (const auto &[first, second] : bone_connections) {
+        connections[i] = {bones.at(first), bones.at(second)};
         i++;
     }
 
@@ -291,7 +291,7 @@ bool Player::HasHelmet() const {
 
 bool Player::HasBomb() const {
     const std::vector<std::string> weapons = AllWeapons();
-    if (std::find(weapons.begin(), weapons.end(), "weapon_c4") != weapons.end()) {
+    if (std::ranges::find(weapons, "weapon_c4") != weapons.end()) {
         return true;
     }
     return false;
@@ -321,7 +321,7 @@ std::optional<Player> Player::EntityInCrosshair() const {
     if (!entity) {
         return std::nullopt;
     }
-    const Player player = Player {.controller = 0, .pawn = *entity};
+    const Player player {.controller = 0, .pawn = *entity};
     if (!player.IsValid()) {
         return std::nullopt;
     }

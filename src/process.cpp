@@ -37,9 +37,11 @@ std::optional<i32> GetPid(const std::string &process_name) {
     return std::nullopt;
 }
 
-bool ValidatePid(i32 pid) { return access(("/proc/" + std::to_string(pid)).c_str(), F_OK) == 0; }
+bool ValidatePid(const i32 pid) {
+    return access(("/proc/" + std::to_string(pid)).c_str(), F_OK) == 0;
+}
 
-std::optional<Process> OpenProcess(i32 pid) {
+std::optional<Process> OpenProcess(const i32 pid) {
     if (!ValidatePid(pid)) {
         return std::nullopt;
     }
@@ -50,25 +52,25 @@ std::optional<Process> OpenProcess(i32 pid) {
         .pid = pid, .mem = open(("/proc/" + std::to_string(pid) + "/mem").c_str(), O_RDWR)};
 }
 
-std::string Process::ReadString(u64 address) {
+std::string Process::ReadString(const u64 address) {
     std::string value;
     value.reserve(64);
     for (u64 i = address; i < address + 512; i += sizeof(u64)) {
-        u64 chunk = Read<u64>(i);
+        const u64 chunk = Read<u64>(i);
 
         // https://graphics.stanford.edu/~seander/bithacks.html
-        if (((chunk - 0x0101010101010101ULL) & ~chunk & 0x8080808080808080ULL) != 0) {
+        if ((chunk - 0x0101010101010101ULL & ~chunk & 0x8080808080808080ULL) != 0) {
             // at least one byte is null, process each individually
             // Process each byte individually.
             for (int offset = 0; offset < 8; ++offset) {
-                u8 byte = (chunk >> (offset * 8)) & 0xFF;
+                const u8 byte = (chunk >> (offset * 8)) & 0xFF;
                 if (byte == 0) return value;
                 value.push_back(byte);
             }
         } else {
             // no null, just append the chunk
             for (int offset = 0; offset < 8; ++offset) {
-                u8 byte = (chunk >> (offset * 8)) & 0xFF;
+                const u8 byte = (chunk >> (offset * 8)) & 0xFF;
                 value.push_back(byte);
             }
         }
@@ -76,16 +78,16 @@ std::string Process::ReadString(u64 address) {
     return value;
 }
 
-std::vector<u8> Process::ReadBytes(u64 address, u64 count) {
+std::vector<u8> Process::ReadBytes(const u64 address, const u64 count) const {
     const auto path = "/proc/" + std::to_string(pid) + "/mem";
-    i32 file = open(path.c_str(), O_RDONLY);
+    const i32 file = open(path.c_str(), O_RDONLY);
     std::vector<u8> buffer(count);
     pread(file, buffer.data(), count, address);
     close(file);
     return buffer;
 }
 
-std::optional<u64> Process::GetModuleBaseAddress(const std::string &module_name) {
+std::optional<u64> Process::GetModuleBaseAddress(const std::string &module_name) const {
     std::ifstream maps("/proc/" + std::to_string(pid) + "/maps");
     std::string line;
     while (std::getline(maps, line)) {
@@ -100,18 +102,17 @@ std::optional<u64> Process::GetModuleBaseAddress(const std::string &module_name)
                                        " was 0, input string was \"" + line +
                                        "\", extracted address was " + address_str);
             continue;
-        } else {
-            Log(LogLevel::Debug,
-                "module " + std::string(module_name) + " found at " + std::to_string(address));
-            return address;
         }
+        Log(LogLevel::Debug,
+            "module " + std::string(module_name) + " found at " + std::to_string(address));
+        return address;
     }
 
     Log(LogLevel::Warning, "could not find address for module " + std::string(module_name));
     return std::nullopt;
 }
 
-u64 Process::ModuleSize(u64 module_address) {
+u64 Process::ModuleSize(const u64 module_address) {
     const u64 section_header_offset = Read<u64>(module_address + ELF_SECTION_HEADER_OFFSET);
     const u64 section_header_entry_size = Read<u16>(module_address + ELF_SECTION_HEADER_ENTRY_SIZE);
     const u64 section_header_num_entries =
@@ -120,7 +121,7 @@ u64 Process::ModuleSize(u64 module_address) {
     return section_header_offset + section_header_entry_size * section_header_num_entries;
 }
 
-std::vector<u8> Process::DumpModule(u64 module_address) {
+std::vector<u8> Process::DumpModule(const u64 module_address) {
     const u64 module_size = ModuleSize(module_address);
     // should be 1 gb
     if (module_size == 0 || module_size > 1000000000) {
@@ -131,7 +132,8 @@ std::vector<u8> Process::DumpModule(u64 module_address) {
 }
 
 std::optional<u64> Process::ScanPattern(
-    std::vector<u8> pattern, std::vector<bool> mask, u64 length, u64 module_address) {
+    const std::vector<u8> &pattern, const std::vector<bool> &mask, const u64 length,
+    const u64 module_address) {
     const auto module = DumpModule(module_address);
     if (module.size() < 500) {
         return std::nullopt;
@@ -154,13 +156,14 @@ std::optional<u64> Process::ScanPattern(
     return std::nullopt;
 }
 
-u64 Process::GetRelativeAddress(u64 instruction, u64 offset, u64 instruction_size) {
+u64 Process::GetRelativeAddress(
+    const u64 instruction, const u64 offset, const u64 instruction_size) {
     const i32 rip_address = Read<i32>(instruction + offset);
     return instruction + instruction_size + rip_address;
 }
 
 std::optional<u64> Process::GetInterfaceOffset(
-    u64 module_address, const std::string &interface_name) {
+    const u64 module_address, const std::string &interface_name) {
     const std::optional<u64> create_interface = GetModuleExport(module_address, "CreateInterface");
     if (!create_interface) {
         Log(LogLevel::Error, "could not find CreateInterface export");
@@ -191,8 +194,9 @@ std::optional<u64> Process::GetInterfaceOffset(
     return std::nullopt;
 }
 
-std::optional<u64> Process::GetModuleExport(u64 module_address, const std::string &export_name) {
-    const u64 add = 0x18;
+std::optional<u64> Process::GetModuleExport(
+    const u64 module_address, const std::string &export_name) {
+    constexpr u64 add = 0x18;
 
     const std::optional<u64> string_table = GetAddressFromDynamicSection(module_address, 0x05);
     std::optional<u64> symbol_table = GetAddressFromDynamicSection(module_address, 0x06);
@@ -224,7 +228,7 @@ std::optional<u64> Process::GetAddressFromDynamicSection(u64 module_address, u64
         return std::nullopt;
     }
 
-    const u64 register_size = 8;
+    constexpr u64 register_size = 8;
     u64 address = Read<u64>(*dynamic_section_offset + 2 * register_size) + module_address;
 
     while (true) {
@@ -245,7 +249,7 @@ std::optional<u64> Process::GetAddressFromDynamicSection(u64 module_address, u64
     return std::nullopt;
 }
 
-std::optional<u64> Process::GetSegmentFromPht(u64 module_address, u64 tag) {
+std::optional<u64> Process::GetSegmentFromPht(const u64 module_address, const u64 tag) {
     const u64 first_entry = Read<u64>(module_address + ELF_PROGRAM_HEADER_OFFSET) + module_address;
     const u64 entry_size = Read<u16>(module_address + ELF_PROGRAM_HEADER_ENTRY_SIZE);
 
@@ -284,6 +288,6 @@ std::optional<u64> Process::GetConvar(u64 convar_offset, const std::string &conv
     return std::nullopt;
 }
 
-u64 Process::GetInterfaceFunction(u64 interface_address, u64 index) {
+u64 Process::GetInterfaceFunction(const u64 interface_address, const u64 index) {
     return Read<u64>(Read<u64>(interface_address) + (index * 8));
 }

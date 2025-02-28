@@ -2,9 +2,8 @@
 #include "cs2/features.hpp"
 #include "mouse.hpp"
 
-glm::vec2 mouse_movement(0.0);
+glm::vec2 mouse_movement {0.0f};
 
-// todo: rework
 void Rcs() {
     if (!config.aimbot.rcs) {
         return;
@@ -34,9 +33,9 @@ void Rcs() {
 
     const f32 sensitivity = Sensitivity() * local_player->FovMultiplier();
 
-    glm::vec2 mouse_angle = glm::vec2 {
+    const glm::vec2 mouse_angle {
         target.aim_punch.y / sensitivity * 25.0f, -target.aim_punch.x / sensitivity * 25.0f};
-    glm::vec2 delta = mouse_angle - mouse_movement;
+    const glm::vec2 delta = mouse_angle - mouse_movement;
 
     mouse_movement += glm::round(delta);
 

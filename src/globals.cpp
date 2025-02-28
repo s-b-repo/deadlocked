@@ -17,7 +17,7 @@ std::vector<PlayerInfo> enemy_info;
 std::vector<EntityInfo> entity_info;
 PlayerInfo local_player;
 glm::mat4 view_matrix;
-glm::ivec4 window_size;
+glm::vec4 window_size;
 MiscInfo misc_info;
 Flags flags;
 

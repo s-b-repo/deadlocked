@@ -4,7 +4,6 @@
 #include <optional>
 #include <process.hpp>
 
-#include "config.hpp"
 #include "cs2/bones.hpp"
 #include "cs2/offsets.hpp"
 #include "cs2/player.hpp"
@@ -40,8 +39,8 @@ std::optional<Offsets> FindOffsets();
 
 f32 Sensitivity();
 bool IsFfa();
-bool EntityHasOwner(const u64 entity);
-std::optional<std::string> GetEntityType(const u64 entity);
+bool EntityHasOwner(u64 entity);
+std::optional<std::string> GetEntityType(u64 entity);
 bool IsButtonPressed(const KeyCode &button);
 glm::vec2 TargetAngle(
     const glm::vec3 &eye_position, const glm::vec3 &position, const glm::vec2 &aim_punch);

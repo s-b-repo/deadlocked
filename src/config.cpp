@@ -35,19 +35,19 @@ toml::table AimbotConfig::to_toml() const {
         {"rcs", rcs}};
 }
 
-AimbotConfig AimbotConfig::from_toml(const toml::table &tbl) {
+AimbotConfig AimbotConfig::from_toml(const toml::table &table) {
     AimbotConfig cfg;
-    cfg.hotkey = static_cast<KeyCode>(tbl["hotkey"].value_or(static_cast<int>(cfg.hotkey)));
-    cfg.start_bullet = tbl["start_bullet"].value_or(cfg.start_bullet);
-    cfg.fov = tbl["fov"].value_or(cfg.fov);
-    cfg.smooth = tbl["smooth"].value_or(cfg.smooth);
-    cfg.enabled = tbl["enabled"].value_or(cfg.enabled);
-    cfg.aim_lock = tbl["aim_lock"].value_or(cfg.aim_lock);
-    cfg.visibility_check = tbl["visibility_check"].value_or(cfg.visibility_check);
-    cfg.multibone = tbl["multibone"].value_or(cfg.multibone);
-    cfg.flash_check = tbl["flash_check"].value_or(cfg.flash_check);
-    cfg.fov_circle = tbl["fov_circle"].value_or(cfg.fov_circle);
-    cfg.rcs = tbl["rcs"].value_or(cfg.rcs);
+    cfg.hotkey = static_cast<KeyCode>(table["hotkey"].value_or(static_cast<int>(cfg.hotkey)));
+    cfg.start_bullet = table["start_bullet"].value_or(cfg.start_bullet);
+    cfg.fov = table["fov"].value_or(cfg.fov);
+    cfg.smooth = table["smooth"].value_or(cfg.smooth);
+    cfg.enabled = table["enabled"].value_or(cfg.enabled);
+    cfg.aim_lock = table["aim_lock"].value_or(cfg.aim_lock);
+    cfg.visibility_check = table["visibility_check"].value_or(cfg.visibility_check);
+    cfg.multibone = table["multibone"].value_or(cfg.multibone);
+    cfg.flash_check = table["flash_check"].value_or(cfg.flash_check);
+    cfg.fov_circle = table["fov_circle"].value_or(cfg.fov_circle);
+    cfg.rcs = table["rcs"].value_or(cfg.rcs);
     return cfg;
 }
 
@@ -62,15 +62,15 @@ toml::table TriggerbotConfig::to_toml() const {
         {"scope_check", scope_check}};
 }
 
-TriggerbotConfig TriggerbotConfig::from_toml(const toml::table &tbl) {
+TriggerbotConfig TriggerbotConfig::from_toml(const toml::table &table) {
     TriggerbotConfig cfg;
-    cfg.hotkey = static_cast<KeyCode>(tbl["hotkey"].value_or(static_cast<int>(cfg.hotkey)));
-    cfg.delay_min = tbl["delay_min"].value_or(cfg.delay_min);
-    cfg.delay_max = tbl["delay_max"].value_or(cfg.delay_max);
-    cfg.enabled = tbl["enabled"].value_or(cfg.enabled);
-    cfg.visibility_check = tbl["visibility_check"].value_or(cfg.visibility_check);
-    cfg.flash_check = tbl["flash_check"].value_or(cfg.flash_check);
-    cfg.scope_check = tbl["scope_check"].value_or(cfg.scope_check);
+    cfg.hotkey = static_cast<KeyCode>(table["hotkey"].value_or(static_cast<int>(cfg.hotkey)));
+    cfg.delay_min = table["delay_min"].value_or(cfg.delay_min);
+    cfg.delay_max = table["delay_max"].value_or(cfg.delay_max);
+    cfg.enabled = table["enabled"].value_or(cfg.enabled);
+    cfg.visibility_check = table["visibility_check"].value_or(cfg.visibility_check);
+    cfg.flash_check = table["flash_check"].value_or(cfg.flash_check);
+    cfg.scope_check = table["scope_check"].value_or(cfg.scope_check);
     return cfg;
 }
 
@@ -98,30 +98,33 @@ toml::table VisualsConfig::to_toml() const {
         {"debug_window", debug_window}};
 }
 
-VisualsConfig VisualsConfig::from_toml(const toml::table &tbl) {
+VisualsConfig VisualsConfig::from_toml(const toml::table &table) {
     VisualsConfig cfg;
-    if (auto arr = tbl["text_color"].as_array()) cfg.text_color = array_to_imvec4(*arr);
-    if (auto arr = tbl["box_color"].as_array()) cfg.box_color = array_to_imvec4(*arr);
-    if (auto arr = tbl["skeleton_color"].as_array()) cfg.skeleton_color = array_to_imvec4(*arr);
-    if (auto arr = tbl["armor_color"].as_array()) cfg.armor_color = array_to_imvec4(*arr);
-    if (auto arr = tbl["crosshair_color"].as_array()) cfg.crosshair_color = array_to_imvec4(*arr);
+    if (const auto arr = table["text_color"].as_array()) cfg.text_color = array_to_imvec4(*arr);
+    if (const auto arr = table["box_color"].as_array()) cfg.box_color = array_to_imvec4(*arr);
+    if (const auto arr = table["skeleton_color"].as_array())
+        cfg.skeleton_color = array_to_imvec4(*arr);
+    if (const auto arr = table["armor_color"].as_array()) cfg.armor_color = array_to_imvec4(*arr);
+    if (const auto arr = table["crosshair_color"].as_array())
+        cfg.crosshair_color = array_to_imvec4(*arr);
 
-    cfg.overlay_fps = tbl["overlay_fps"].value_or(cfg.overlay_fps);
-    cfg.line_width = tbl["line_width"].value_or(cfg.line_width);
-    cfg.font_size = tbl["font_size"].value_or(cfg.font_size);
-    cfg.draw_box = static_cast<DrawStyle>(tbl["draw_box"].value_or(static_cast<int>(cfg.draw_box)));
-    cfg.draw_skeleton =
-        static_cast<DrawStyle>(tbl["draw_skeleton"].value_or(static_cast<int>(cfg.draw_skeleton)));
-    cfg.enabled = tbl["enabled"].value_or(cfg.enabled);
-    cfg.draw_health = tbl["draw_health"].value_or(cfg.draw_health);
-    cfg.draw_armor = tbl["draw_armor"].value_or(cfg.draw_armor);
-    cfg.draw_name = tbl["draw_name"].value_or(cfg.draw_name);
-    cfg.draw_weapon = tbl["draw_weapon"].value_or(cfg.draw_weapon);
-    cfg.draw_tags = tbl["draw_tags"].value_or(cfg.draw_tags);
-    cfg.dropped_weapons = tbl["dropped_weapons"].value_or(cfg.dropped_weapons);
-    cfg.sniper_crosshair = tbl["sniper_crosshair"].value_or(cfg.sniper_crosshair);
-    cfg.dynamic_font = tbl["dynamic_font"].value_or(cfg.dynamic_font);
-    cfg.debug_window = tbl["debug_window"].value_or(cfg.debug_window);
+    cfg.overlay_fps = table["overlay_fps"].value_or(cfg.overlay_fps);
+    cfg.line_width = table["line_width"].value_or(cfg.line_width);
+    cfg.font_size = table["font_size"].value_or(cfg.font_size);
+    cfg.draw_box =
+        static_cast<DrawStyle>(table["draw_box"].value_or(static_cast<int>(cfg.draw_box)));
+    cfg.draw_skeleton = static_cast<DrawStyle>(
+        table["draw_skeleton"].value_or(static_cast<int>(cfg.draw_skeleton)));
+    cfg.enabled = table["enabled"].value_or(cfg.enabled);
+    cfg.draw_health = table["draw_health"].value_or(cfg.draw_health);
+    cfg.draw_armor = table["draw_armor"].value_or(cfg.draw_armor);
+    cfg.draw_name = table["draw_name"].value_or(cfg.draw_name);
+    cfg.draw_weapon = table["draw_weapon"].value_or(cfg.draw_weapon);
+    cfg.draw_tags = table["draw_tags"].value_or(cfg.draw_tags);
+    cfg.dropped_weapons = table["dropped_weapons"].value_or(cfg.dropped_weapons);
+    cfg.sniper_crosshair = table["sniper_crosshair"].value_or(cfg.sniper_crosshair);
+    cfg.dynamic_font = table["dynamic_font"].value_or(cfg.dynamic_font);
+    cfg.debug_window = table["debug_window"].value_or(cfg.debug_window);
     return cfg;
 }
 
@@ -134,13 +137,13 @@ toml::table MiscConfig::to_toml() const {
         {"fov_changer", fov_changer}};
 }
 
-MiscConfig MiscConfig::from_toml(const toml::table &tbl) {
+MiscConfig MiscConfig::from_toml(const toml::table &table) {
     MiscConfig cfg;
-    cfg.radar_url = tbl["radar_url"].value_or(cfg.radar_url);
-    cfg.max_flash_alpha = tbl["max_flash_alpha"].value_or(cfg.max_flash_alpha);
-    cfg.desired_fov = tbl["desired_fov"].value_or(cfg.desired_fov);
-    cfg.no_flash = tbl["no_flash"].value_or(cfg.no_flash);
-    cfg.fov_changer = tbl["fov_changer"].value_or(cfg.fov_changer);
+    cfg.radar_url = table["radar_url"].value_or(cfg.radar_url);
+    cfg.max_flash_alpha = table["max_flash_alpha"].value_or(cfg.max_flash_alpha);
+    cfg.desired_fov = table["desired_fov"].value_or(cfg.desired_fov);
+    cfg.no_flash = table["no_flash"].value_or(cfg.no_flash);
+    cfg.fov_changer = table["fov_changer"].value_or(cfg.fov_changer);
     return cfg;
 }
 
@@ -153,16 +156,16 @@ toml::table Config::to_toml() const {
         {"accent_color", imvec4_to_array(accent_color)}};
 }
 
-Config Config::from_toml(const toml::table &tbl) {
+Config Config::from_toml(const toml::table &table) {
     Config cfg;
-    if (auto table_aimbot = tbl["aimbot"].as_table())
+    if (auto table_aimbot = table["aimbot"].as_table())
         cfg.aimbot = AimbotConfig::from_toml(*table_aimbot);
-    if (auto table_triggerbot = tbl["triggerbot"].as_table())
+    if (auto table_triggerbot = table["triggerbot"].as_table())
         cfg.triggerbot = TriggerbotConfig::from_toml(*table_triggerbot);
-    if (auto table_visuals = tbl["visuals"].as_table())
+    if (auto table_visuals = table["visuals"].as_table())
         cfg.visuals = VisualsConfig::from_toml(*table_visuals);
-    if (auto table_misc = tbl["misc"].as_table()) cfg.misc = MiscConfig::from_toml(*table_misc);
+    if (auto table_misc = table["misc"].as_table()) cfg.misc = MiscConfig::from_toml(*table_misc);
 
-    if (auto arr = tbl["accent_color"].as_array()) cfg.accent_color = array_to_imvec4(*arr);
+    if (auto arr = table["accent_color"].as_array()) cfg.accent_color = array_to_imvec4(*arr);
     return cfg;
 }

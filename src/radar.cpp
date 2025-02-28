@@ -14,10 +14,10 @@
 std::string uuid;
 bool radar_connected;
 
-class RadarWebSocket : public hv::WebSocketClient {
+class RadarWebSocket final : public hv::WebSocketClient {
   public:
-    RadarWebSocket(hv::EventLoopPtr loop = nullptr) : hv::WebSocketClient(loop) {}
-    ~RadarWebSocket() {}
+    explicit RadarWebSocket(const hv::EventLoopPtr &loop = nullptr) : hv::WebSocketClient(loop) {}
+    ~RadarWebSocket() override = default;
 
     void connect(const std::string &url) {
         onopen = [this]() {
