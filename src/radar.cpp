@@ -57,7 +57,7 @@ class RadarWebSocket : public hv::WebSocketClient {
 
 RadarWebSocket ws;
 
-void Radar() {
+[[noreturn]] void Radar() {
     ws.connect(config.misc.radar_url);
     // if this is not here the thread just dies
     while (true) {

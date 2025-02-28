@@ -43,15 +43,15 @@ Config LoadConfig() {
     std::ifstream file(ConfigPath());
     if (!file.good()) {
         Log(LogLevel::Warning, "config file invalid, laoding defaults");
-        return Config();
+        return {};
     }
 
     try {
         const auto data = toml::parse(file);
         return Config::from_toml(*data.as_table());
-    } catch (toml::parse_error) {
+    } catch (toml::parse_error&) {
         Log(LogLevel::Warning, "config file invalid, laoding defaults");
-        return Config();
+        return {};
     }
 }
 
