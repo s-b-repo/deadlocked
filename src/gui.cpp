@@ -339,7 +339,7 @@ void Gui() {
         }
 
         if (ImGui::BeginTabItem("Triggerbot")) {
-            ImVec2 available = ImGui::GetContentRegionAvail();
+            const ImVec2 available = ImGui::GetContentRegionAvail();
             ImGui::BeginChild("tab_items_triggerbot", available);
 
             ImGui::Checkbox("Enable", &config.triggerbot.enabled);
@@ -372,7 +372,7 @@ void Gui() {
         }
 
         if (ImGui::BeginTabItem("Visuals")) {
-            ImVec2 available = ImGui::GetContentRegionAvail();
+            const ImVec2 available = ImGui::GetContentRegionAvail();
             ImGui::BeginChild("tab_items_visuals", available);
 
             ImGui::Checkbox("Enable", &config.visuals.enabled);
@@ -438,7 +438,7 @@ void Gui() {
         }
 
         if (ImGui::BeginTabItem("Unsafe")) {
-            ImVec2 available = ImGui::GetContentRegionAvail();
+            const ImVec2 available = ImGui::GetContentRegionAvail();
             ImGui::BeginChild("tab_items_unsafe", available);
 
             ImGui::Checkbox("No Flash", &config.misc.no_flash);
@@ -453,7 +453,7 @@ void Gui() {
         }
 
         if (ImGui::BeginTabItem("Colors")) {
-            ImVec2 available = ImGui::GetContentRegionAvail();
+            const ImVec2 available = ImGui::GetContentRegionAvail();
             ImGui::BeginChild("tab_items_colors", available);
 
             ImGui::ColorEdit3("Text", &config.visuals.text_color.x);
@@ -471,14 +471,14 @@ void Gui() {
         }
 
         if (ImGui::BeginTabItem("Radar")) {
-            ImVec2 available = ImGui::GetContentRegionAvail();
+            const ImVec2 available = ImGui::GetContentRegionAvail();
             ImGui::BeginChild("tab_items_radar", available);
 
-            const auto status = radar_connected ? "Connected" : "Disconnected";
+            const char *status = radar_connected ? "Connected" : "Disconnected";
             ImGui::Text("Radar Status: ");
             ImGui::SameLine();
             ImGui::PushStyleColor(ImGuiCol_Text, radar_connected ? Colors::GREEN : Colors::YELLOW);
-            ImGui::Text(status);
+            ImGui::Text("%s", status);
             ImGui::PopStyleColor();
 
             if (radar_connected) {
@@ -504,7 +504,7 @@ void Gui() {
         }
 
         if (ImGui::BeginTabItem("Misc")) {
-            ImVec2 available = ImGui::GetContentRegionAvail();
+            const ImVec2 available = ImGui::GetContentRegionAvail();
             ImGui::BeginChild("tab_items_misc", available);
 
             if (ImGui::Button("Reset Config")) {
