@@ -7,6 +7,7 @@
 #include <imgui_impl_sdl3.h>
 
 #include <chrono>
+#include <cmath>
 #include <log.hpp>
 #include <string>
 #include <thread>
@@ -234,7 +235,9 @@ void Gui() {
         Log(LogLevel::Info, "detected display scale: " + std::to_string(scale));
     }
 
-    SDL_SetWindowSize(gui_window, width * scale, static_cast<i32>(height) * scale);
+    SDL_SetWindowSize(
+        gui_window, static_cast<i32>(static_cast<f32>(width) * scale),
+        static_cast<i32>(static_cast<f32>(height) * scale));
 
     ImGui::SetCurrentContext(gui_ctx);
     Style();
@@ -629,7 +632,7 @@ void Gui() {
             "FPS: " + std::to_string(static_cast<i32>(overlay_io.Framerate) + 1);
         OutlineText(
             overlay_draw_list,
-            ImVec2{static_cast<f32>(window_size.x + 4.0f), static_cast<f32>(window_size.y + 4.0f)},
+            ImVec2{static_cast<f32>(window_size.x) + 4.0f, static_cast<f32>(window_size.y) + 4.0f},
             text_color, overlay_fps.c_str());
 
         if (config.visuals.debug_window) {
@@ -746,7 +749,7 @@ void Gui() {
                     // adjust height based on health
                     const ImVec2 health_top{
                         top_left.x - 4.0f,
-                        bottom_left.y - box_height * static_cast<f32>(player.health / 100.0f)};
+                        bottom_left.y - box_height * static_cast<f32>(player.health) / 100.0f};
                     overlay_draw_list->AddLine(
                         health_bottom, health_top, health_color, config.visuals.line_width);
                 }
@@ -755,7 +758,7 @@ void Gui() {
                     const ImVec2 armor_bottom{bottom_left.x - 8, bottom_left.y};
                     const ImVec2 armor_top{
                         top_left.x - 8,
-                        bottom_left.y - box_height * static_cast<f32>(player.armor / 100.0f)};
+                        bottom_left.y - box_height * static_cast<f32>(player.armor) / 100.0f};
                     overlay_draw_list->AddLine(
                         armor_bottom, armor_top,
                         IM_COL32(
@@ -831,11 +834,14 @@ void Gui() {
 
             // fov circle
             if (config.aimbot.fov_circle && misc_info.in_game) {
-                const f32 pawn_fov = config.misc.fov_changer ? config.misc.desired_fov : 90.0f;
-                const f32 radius = tanf(config.aimbot.fov / 180.f * M_PI / 2.f) /
-                                   tanf(pawn_fov / 180.f * M_PI / 2.f) * window_size.x / 2.0f;
+                const f32 pawn_fov =
+                    config.misc.fov_changer ? static_cast<f32>(config.misc.desired_fov) : 90.0f;
+                const f32 radius = tanf(config.aimbot.fov / 180.f * M_PIf / 2.f) /
+                                   tanf(pawn_fov / 180.f * M_PIf / 2.f) *
+                                   static_cast<f32>(window_size.x) / 2.0f;
                 const ImVec2 center{
-                    window_size.x + window_size.z / 2.0f, window_size.y + window_size.w / 2.0f};
+                    static_cast<f32>(window_size.x + window_size.z) / 2.0f,
+                    static_cast<f32>(window_size.y + window_size.w) / 2.0f};
                 overlay_draw_list->AddCircle(
                     center, radius, 0xFFFFFFFF, 0, config.visuals.line_width);
             }

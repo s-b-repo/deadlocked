@@ -27,7 +27,7 @@ class RadarWebSocket : public hv::WebSocketClient {
         };
 
         // only message received should be id given to game
-        onmessage = [this](const std::string &message) {
+        onmessage = [](const std::string &message) {
             Log(LogLevel::Debug, "message: " + message);
 
             // is valid uuid length (32 hex digits + 4 dashes)
@@ -37,7 +37,7 @@ class RadarWebSocket : public hv::WebSocketClient {
             }
         };
 
-        onclose = [this]() {
+        onclose = []() {
             Log(LogLevel::Debug, "websocket connection closed");
             radar_connected = false;
         };
