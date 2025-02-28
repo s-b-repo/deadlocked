@@ -54,10 +54,11 @@ void Aimbot() {
 
     const f32 sensitivity = Sensitivity() * local_player->FovMultiplier();
 
-    const glm::vec2 xy{aim_angles.y / sensitivity * 50.0f, -aim_angles.x / sensitivity * 50.0f};
+    const glm::vec2 xy{aim_angles.y / sensitivity * 25.0f, -aim_angles.x / sensitivity * 25.0f};
     glm::vec2 smooth_angles;
-    if (!config.aimbot.aim_lock && config.aimbot.smooth > 1.0f) {
-        smooth_angles = glm::vec2{xy.x / config.aimbot.smooth, xy.y / config.aimbot.smooth};
+    if (!config.aimbot.aim_lock && config.aimbot.smooth > 0.0f) {
+        smooth_angles =
+            glm::vec2{xy.x / (config.aimbot.smooth + 1.0f), xy.y / (config.aimbot.smooth + 1.0f)};
     } else {
         smooth_angles = xy;
     }

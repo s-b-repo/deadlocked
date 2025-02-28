@@ -1,12 +1,13 @@
 #include "cs2/player.hpp"
 
+#include <algorithm>
 #include <optional>
 
 #include "cs2/cs2.hpp"
 
 std::optional<Player> Player::LocalPlayer() {
     const u64 controller = process.Read<u64>(offsets.direct.local_player);
-    if (controller == 0) {
+    if (!controller) {
         return std::nullopt;
     }
 
@@ -46,19 +47,19 @@ std::optional<Player> Player::Index(const u64 index) {
 }
 
 std::optional<u64> Player::Pawn(const u64 controller) {
-    const auto v1 = process.Read<i32>(controller + offsets.controller.pawn);
+    const u64 v1 = process.Read<i32>(controller + offsets.controller.pawn);
     if (v1 == -1) {
         return std::nullopt;
     }
 
     // what the fuck is this doing?
-    const auto v2 = process.Read<u64>(offsets.interface.player + 8 * ((v1 & 0x7FFF) >> 9));
+    const u64 v2 = process.Read<u64>(offsets.interface.player + 8 * ((v1 & 0x7FFF) >> 9));
     if (!v2) {
         return std::nullopt;
     }
 
     // bit-fuckery, why is this needed exactly?
-    const auto entity = process.Read<u64>(v2 + 120 * (v1 & 0x1FF));
+    const u64 entity = process.Read<u64>(v2 + 120 * (v1 & 0x1FF));
     if (!entity) {
         return std::nullopt;
     }
@@ -67,7 +68,7 @@ std::optional<u64> Player::Pawn(const u64 controller) {
 }
 
 i32 Player::Health() const {
-    const auto health = process.Read<i32>(pawn + offsets.pawn.health);
+    const i32 health = process.Read<i32>(pawn + offsets.pawn.health);
     if (health < 0 || health > 100) {
         return 0;
     }
@@ -75,7 +76,7 @@ i32 Player::Health() const {
 }
 
 i32 Player::Armor() const {
-    const auto armor = process.Read<i32>(pawn + offsets.pawn.armor);
+    const i32 armor = process.Read<i32>(pawn + offsets.pawn.armor);
     if (armor < 0 || armor > 100) {
         return 0;
     }
@@ -83,7 +84,7 @@ i32 Player::Armor() const {
 }
 
 std::string Player::Name() const {
-    const auto name_address = process.Read<u64>(controller + offsets.controller.name);
+    const u64 name_address = process.Read<u64>(controller + offsets.controller.name);
     if (!name_address) {
         return std::string{"?"};
     }
@@ -99,22 +100,22 @@ u8 Player::LifeState() const { return process.Read<u8>(pawn + offsets.pawn.life_
 
 std::string Player::WeaponName() const {
     // CEntityInstance
-    const auto weapon_entity_instance = process.Read<u64>(pawn + offsets.pawn.weapon);
-    if (weapon_entity_instance == 0) {
+    const u64 weapon_entity_instance = process.Read<u64>(pawn + offsets.pawn.weapon);
+    if (!weapon_entity_instance) {
         return std::string{"?"};
     }
     // CEntityIdentity, 0x10 = m_pEntity
-    const auto weapon_entity_identity = process.Read<u64>(weapon_entity_instance + 0x10);
-    if (weapon_entity_identity == 0) {
+    const u64 weapon_entity_identity = process.Read<u64>(weapon_entity_instance + 0x10);
+    if (!weapon_entity_identity) {
         return std::string{"?"};
     }
     // 0x20 = m_designerName (pointer -> string)
-    const auto weapon_name_pointer = process.Read<u64>(weapon_entity_identity + 0x20);
-    if (weapon_name_pointer == 0) {
+    const u64 weapon_name_pointer = process.Read<u64>(weapon_entity_identity + 0x20);
+    if (!weapon_name_pointer) {
         return std::string{"?"};
     }
 
-    auto name = process.ReadString(weapon_name_pointer);
+    std::string name = process.ReadString(weapon_name_pointer);
     if (name.find("weapon_") != std::string::npos) {
         name = name.substr(7);
     } else {
@@ -135,22 +136,22 @@ std::vector<std::string> Player::AllWeapons() const {
     for (u64 i = 0; i < length; i++) {
         const u64 weapon_index = process.Read<u32>(weapon_list + (0x04 * i)) & 0xFFF;
         // CEntityInstance
-        const auto weapon_entity_instance = ClientEntity(weapon_index);
+        const std::optional<u64> weapon_entity_instance = ClientEntity(weapon_index);
         if (!weapon_entity_instance) {
             continue;
         }
         // CEntityIdentity, 0x10 = m_pEntity
         const u64 weapon_entity_identity = process.Read<u64>(*weapon_entity_instance + 0x10);
-        if (weapon_entity_identity == 0) {
+        if (!weapon_entity_identity) {
             continue;
         }
         // 0x20 = m_designerName (pointer -> string)
         const u64 weapon_name_pointer = process.Read<u64>(weapon_entity_identity + 0x20);
-        if (weapon_name_pointer == 0) {
+        if (!weapon_name_pointer) {
             continue;
         }
 
-        const auto name = process.ReadString(weapon_name_pointer);
+        const std::string name = process.ReadString(weapon_name_pointer);
         if (name.find("weapon_") != std::string::npos) {
             weapons.push_back(name.substr(7));
         }
@@ -159,33 +160,28 @@ std::vector<std::string> Player::AllWeapons() const {
     return weapons;
 }
 
-WeaponClass Player::GetWeaponClass() const {
-    const auto name = WeaponName();
-    return WeaponClassFromString(name);
-}
+WeaponClass Player::GetWeaponClass() const { return WeaponClassFromString(WeaponName()); }
 
 u64 Player::GameSceneNode() const { return process.Read<u64>(pawn + offsets.pawn.game_scene_node); }
 
 bool Player::IsDormant() const {
-    const u64 gs_node = GameSceneNode();
-    return process.Read<u8>(gs_node + offsets.game_scene_node.dormant) != 0;
+    return process.Read<u8>(GameSceneNode() + offsets.game_scene_node.dormant) != 0;
 }
 
 glm::vec3 Player::Position() const {
-    const u64 gs_node = GameSceneNode();
-    return process.Read<glm::vec3>(gs_node + offsets.game_scene_node.origin);
+    return process.Read<glm::vec3>(GameSceneNode() + offsets.game_scene_node.origin);
 }
 
 glm::vec3 Player::EyePosition() const {
     const glm::vec3 position = Position();
-    const auto eye_offset = process.Read<glm::vec3>(pawn + offsets.pawn.eye_offset);
+    const glm::vec3 eye_offset = process.Read<glm::vec3>(pawn + offsets.pawn.eye_offset);
 
     return position + eye_offset;
 }
 
 glm::vec3 Player::BonePosition(Bones bone_index) const {
-    const u64 gs_node = GameSceneNode();
-    const u64 bone_data = process.Read<u64>(gs_node + offsets.game_scene_node.model_state + 0x80);
+    const u64 bone_data =
+        process.Read<u64>(GameSceneNode() + offsets.game_scene_node.model_state + 0x80);
 
     if (bone_data == 0) {
         return glm::vec3(0.0f);
@@ -212,7 +208,7 @@ std::vector<std::pair<glm::vec3, glm::vec3>> Player::AllBones() const {
         bones.insert({bone, position});
     }
 
-    std::vector<std::pair<glm::vec3, glm::vec3>> connections(bone_connections.size());
+    std::vector<std::pair<glm::vec3, glm::vec3>> connections{bone_connections.size()};
 
     i32 i = 0;
     for (const auto connection : bone_connections) {
@@ -243,20 +239,16 @@ bool Player::IsFlashed() const {
     return process.Read<f32>(pawn + offsets.pawn.flash_duration) > 0.2f;
 }
 
-void Player::NoFlash(f32 max_alpha) const {
-    if (max_alpha < 0.0f) {
-        max_alpha = 0.0f;
-    } else if (max_alpha > 255.0f) {
-        max_alpha = 255.0f;
-    }
+void Player::NoFlash(const f32 max_alpha) const {
+    const f32 clamped_alpha = std::clamp(max_alpha, 0.0f, 255.0f);
     if (process.Read<f32>(pawn + offsets.pawn.flash_alpha) != max_alpha) {
         process.Write<f32>(pawn + offsets.pawn.flash_alpha, max_alpha);
     }
 }
 
 void Player::SetFov(i32 fov) const {
-    u64 camera_service = process.Read<u64>(pawn + offsets.pawn.camera_services);
-    if (camera_service == 0) {
+    const u64 camera_service = process.Read<u64>(pawn + offsets.pawn.camera_services);
+    if (!camera_service) {
         return;
     }
     if (process.Read<u32>(camera_service + offsets.camera_service.fov) != fov) {
@@ -296,37 +288,10 @@ bool Player::HasHelmet() const {
 }
 
 bool Player::HasBomb() const {
-    const u64 weapon_service = process.Read<u64>(pawn + offsets.pawn.weapon_services);
-    if (!weapon_service) {
-        return false;
+    const std::vector<std::string> weapons = AllWeapons();
+    if (std::find(weapons.begin(), weapons.end(), "weapon_c4") != weapons.end()) {
+        return true;
     }
-    const u64 length = process.Read<u64>(weapon_service + offsets.weapon_service.weapons);
-    const u64 weapon_list =
-        process.Read<u64>(weapon_service + offsets.weapon_service.weapons + 0x08);
-    for (u64 i = 0; i < length; i++) {
-        const u64 weapon_index = process.Read<u32>(weapon_list + (0x04 * i)) & 0xFFF;
-        // CEntityInstance
-        const auto weapon_entity_instance = ClientEntity(weapon_index);
-        if (!weapon_entity_instance) {
-            continue;
-        }
-        // CEntityIdentity, 0x10 = m_pEntity
-        const u64 weapon_entity_identity = process.Read<u64>(*weapon_entity_instance + 0x10);
-        if (weapon_entity_identity == 0) {
-            continue;
-        }
-        // 0x20 = m_designerName (pointer -> string)
-        const u64 weapon_name_pointer = process.Read<u64>(weapon_entity_identity + 0x20);
-        if (weapon_name_pointer == 0) {
-            continue;
-        }
-
-        auto name = process.ReadString(weapon_name_pointer);
-        if (name.find("weapon_c4") != std::string::npos) {
-            return true;
-        }
-    }
-
     return false;
 }
 
@@ -343,13 +308,14 @@ std::optional<u64> Player::SpectatorTarget() const {
     return controller;
 }
 
+// returns player with pawn only!
 std::optional<Player> Player::EntityInCrosshair() const {
     const i32 index = process.Read<i32>(pawn + offsets.pawn.crosshair_entity);
     if (index == -1) {
         return std::nullopt;
     }
 
-    const auto entity = Player::ClientEntity(index);
+    const std::optional<u64> entity = Player::ClientEntity(index);
     if (!entity) {
         return std::nullopt;
     }

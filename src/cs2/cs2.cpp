@@ -623,19 +623,21 @@ bool FindTarget() {
     }
 
     // update target angle
-    smallest_fov = 360.0f;
-    for (const Bones bone : all_bones) {
-        const glm::vec3 bone_position = target.player->BonePosition(bone);
-        const f32 distance = glm::distance(eye_position, bone_position);
-        const glm::vec2 angle = TargetAngle(eye_position, bone_position, aim_punch);
-        const f32 fov = AnglesToFov(view_angles, angle);
+    if (config.aimbot.multibone) {
+        smallest_fov = 360.0f;
+        for (const Bones bone : all_bones) {
+            const glm::vec3 bone_position = target.player->BonePosition(bone);
+            const f32 distance = glm::distance(eye_position, bone_position);
+            const glm::vec2 angle = TargetAngle(eye_position, bone_position, aim_punch);
+            const f32 fov = AnglesToFov(view_angles, angle);
 
-        if (fov < smallest_fov) {
-            smallest_fov = fov;
+            if (fov < smallest_fov) {
+                smallest_fov = fov;
 
-            target.angle = angle;
-            target.distance = distance;
-            target.bone_index = bone;
+                target.angle = angle;
+                target.distance = distance;
+                target.bone_index = bone;
+            }
         }
     }
 
@@ -711,8 +713,7 @@ void VisualInfo() {
         if (!gs_node) {
             continue;
         }
-        const auto position =
-            process.Read<glm::vec3>(gs_node + offsets.game_scene_node.origin);
+        const auto position = process.Read<glm::vec3>(gs_node + offsets.game_scene_node.origin);
 
         entity_info_new.push_back(EntityInfo{.name = *name, .position = position});
     }

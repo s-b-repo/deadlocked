@@ -325,7 +325,7 @@ void Gui() {
             ImGui::DragFloat("FOV", &config.aimbot.fov, 0.02f, 0.1f, 360.0f, "%.1f");
 
             ImGui::Checkbox("Aim Lock", &config.aimbot.aim_lock);
-            ImGui::DragFloat("Smooth", &config.aimbot.smooth, 0.02f, 1.0f, 10.0f, "%.1f");
+            ImGui::DragFloat("Smooth", &config.aimbot.smooth, 0.02f, 0.0f, 10.0f, "%.1f");
 
             ImGui::Checkbox("RCS", &config.aimbot.rcs);
 
