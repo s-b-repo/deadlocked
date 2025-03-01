@@ -65,13 +65,13 @@ std::string Process::ReadString(const u64 address) {
             for (int offset = 0; offset < 8; ++offset) {
                 const u8 byte = (chunk >> (offset * 8)) & 0xFF;
                 if (byte == 0) return value;
-                value.push_back(byte);
+                value.push_back(static_cast<char>(byte));
             }
         } else {
             // no null, just append the chunk
             for (int offset = 0; offset < 8; ++offset) {
                 const u8 byte = (chunk >> (offset * 8)) & 0xFF;
-                value.push_back(byte);
+                value.push_back(static_cast<char>(byte));
             }
         }
     }
@@ -82,7 +82,7 @@ std::vector<u8> Process::ReadBytes(const u64 address, const u64 count) const {
     const auto path = "/proc/" + std::to_string(pid) + "/mem";
     const i32 file = open(path.c_str(), O_RDONLY);
     std::vector<u8> buffer(count);
-    pread(file, buffer.data(), count, address);
+    pread(file, buffer.data(), count, static_cast<long>(address));
     close(file);
     return buffer;
 }
@@ -100,7 +100,7 @@ std::optional<u64> Process::GetModuleBaseAddress(const std::string &module_name)
         if (address == 0) {
             Log(LogLevel::Warning, "address for module " + std::string(module_name) +
                                        " was 0, input string was \"" + line +
-                                       "\", extracted address was " + address_str);
+                                       "\", extracted address was " += address_str);
             continue;
         }
         Log(LogLevel::Debug,
@@ -126,7 +126,7 @@ std::vector<u8> Process::DumpModule(const u64 module_address) {
     // should be 1 gb
     if (module_size == 0 || module_size > 1000000000) {
         Log(LogLevel::Error, "could not dump module at " + std::to_string(module_address));
-        return std::vector<u8>();
+        return {};
     }
     return ReadBytes(module_address, module_size);
 }
@@ -265,7 +265,7 @@ std::optional<u64> Process::GetSegmentFromPht(const u64 module_address, const u6
     return std::nullopt;
 }
 
-std::optional<u64> Process::GetConvar(u64 convar_offset, const std::string &convar_name) {
+std::optional<u64> Process::GetConvar(const u64 convar_offset, const std::string &convar_name) {
     if (convar_offset == 0) {
         return std::nullopt;
     }

@@ -485,14 +485,14 @@ void Gui() {
                 if (ImGui::Button("Open Radar")) {
                     std::string url_base = config.misc.radar_url;
                     url_base.replace(0, 5, "http://");
-                    const std::string command = "xdg-open " + url_base + "/?game=" + uuid;
+                    const std::string command = "xdg-open " + url_base + "/?game=" += uuid;
                     system(command.c_str());
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Copy Link")) {
                     std::string url_base = config.misc.radar_url;
                     url_base.replace(0, 5, "http://");
-                    const std::string link = url_base + "/?game=" + uuid;
+                    const std::string link = url_base + "/?game=" += uuid;
                     ImGui::SetClipboardText(link.c_str());
                 }
             }
@@ -888,6 +888,11 @@ void Gui() {
         const auto us =
             std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
         const auto frame_time = std::chrono::microseconds(1000000 / config.visuals.overlay_fps);
+        if (us > frame_time) {
+            Log(LogLevel::Warning, "visuals thread took " + std::to_string(us.count() / 1000) +
+                                       " ms, max is " + std::to_string(frame_time.count() / 1000) +
+                                       " ms");
+        }
         std::this_thread::sleep_for(frame_time - us);
         // glfwPollEvents();
     }

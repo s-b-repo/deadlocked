@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-LogLevel filter_level {LogLevel::Info};
+auto filter_level {LogLevel::Info};
 
 void SetLogLevel(const LogLevel level) { filter_level = level; }
 
@@ -16,6 +16,8 @@ std::string LogLevelString(const LogLevel level) {
             return "Warning";
         case LogLevel::Error:
             return "Error";
+        case LogLevel::Off:
+            return "?";
     }
     return "?";
 }
