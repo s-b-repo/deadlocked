@@ -42,15 +42,15 @@ void Triggerbot() {
         return;
     }
 
-    if (crosshair_entity->Team() == local_player->Team()) {
+    if (!IsFfa() && crosshair_entity->Team() == local_player->Team()) {
         return;
     }
 
     std::random_device dev;
-    std::mt19937 rng{dev()};
+    std::mt19937 rng {dev()};
     const f32 mean =
         static_cast<f32>(config.triggerbot.delay_min + config.triggerbot.delay_max) / 2.0f;
-    std::normal_distribution<f32> normal{
+    std::normal_distribution<f32> normal {
         mean, static_cast<f32>(config.triggerbot.delay_max - config.triggerbot.delay_min) / 2.0f};
 
     const i32 delay = static_cast<i32>(normal(rng));
