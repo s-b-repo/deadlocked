@@ -1,3 +1,3 @@
 #pragma once
 
-[[noreturn]] void Radar();
+void Radar();
