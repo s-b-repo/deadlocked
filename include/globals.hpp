@@ -17,6 +17,3 @@ extern glm::mat4 view_matrix;
 extern glm::vec4 window_size;
 extern MiscInfo misc_info;
 extern Flags flags;
-
-extern std::string uuid;
-extern bool radar_connected;

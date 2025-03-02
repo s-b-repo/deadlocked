@@ -21,7 +21,6 @@
 #include "font.hpp"
 #include "globals.hpp"
 #include "math.hpp"
-#include "radar.hpp"
 #include "style.hpp"
 #include "types.hpp"
 
@@ -72,45 +71,6 @@ void PushButtonStyle(const ImVec4 color) {
 }
 
 void PopButtonStyle() { ImGui::PopStyleColor(4); }
-
-struct InputTextCallback_UserData {
-    std::string *Str;
-    ImGuiInputTextCallback ChainCallback;
-    void *ChainCallbackUserData;
-};
-
-static int InputTextCallback(ImGuiInputTextCallbackData *data) {
-    const auto *user_data = static_cast<InputTextCallback_UserData *>(data->UserData);
-    if (data->EventFlag == ImGuiInputTextFlags_CallbackResize) {
-        // Resize string callback
-        // If for some reason we refuse the new length (BufTextLen) and/or capacity (BufSize) we
-        // need to set them back to what we want.
-        std::string *str = user_data->Str;
-        IM_ASSERT(data->Buf == str->c_str());
-        str->resize(data->BufTextLen);
-        data->Buf = (char *)str->c_str();
-    } else if (user_data->ChainCallback) {
-        // Forward to user callback, if any
-        data->UserData = user_data->ChainCallbackUserData;
-        return user_data->ChainCallback(data);
-    }
-    return 0;
-}
-
-bool InputText(
-    const char *label, std::string *str, ImGuiInputTextFlags flags = 0,
-    const ImGuiInputTextCallback callback = nullptr, void *user_data = nullptr) {
-    IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
-    flags |= ImGuiInputTextFlags_CallbackResize;
-
-    InputTextCallback_UserData cb_user_data {};
-    cb_user_data.Str = str;
-    cb_user_data.ChainCallback = callback;
-    cb_user_data.ChainCallbackUserData = user_data;
-    return ImGui::InputText(
-        label, const_cast<char *>(str->c_str()), str->capacity() + 1, flags, InputTextCallback,
-        &cb_user_data);
-}
 
 void Gui() {
     SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
@@ -262,7 +222,6 @@ void Gui() {
     ImGui_ImplOpenGL3_Init("#version 130");
 
     std::thread cs2(CS2);
-    std::thread radar(Radar);
 
     bool should_close = false;
     auto save_timer = std::chrono::steady_clock::now();
@@ -465,39 +424,6 @@ void Gui() {
             ImGui::ColorEdit3("Armor", &config.visuals.armor_color.x);
 
             ImGui::ColorEdit3("Crosshair", &config.visuals.crosshair_color.x);
-
-            ImGui::EndChild();
-            ImGui::EndTabItem();
-        }
-
-        if (ImGui::BeginTabItem("Radar")) {
-            const ImVec2 available = ImGui::GetContentRegionAvail();
-            ImGui::BeginChild("tab_items_radar", available);
-
-            const char *status = radar_connected ? "Connected" : "Disconnected";
-            ImGui::Text("Radar Status: ");
-            ImGui::SameLine();
-            ImGui::PushStyleColor(ImGuiCol_Text, radar_connected ? Colors::GREEN : Colors::YELLOW);
-            ImGui::Text("%s", status);
-            ImGui::PopStyleColor();
-
-            if (radar_connected) {
-                if (ImGui::Button("Open Radar")) {
-                    std::string url_base = config.misc.radar_url;
-                    url_base.replace(0, 5, "http://");
-                    const std::string command = "xdg-open " + url_base + "/?game=" += uuid;
-                    system(command.c_str());
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Copy Link")) {
-                    std::string url_base = config.misc.radar_url;
-                    url_base.replace(0, 5, "http://");
-                    const std::string link = url_base + "/?game=" += uuid;
-                    ImGui::SetClipboardText(link.c_str());
-                }
-            }
-
-            InputText("Radar URL", &config.misc.radar_url);
 
             ImGui::EndChild();
             ImGui::EndTabItem();

@@ -5,10 +5,6 @@
 
 simple cs2 aimbot and esp, for linux only.
 
-> [!CAUTION]
-> vacnet 3.0 seems to be better at detecting aimbot and wallhacks, so **do not** use aim lock,
-> and play with a low fov to avoid bans. use visuals sparingly.
-
 ## features
 
 - aimbot
@@ -46,6 +42,10 @@ simple cs2 aimbot and esp, for linux only.
 > do not use them unless you are fine with risking a ban.
 > they write to game memory.
 
+> [!CAUTION]
+> vacnet 3.0 seems to be better at detecting aimbot and wallhacks, so **do not** use aim lock,
+> and play with a low fov to avoid bans. use visuals sparingly.
+
 ## setup
 
 - add your user to the `input` group: `sudo usermod -aG input USERNAME` (replace USERNAME with your actual username)
@@ -56,7 +56,6 @@ simple cs2 aimbot and esp, for linux only.
 ## running
 
 - execute the run script: `./run.sh`
-- for the radar, look [here](radar/readme.md)
 
 ## flags
 

@@ -26,17 +26,16 @@ set(SDL_INSTALL_DOCS OFF CACHE BOOL "disable sdl docs" FORCE)
 
 add_subdirectory(lib/glm)
 add_subdirectory(lib/sdl)
-add_subdirectory(lib/libhv)
 
 target_link_libraries(deadlocked PRIVATE glm::glm)
 target_link_libraries(deadlocked PRIVATE OpenGL)
 target_link_libraries(deadlocked PRIVATE SDL3::SDL3)
-target_link_libraries(deadlocked PRIVATE hv_static)
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     target_compile_options(deadlocked PRIVATE "-g3" "-Wall" "-Wextra" "-Wconversion"
     "-Wdouble-promotion" "-Wno-unused-parameter" "-Wno-unused-function"
-    "-Wno-sign-conversion")
+    "-Wno-sign-conversion" "-fsanitize=thread")
+    target_link_options(deadlocked PRIVATE "-fsanitize=thread")
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
