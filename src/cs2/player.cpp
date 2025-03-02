@@ -1,7 +1,6 @@
 #include "cs2/player.hpp"
 
 #include <algorithm>
-#include <ranges>
 #include <optional>
 
 #include "cs2/cs2.hpp"
@@ -292,7 +291,7 @@ bool Player::HasHelmet() const {
 
 bool Player::HasBomb() const {
     const std::vector<std::string> weapons = AllWeapons();
-    if (std::ranges::find(weapons, "weapon_c4") != weapons.end()) {
+    if (std::find(weapons.begin(), weapons.end(), "weapon_c4") != weapons.end()) {
         return true;
     }
     return false;
