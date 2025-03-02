@@ -1,6 +1,7 @@
 #include "cs2/player.hpp"
 
 #include <algorithm>
+#include <ranges>
 #include <optional>
 
 #include "cs2/cs2.hpp"
