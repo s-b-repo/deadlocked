@@ -44,9 +44,9 @@ class Process {
     }
 
     std::string ReadString(u64 address);
-    [[nodiscard]] std::vector<u8> ReadBytes(u64 address, u64 count) const;
+    std::vector<u8> ReadBytes(u64 address, u64 count) const;
 
-    [[nodiscard]] std::optional<u64> GetModuleBaseAddress(const std::string &module_name) const;
+    std::optional<u64> GetModuleBaseAddress(const std::string &module_name) const;
     u64 ModuleSize(u64 module_address);
     std::vector<u8> DumpModule(u64 module_address);
     std::optional<u64> ScanPattern(

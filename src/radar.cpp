@@ -62,6 +62,9 @@ RadarWebSocket ws;
     // if this is not here the thread just dies
     while (true) {
         config_lock.lock();
+        if (flags.should_quit) {
+            break;
+        }
         if (ws.url != config.misc.radar_url) {
             ws.close();
             ws.open(config.misc.radar_url.c_str());

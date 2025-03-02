@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdbool>
 #include <cstdint>
 
 typedef uint8_t u8;

@@ -220,7 +220,7 @@ std::optional<u64> Process::GetModuleExport(
     return std::nullopt;
 }
 
-std::optional<u64> Process::GetAddressFromDynamicSection(u64 module_address, u64 tag) {
+std::optional<u64> Process::GetAddressFromDynamicSection(const u64 module_address, const u64 tag) {
     const std::optional<u64> dynamic_section_offset =
         GetSegmentFromPht(module_address, ELF_DYNAMIC_SECTION_PHT_TYPE);
     if (!dynamic_section_offset) {

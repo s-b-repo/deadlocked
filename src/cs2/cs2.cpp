@@ -740,7 +740,7 @@ void VisualInfo() {
     view_matrix = process.Read<glm::mat4>(offsets.direct.view_matrix);
     const u64 sdl_window = process.Read<u64>(offsets.direct.sdl_window);
     if (sdl_window == 0) {
-        window_size = glm::ivec4(0);
+        window_size = glm::ivec4 {0};
     } else {
         window_size = process.Read<glm::ivec4>(sdl_window + 0x18);
     }
