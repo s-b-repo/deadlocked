@@ -171,8 +171,9 @@ void Gui() {
         Log(LogLevel::Error, "could not create overlay window");
         return;
     }
+    SDL_SetWindowPosition(overlay, 0, 0);
+
     // inherits position from parent window
-    // SDL_SetWindowPosition(overlay, minX, minY);
     SDL_GLContext overlay_gl = SDL_GL_CreateContext(overlay);
     if (!overlay_gl) {
         Log(LogLevel::Error, "failed to initialize opengl context for overlay window");
@@ -181,8 +182,6 @@ void Gui() {
     }
     SDL_GL_MakeCurrent(overlay, overlay_gl);
     SDL_GL_SetSwapInterval(0);
-
-    SDL_SetWindowPosition(temp, 0, 0);
 
     SDL_ShowWindow(overlay);
     SDL_ShowWindow(gui_window);

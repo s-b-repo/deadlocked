@@ -22,18 +22,18 @@ void Aimbot() {
     }
 
     if (config.aimbot.visibility_check) {
-        const u64 spotted_mask = target.player->SpottedMask();
-        if ((spotted_mask & (1 << target.local_pawn_index)) == 0) {
+        if ((target.player->SpottedMask() & (1 << target.local_pawn_index)) == 0) {
             return;
         }
     }
 
-    glm::vec2 target_angle;
+    glm::vec2 target_angle {};
     if (config.aimbot.multibone) {
         target_angle = target.angle;
     } else {
-        const glm::vec3 head_position = target.player->BonePosition(Bones::Head);
-        target_angle = TargetAngle(local_player->EyePosition(), head_position, target.aim_punch);
+        target_angle = TargetAngle(
+            local_player->EyePosition(), target.player->BonePosition(Bones::Head),
+            target.aim_punch);
     }
 
     const glm::vec2 view_angles = local_player->ViewAngles();
