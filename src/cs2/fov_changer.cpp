@@ -1,5 +1,3 @@
-#include <algorithm>
-
 #include "cs2/features.hpp"
 #include "cs2/player.hpp"
 #include "globals.hpp"
@@ -11,7 +9,7 @@ void FovChanger() {
     }
 
     if (config.misc.fov_changer) {
-        local_player->SetFov(std::clamp(config.misc.desired_fov, 1, 179));
+        local_player->SetFov(config.misc.desired_fov);
     } else {
         local_player->SetFov(90);
     }

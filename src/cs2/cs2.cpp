@@ -252,18 +252,19 @@ std::optional<Offsets> FindOffsets() {
         const u64 entry = (reinterpret_cast<u64>(client_dump) + i);
 
         bool network_enable = false;
-        u64 network_enable_name_pointer = *reinterpret_cast<u64 *>(entry);
+        const u64 network_enable_pointer = *reinterpret_cast<u64 *>(entry);
 
-        if (network_enable_name_pointer == 0) {
+        if (network_enable_pointer == 0) {
             continue;
         }
 
-        if (network_enable_name_pointer >= base && network_enable_name_pointer <= base + size) {
-            network_enable_name_pointer =
-                *(u64 *)(network_enable_name_pointer - base + client_dump);
+        if (network_enable_pointer >= base && network_enable_pointer <= base + size) {
+            const u64 network_enable_name_pointer =
+                *reinterpret_cast<const u64 *>(network_enable_pointer - base + client_dump);
             if (network_enable_name_pointer >= base && network_enable_name_pointer <= base + size) {
-                const auto name = (char *)(network_enable_name_pointer - base + client_dump);
-                if (!strcmp(name, "MNetworkEnable")) {
+                const std::string name {reinterpret_cast<const char *>(
+                    network_enable_name_pointer - base + client_dump)};
+                if (name == "MNetworkEnable") {
                     network_enable = true;
                 }
             }
@@ -280,7 +281,8 @@ std::optional<Offsets> FindOffsets() {
             continue;
         }
 
-        const auto name = std::string((char *)(name_pointer - base + client_dump));
+        const auto name =
+            std::string(reinterpret_cast<const char *>(name_pointer - base + client_dump));
 
         if (name == "m_sSanitizedPlayerName") {
             if (!network_enable || offsets.controller.name != 0) {
