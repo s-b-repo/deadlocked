@@ -8,81 +8,65 @@
 #include <cerrno>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 
 #include "log.hpp"
 #include "types.hpp"
 
 i32 mouse = 0;
 
-// Helper function that converts a hex digit to its 4-bit reversed binary string.
-// For example, for '2': its normal binary is "0010", and reversed is "0100".
 std::vector<bool> HexToReversedBinary(char hex_char) {
-    int value;
-    if (hex_char >= '0' && hex_char <= '9')
+    int value = 0;
+    if (hex_char >= '0' && hex_char <= '9') {
         value = hex_char - '0';
-    else if (hex_char >= 'a' && hex_char <= 'f')
+    } else if (hex_char >= 'a' && hex_char <= 'f') {
         value = hex_char - 'a' + 10;
-    else if (hex_char >= 'A' && hex_char <= 'F')
+    } else if (hex_char >= 'A' && hex_char <= 'F') {
         value = hex_char - 'A' + 10;
-    else
-        return {};  // invalid hex digit
+    }
 
-    // Build the 4-bit binary in reversed order:
-    // Normally the bits (from MSB to LSB) would be bit3,bit2,bit1,bit0.
-    // We need to append bits in order: bit0, bit1, bit2, bit3.
     std::vector<bool> reversed_bits(4);
-    for (int i = 0; i < 4; ++i) {
-        // Extract bit i (starting from LSB)
+    for (int i = 0; i < 4; i++) {
         reversed_bits[i] = ((value >> i) & 1) != 0;
     }
     return reversed_bits;
 }
 
-// Function that reads an input file and decodes its evdev capabilities.
-// The algorithm works by reading the file content in reverse order,
-// handling hex groups and inserting padding for groups with less than 16 hex characters.
 std::vector<bool> DecodeCapabilities(const std::string &filename) {
-    // Read the entire file into a string.
     std::ifstream in(filename);
     if (!in.good()) {
         Log(LogLevel::Warning, "cannot open mouse capability device file: " + filename);
         return {};
     }
 
-    std::stringstream buffer;
-    buffer << in.rdbuf();
-    std::string content = buffer.str();
+    std::string content;
+    std::getline(in, content);
 
     std::vector<bool> binary_out;
-    int hex_count = 0;  // counter for number of hex digits in current group
+    // current hex digits in group (max 16)
+    int hex_count = 0;
 
-    // Process the file content in reverse order.
+    // line has to be processed right to left (why tf?)
     for (auto it = content.rbegin(); it != content.rend(); ++it) {
         char c = *it;
-        if (c == '\n' || c == '\r') {
-            // Ignore linefeed characters.
+        if (c == '\n') {
             continue;
         } else if (c == ' ') {
-            // When a space is encountered, this means the current group ended.
-            // If the group is less than 16 hex digits, we need to pad with false bits (zeros).
+            // end group on spaces, and pad accordingly
             int padding_bits = 4 * (16 - hex_count);
             for (int i = 0; i < padding_bits; i++) {
                 binary_out.push_back(false);
             }
-            hex_count = 0;  // reset for next group.
+            hex_count = 0;
         } else if (std::isxdigit(c)) {
-            // c is a hex digit.
             std::vector<bool> bits = HexToReversedBinary(c);
             for (bool bit : bits) {
                 binary_out.push_back(bit);
             }
             hex_count++;
         }
-        // Other characters are not expected.
     }
-    // After processing, if the last group (at the beginning of the file) is less than 16 hex
-    // digits, pad it.
+
+    // last group might have to be padded as well
     if (hex_count > 0 && hex_count < 16) {
         int padding_bits = 4 * (16 - hex_count);
         for (int i = 0; i < padding_bits; i++) {
