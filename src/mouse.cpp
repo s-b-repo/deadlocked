@@ -17,7 +17,7 @@ i32 mouse = 0;
 
 // Helper function that converts a hex digit to its 4-bit reversed binary string.
 // For example, for '2': its normal binary is "0010", and reversed is "0100".
-std::string HexToReversedBinary(char hex_char) {
+std::vector<bool> HexToReversedBinary(char hex_char) {
     int value;
     if (hex_char >= '0' && hex_char <= '9')
         value = hex_char - '0';
@@ -26,15 +26,15 @@ std::string HexToReversedBinary(char hex_char) {
     else if (hex_char >= 'A' && hex_char <= 'F')
         value = hex_char - 'A' + 10;
     else
-        return "";  // invalid hex digit
+        return {};  // invalid hex digit
 
     // Build the 4-bit binary in reversed order:
     // Normally the bits (from MSB to LSB) would be bit3,bit2,bit1,bit0.
     // We need to append bits in order: bit0, bit1, bit2, bit3.
-    std::string reversed_bits;
+    std::vector<bool> reversed_bits(4);
     for (int i = 0; i < 4; ++i) {
         // Extract bit i (starting from LSB)
-        reversed_bits.push_back(((value >> i) & 1) ? '1' : '0');
+        reversed_bits[i] = ((value >> i) & 1) != 0;
     }
     return reversed_bits;
 }
@@ -42,59 +42,55 @@ std::string HexToReversedBinary(char hex_char) {
 // Function that reads an input file and decodes its evdev capabilities.
 // The algorithm works by reading the file content in reverse order,
 // handling hex groups and inserting padding for groups with less than 16 hex characters.
-std::string DecodeCapabilities(const std::string &filename) {
+std::vector<bool> DecodeCapabilities(const std::string &filename) {
     // Read the entire file into a string.
-    std::ifstream inFile(filename);
-    if (!inFile) {
-        std::cerr << "Error: Cannot open file " << filename << std::endl;
-        return "";
+    std::ifstream in(filename);
+    if (!in.good()) {
+        Log(LogLevel::Warning, "cannot open mouse capability device file: " + filename);
+        return {};
     }
+
     std::stringstream buffer;
-    buffer << inFile.rdbuf();
+    buffer << in.rdbuf();
     std::string content = buffer.str();
 
-    std::string binaryOutput;
-    int hexCount = 0;  // counter for number of hex digits in current group
+    std::vector<bool> binary_out;
+    int hex_count = 0;  // counter for number of hex digits in current group
 
     // Process the file content in reverse order.
     for (auto it = content.rbegin(); it != content.rend(); ++it) {
         char c = *it;
-        if (c == '\n') {
+        if (c == '\n' || c == '\r') {
             // Ignore linefeed characters.
             continue;
         } else if (c == ' ') {
             // When a space is encountered, this means the current group ended.
             // If the group is less than 16 hex digits, we need to pad with false bits (zeros).
-            int padBits = 4 * (16 - hexCount);
-            binaryOutput.append(padBits, '0');
-            hexCount = 0;  // reset for next group.
+            int padding_bits = 4 * (16 - hex_count);
+            for (int i = 0; i < padding_bits; i++) {
+                binary_out.push_back(false);
+            }
+            hex_count = 0;  // reset for next group.
         } else if (std::isxdigit(c)) {
             // c is a hex digit.
-            std::string bits = HexToReversedBinary(c);
-            binaryOutput.append(bits);
-            hexCount++;
+            std::vector<bool> bits = HexToReversedBinary(c);
+            for (bool bit : bits) {
+                binary_out.push_back(bit);
+            }
+            hex_count++;
         }
         // Other characters are not expected.
     }
     // After processing, if the last group (at the beginning of the file) is less than 16 hex
     // digits, pad it.
-    if (hexCount > 0 && hexCount < 16) {
-        int padBits = 4 * (16 - hexCount);
-        binaryOutput.append(padBits, '0');
+    if (hex_count > 0 && hex_count < 16) {
+        int padding_bits = 4 * (16 - hex_count);
+        for (int i = 0; i < padding_bits; i++) {
+            binary_out.push_back(false);
+        }
     }
 
-    return binaryOutput;
-}
-
-// Example usage:
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: decode <input_file>" << std::endl;
-        return 1;
-    }
-    std::string decoded = DecodeCapabilities(argv[1]);
-    std::cout << "Decoded binary data:\n" << decoded << std::endl;
-    return 0;
+    return binary_out;
 }
 
 void MouseInit() {
@@ -108,30 +104,17 @@ void MouseInit() {
             continue;
         }
 
-        const std::string path {"/sys/class/input/" + event_name + "/device/capabilities/rel"};
-        std::ifstream rel_file(path);
-        if (!rel_file.is_open()) {
+        const std::string rel_path {"/sys/class/input/" + event_name + "/device/capabilities/rel"};
+        const std::vector<bool> rel_caps = DecodeCapabilities(rel_path);
+        if (rel_caps.size() < REL_Y || !rel_caps[REL_X] || !rel_caps[REL_Y]) {
             continue;
         }
 
-        std::string hex_str;
-        rel_file >> hex_str;
-        rel_file.close();
-
-        u64 caps = 0;
-        std::stringstream hex_conversion;
-        hex_conversion << std::hex << hex_str;
-        hex_conversion >> caps;
-
-        // Check whether the REL_X (bit 0) and REL_Y (bit 1) bits are set.
-        bool has_rel_x = (caps & (1 << REL_X)) != 0;
-        bool has_rel_y = (caps & (1 << REL_Y)) != 0;
-
-        if (!has_rel_x || !has_rel_y) {
+        const std::string key_path {"/sys/class/input/" + event_name + "/device/capabilities/key"};
+        const std::vector<bool> key_caps = DecodeCapabilities(key_path);
+        if (key_caps.size() < BTN_LEFT || !key_caps[BTN_LEFT]) {
             continue;
         }
-
-        const std::string key_path {"/sys/class/input" + event_name + "/device/capabilities/key"};
 
         const std::string name_path {"/sys/class/input/" + event_name + "/device/name"};
         std::ifstream name_file(name_path);

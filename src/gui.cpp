@@ -1,7 +1,9 @@
 #include "gui.hpp"
 
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_error.h>
 #include <SDL3/SDL_opengl.h>
+#include <SDL3/SDL_video.h>
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl3.h>
@@ -13,8 +15,6 @@
 #include <string>
 #include <thread>
 
-#include "SDL3/SDL_error.h"
-#include "SDL3/SDL_video.h"
 #include "colors.hpp"
 #include "config.hpp"
 #include "cs2/cs2.hpp"
@@ -128,8 +128,9 @@ void Gui() {
     constexpr i32 width = 620;
     constexpr i32 height = 400;
     // gui window
-    SDL_Window *gui_window =
-        SDL_CreateWindow("deadlocked", width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    SDL_Window *gui_window = SDL_CreateWindow(
+        "deadlocked", width, height,
+        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
     if (!gui_window) {
         Log(LogLevel::Error, "could not create gui window");
         Log(LogLevel::Error, SDL_GetError());
@@ -169,9 +170,9 @@ void Gui() {
             SDL_WINDOW_OPENGL | SDL_WINDOW_TOOLTIP | SDL_WINDOW_TRANSPARENT);
     if (!overlay) {
         Log(LogLevel::Error, "could not create overlay window");
+        Log(LogLevel::Error, SDL_GetError());
         return;
     }
-    SDL_SetWindowPosition(overlay, 0, 0);
 
     // inherits position from parent window
     SDL_GLContext overlay_gl = SDL_GL_CreateContext(overlay);
