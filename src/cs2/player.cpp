@@ -290,7 +290,7 @@ bool Player::HasHelmet() const {
 
 bool Player::HasBomb() const {
     const std::vector<std::string> weapons = AllWeapons();
-    return std::ranges::find(weapons, "weapon_c4") != weapons.end();
+    return std::find(weapons.begin(), weapons.end(), "weapon_c4") != weapons.end();
 }
 
 std::optional<u64> Player::SpectatorTarget() const {
