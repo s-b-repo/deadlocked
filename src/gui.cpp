@@ -766,7 +766,7 @@ void Gui() {
                                    tanf(pawn_fov / 180.f * std::numbers::pi_v<f32> / 2.f) *
                                    window_size.x / 2.0f;
                 const ImVec2 center {
-                    (window_size.x + window_size.z) / 2.0f, (window_size.y + window_size.w) / 2.0f};
+                    window_size.x + (window_size.z) / 2.0f, window_size.y + (window_size.w) / 2.0f};
                 overlay_draw_list->AddCircle(
                     center, radius, 0xFFFFFFFF, 0, config.visuals.line_width);
             }
