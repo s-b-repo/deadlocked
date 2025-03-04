@@ -480,6 +480,26 @@ std::optional<Offsets> FindOffsets() {
                 continue;
             }
             offsets.weapon_service.weapons = *reinterpret_cast<i32 *>(entry + 0x08);
+        } else if (name == "m_bBombTicking") {
+            if (offsets.planted_c4.is_ticking != 0) {
+                continue;
+            }
+            offsets.planted_c4.is_ticking = *reinterpret_cast<i32 *>(entry + 0x10);
+        } else if (name == "m_nBombSite") {
+            if (!network_enable || offsets.planted_c4.bomb_site != 0) {
+                continue;
+            }
+            offsets.planted_c4.bomb_site = *reinterpret_cast<i32 *>(entry + 0x18);
+        } else if (name == "m_flC4Blow") {
+            if (offsets.planted_c4.blow_time != 0) {
+                continue;
+            }
+            offsets.planted_c4.blow_time = *reinterpret_cast<i32 *>(entry + 0x10);
+        } else if (name == "m_bBeingDefused") {
+            if (!network_enable || offsets.planted_c4.being_defused != 0) {
+                continue;
+            }
+            offsets.planted_c4.being_defused = *reinterpret_cast<i32 *>(entry + 0x18);
         }
 
         if (offsets.AllFound()) {
