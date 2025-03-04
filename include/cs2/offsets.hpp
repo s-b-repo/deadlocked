@@ -25,6 +25,7 @@ struct DirectOffsets {
     u64 view_matrix = 0;
     u64 sdl_window = 0;
     u64 game_types = 0;
+    u64 planted_c4 = 0;
 };
 
 struct ConvarOffsets {
@@ -114,6 +115,15 @@ struct WeaponServiceOffsets {
     bool AllFound() const { return weapons; }
 };
 
+struct PlantedC4Offsets {
+    u64 is_ticking = 0;     // bool (m_bBombTicking)
+    u64 bomb_site = 0;      // i32 (m_nBombSite)
+    u64 blow_time = 0;      // f32 (m_flC4Blow)
+    u64 being_defused = 0;  // bool (m_bBeingDefused)
+
+    bool AllFound() const { return is_ticking && bomb_site && blow_time && being_defused; }
+};
+
 struct Offsets {
     LibraryOffsets library;
     InterfaceOffsets interface;
@@ -127,10 +137,12 @@ struct Offsets {
     CameraServiceOffsets camera_service;
     ItemServiceOffsets item_service;
     WeaponServiceOffsets weapon_service;
+    PlantedC4Offsets planted_c4;
 
     bool AllFound() const {
         return controller.AllFound() && pawn.AllFound() && game_scene_node.AllFound() &&
                spotted_state.AllFound() && observer_service.AllFound() &&
-               camera_service.AllFound() && item_service.AllFound() && weapon_service.AllFound();
+               camera_service.AllFound() && item_service.AllFound() && weapon_service.AllFound() &&
+               planted_c4.AllFound();
     }
 };

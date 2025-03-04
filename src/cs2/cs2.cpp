@@ -218,6 +218,17 @@ std::optional<Offsets> FindOffsets() {
     }
     offsets.direct.game_types = process.GetRelativeAddress(*game_types, 0x03, 0x07);
 
+    const std::optional<u64> planted_c4 = process.ScanPattern(
+        {0x00, 0x00, 0x00, 0x00, 0x8B, 0x10, 0x85, 0xD2, 0x0F, 0x8F},
+        {false, false, false, false, true, true, true, true, true, true}, 10,
+        offsets.library.client);
+    if (!planted_c4) {
+        Log(LogLevel::Error, "could not find planted c4 offset");
+        // todo: verify this works
+        // return std::nullopt;
+    }
+    offsets.direct.planted_c4 = process.GetRelativeAddress(*planted_c4, 0x00, 0x07);
+
     const std::optional<u64> sdl_window_address =
         process.GetModuleExport(offsets.library.sdl, "SDL_GetKeyboardFocus");
     if (!sdl_window_address) {
