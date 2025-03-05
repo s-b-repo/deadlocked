@@ -21,6 +21,6 @@ template <typename T>
 std::string HexString(T value) {
     static_assert(std::is_integral<T>::value, "T must be an integral type");
     std::stringstream ss;
-    ss << std::hex << value;
+    ss << std::hex << "0x" << value;
     return ss.str();
 }

@@ -814,11 +814,6 @@ void Gui() {
         const auto us =
             std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
         const auto frame_time = std::chrono::microseconds(1000000 / config.visuals.overlay_fps);
-        if (us > frame_time) {
-            Log(LogLevel::Debug, "visuals thread took " + std::to_string(us.count() / 1000) +
-                                     " ms, max is " + std::to_string(frame_time.count() / 1000) +
-                                     " ms");
-        }
         std::this_thread::sleep_for(frame_time - us);
         // glfwPollEvents();
     }

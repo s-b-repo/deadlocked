@@ -41,7 +41,7 @@ void CS2() {
         const auto us = std::chrono::duration_cast<std::chrono::microseconds>(end_time - clock);
         const auto frame_time = std::chrono::microseconds(10000);
         if (IsValid()) {
-            if (us > frame_time) {
+            if (us > frame_time * 2) {
                 Log(LogLevel::Debug, "aimbot thread took " + std::to_string(us.count() / 1000) +
                                          " ms, max is " +
                                          std::to_string(frame_time.count() / 1000) + " ms");

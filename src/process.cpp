@@ -106,7 +106,6 @@ std::optional<u64> Process::GetModuleBaseAddress(const std::string &module_name)
             continue;
         }
 
-        Log(LogLevel::Debug, "module " + module_name + " found at " + std::to_string(address));
         return address;
     }
 
