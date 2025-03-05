@@ -82,7 +82,6 @@ void Style() {
     style.Colors[ImGuiCol_Tab] = ImVec4(0.23f, 0.23f, 0.3f, 1.0f);
     style.Colors[ImGuiCol_TabHovered] =
         ImVec4(accent_color.x, accent_color.y, accent_color.z, 0.6f);
-    ;
     style.Colors[ImGuiCol_TabActive] = ImVec4(accent_color.x, accent_color.y, accent_color.z, 0.6f);
     style.Colors[ImGuiCol_TabUnfocused] = ImVec4(0.23f, 0.23f, 0.3f, 1.0f);
     style.Colors[ImGuiCol_TabUnfocusedActive] = accent_color;

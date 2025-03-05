@@ -50,7 +50,7 @@ void Triggerbot() {
     std::mt19937 rng {dev()};
     const f32 mean =
         static_cast<f32>(config.triggerbot.delay_min + config.triggerbot.delay_max) / 2.0f;
-    std::normal_distribution<f32> normal {
+    std::normal_distribution normal {
         mean, static_cast<f32>(config.triggerbot.delay_max - config.triggerbot.delay_min) / 2.0f};
 
     const i32 delay = static_cast<i32>(normal(rng));

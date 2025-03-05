@@ -27,7 +27,7 @@ void Rcs() {
         return;
     }
 
-    if (glm::length(target.aim_punch) < 0.01f) {
+    if (length(target.aim_punch) < 0.01f) {
         return;
     }
 
@@ -37,7 +37,7 @@ void Rcs() {
         target.aim_punch.y / sensitivity * 25.0f, -target.aim_punch.x / sensitivity * 25.0f};
     const glm::vec2 delta = mouse_angle - mouse_movement;
 
-    mouse_movement += glm::round(delta);
+    mouse_movement += round(delta);
 
     MouseMove(glm::ivec2 {static_cast<i32>(delta.x), static_cast<i32>(delta.y)});
 }

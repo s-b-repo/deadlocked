@@ -258,9 +258,9 @@ std::optional<Offsets> FindOffsets() {
     const std::vector<u8> client_dump_vec = process.DumpModule(base);
     const u8 *client_dump = client_dump_vec.data();
 
-    for (size_t i = (size - 8); i > 0; i -= 8) {
+    for (size_t i = size - 8; i > 0; i -= 8) {
         // read client dump at i from dump directly
-        const u64 entry = (reinterpret_cast<u64>(client_dump) + i);
+        const u64 entry = reinterpret_cast<u64>(client_dump) + i;
 
         bool network_enable = false;
         const u64 network_enable_pointer = *reinterpret_cast<u64 *>(entry);
@@ -288,7 +288,7 @@ std::optional<Offsets> FindOffsets() {
             name_pointer = *reinterpret_cast<u64 *>(entry + 0x08);
         }
 
-        if (name_pointer < base || name_pointer > (base + size)) {
+        if (name_pointer < base || name_pointer > base + size) {
             continue;
         }
 
@@ -541,13 +541,13 @@ std::optional<std::string> GetEntityType(const u64 entity) {
 bool IsButtonPressed(const KeyCode &button) {
     // what the actual fuck is happening here?
     const u32 value = process.Read<u32>(
-        offsets.interface.input + (((button >> 5) * 4) + offsets.direct.button_state));
-    return ((value >> (button & 31)) & 1) != 0;
+        offsets.interface.input + ((button >> 5) * 4 + offsets.direct.button_state));
+    return (value >> (button & 31) & 1) != 0;
 }
 
 glm::vec2 TargetAngle(
     const glm::vec3 &eye_position, const glm::vec3 &position, const glm::vec2 &aim_punch) {
-    const glm::vec3 forward = glm::normalize(position - eye_position);
+    const glm::vec3 forward = normalize(position - eye_position);
     glm::vec2 angles = AnglesFromVector(forward) - aim_punch;
     Vec2Clamp(angles);
     return angles;
@@ -558,7 +558,7 @@ f32 DistanceScale(const f32 distance) {
     if (distance > 500.0f) {
         return 1.0f;
     }
-    return 5.0f - (distance / 125.0f);
+    return 5.0f - distance / 125.0f;
 }
 
 std::string MapName() {
@@ -615,7 +615,7 @@ bool FindTarget() {
     glm::vec2 aim_punch {0.0f};
     if (weapon_class != WeaponClass::Sniper) {
         const glm::vec2 punch = local_player->AimPunch();
-        if (glm::length(punch) < 0.001f && shots_fired > 0) {
+        if (length(punch) < 0.001f && shots_fired > 0) {
             aim_punch = target.aim_punch;
         } else {
             aim_punch = punch;

@@ -63,14 +63,14 @@ std::string Process::ReadString(const u64 address) {
             // at least one byte is null, process each individually
             // Process each byte individually.
             for (int offset = 0; offset < 8; ++offset) {
-                const u8 byte = (chunk >> (offset * 8)) & 0xFF;
+                const u8 byte = chunk >> offset * 8 & 0xFF;
                 if (byte == 0) return value;
                 value.push_back(static_cast<char>(byte));
             }
         } else {
             // no null, just append the chunk
             for (int offset = 0; offset < 8; ++offset) {
-                const u8 byte = (chunk >> (offset * 8)) & 0xFF;
+                const u8 byte = chunk >> offset * 8 & 0xFF;
                 value.push_back(static_cast<char>(byte));
             }
         }
@@ -100,7 +100,7 @@ std::optional<u64> Process::GetModuleBaseAddress(const std::string &module_name)
         if (address == 0) {
             Log(LogLevel::Warning, "address for module " + std::string(module_name) +
                                        " was 0, input string was \"" + line +
-                                       "\", extracted address was " += address_str);
+                                       "\", extracted address was " + address_str);
             continue;
         }
         Log(LogLevel::Debug,
@@ -164,18 +164,18 @@ u64 Process::GetRelativeAddress(
 
 std::optional<u64> Process::GetInterfaceOffset(
     const u64 module_address, const std::string &interface_name) {
-    const std::optional<u64> create_interface = GetModuleExport(module_address, "CreateInterface");
+    const auto create_interface = GetModuleExport(module_address, "CreateInterface");
     if (!create_interface) {
         Log(LogLevel::Error, "could not find CreateInterface export");
         return std::nullopt;
     }
-    const std::optional<u64> export_address =
-        GetRelativeAddress(*create_interface, 0x01, 0x05) + 0x10;
+
+    const u64 export_address = GetRelativeAddress(*create_interface, 0x01, 0x05) + 0x10;
     if (!export_address) {
         return std::nullopt;
     }
 
-    u64 interface_entry = Read<u64>(*export_address + 0x07 + Read<u32>(*export_address + 0x03));
+    u64 interface_entry = Read<u64>(export_address + 0x07 + Read<u32>(export_address + 0x03));
 
     while (true) {
         const u64 entry_name_address = Read<u64>(interface_entry + 8);
@@ -289,5 +289,5 @@ std::optional<u64> Process::GetConvar(const u64 convar_offset, const std::string
 }
 
 u64 Process::GetInterfaceFunction(const u64 interface_address, const u64 index) {
-    return Read<u64>(Read<u64>(interface_address) + (index * 8));
+    return Read<u64>(Read<u64>(interface_address) + index * 8);
 }

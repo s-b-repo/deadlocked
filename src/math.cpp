@@ -20,7 +20,7 @@ glm::vec2 AnglesFromVector(const glm::vec3 &forward) {
             yaw += 360.0f;
         }
 
-        pitch = ToDegrees(atan2f(-forward.z, (glm::length(glm::vec2(forward.x, forward.y)))));
+        pitch = ToDegrees(atan2f(-forward.z, length(glm::vec2(forward.x, forward.y))));
         if (pitch < 0.0f) {
             pitch += 360.0f;
         }
@@ -38,9 +38,9 @@ f32 AnglesToFov(const glm::vec2 &view_angles, const glm::vec2 &aim_angles) {
     delta.x = fabsf(delta.x);
 
     // clamp?
-    delta.y = fabsf(fmodf((delta.y + 180.0f), 360.0f) - 180.0f);
+    delta.y = fabsf(fmodf(delta.y + 180.0f, 360.0f) - 180.0f);
 
-    return glm::length(delta);
+    return length(delta);
 }
 
 void Vec2Clamp(glm::vec2 &vec) {
@@ -53,7 +53,7 @@ void Vec2Clamp(glm::vec2 &vec) {
     if (vec.x < -89.0f) {
         vec.x = -89.0f;
     }
-    vec.y = fmodf((vec.y + 180.0f), 360.0f) - 180.0f;
+    vec.y = fmodf(vec.y + 180.0f, 360.0f) - 180.0f;
 }
 
 std::optional<glm::vec2> WorldToScreen(const glm::vec3 &position) {

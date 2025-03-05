@@ -133,7 +133,7 @@ std::vector<std::string> Player::AllWeapons() const {
     const u64 weapon_list =
         process.Read<u64>(weapon_service + offsets.weapon_service.weapons + 0x08);
     for (u64 i = 0; i < length; i++) {
-        const u64 weapon_index = process.Read<u32>(weapon_list + (0x04 * i)) & 0xFFF;
+        const u64 weapon_index = process.Read<u32>(weapon_list + 0x04 * i) & 0xFFF;
         // CEntityInstance
         const std::optional<u64> weapon_entity_instance = ClientEntity(weapon_index);
         if (!weapon_entity_instance) {
@@ -186,7 +186,7 @@ glm::vec3 Player::BonePosition(Bones bone_index) const {
         return glm::vec3(0.0f);
     }
 
-    return process.Read<glm::vec3>(bone_data + (static_cast<u64>(bone_index) * 32));
+    return process.Read<glm::vec3>(bone_data + static_cast<u64>(bone_index) * 32);
 }
 
 f32 Player::Rotation() const { return process.Read<f32>(pawn + offsets.pawn.eye_angles + 0x04); }
@@ -313,7 +313,7 @@ std::optional<Player> Player::EntityInCrosshair() const {
         return std::nullopt;
     }
 
-    const std::optional<u64> entity = Player::ClientEntity(index);
+    const std::optional<u64> entity = ClientEntity(index);
     if (!entity) {
         return std::nullopt;
     }

@@ -94,5 +94,5 @@ WeaponClass WeaponClassFromString(const std::string &name) {
     };
 
     const auto it = weaponMap.find(name);
-    return (it != weaponMap.end()) ? it->second : WeaponClass::Unknown;
+    return it != weaponMap.end() ? it->second : WeaponClass::Unknown;
 }

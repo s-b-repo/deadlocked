@@ -14,7 +14,7 @@
 
 i32 mouse = 0;
 
-std::vector<bool> HexToReversedBinary(char hex_char) {
+std::vector<bool> HexToReversedBinary(const char hex_char) {
     int value = 0;
     if (hex_char >= '0' && hex_char <= '9') {
         value = hex_char - '0';
@@ -26,7 +26,7 @@ std::vector<bool> HexToReversedBinary(char hex_char) {
 
     std::vector<bool> reversed_bits(4);
     for (int i = 0; i < 4; i++) {
-        reversed_bits[i] = ((value >> i) & 1) != 0;
+        reversed_bits[i] = (value >> i & 1) != 0;
     }
     return reversed_bits;
 }
@@ -50,7 +50,8 @@ std::vector<bool> DecodeCapabilities(const std::string &filename) {
         char c = *it;
         if (c == '\n') {
             continue;
-        } else if (c == ' ') {
+        }
+        if (c == ' ') {
             // end group on spaces, and pad accordingly
             int padding_bits = 4 * (16 - hex_count);
             for (int i = 0; i < padding_bits; i++) {
@@ -90,7 +91,7 @@ void MouseInit() {
 
         const std::string rel_path {"/sys/class/input/" + event_name + "/device/capabilities/rel"};
         const std::vector<bool> rel_caps = DecodeCapabilities(rel_path);
-        if (rel_caps.size() < REL_Y || !rel_caps[REL_X] || !rel_caps[REL_Y]) {
+        if (rel_caps.empty() || !rel_caps[REL_X] || !rel_caps[REL_Y]) {
             continue;
         }
 
@@ -137,7 +138,7 @@ void MouseInit() {
 void MouseMove(const glm::ivec2 &coords) {
     Log(LogLevel::Debug,
         "mouse move: " + std::to_string(coords.x) + "/" + std::to_string(coords.y));
-    struct input_event ev {};
+    input_event ev {};
 
     // x
     ev.type = EV_REL;
@@ -160,7 +161,7 @@ void MouseMove(const glm::ivec2 &coords) {
 
 void MouseLeftPress() {
     Log(LogLevel::Debug, "pressed left mouse button");
-    struct input_event ev {};
+    input_event ev {};
 
     // y
     ev.type = EV_KEY;
@@ -177,7 +178,7 @@ void MouseLeftPress() {
 
 void MouseLeftRelease() {
     Log(LogLevel::Debug, "released left mouse button");
-    struct input_event ev {};
+    input_event ev {};
 
     // y
     ev.type = EV_KEY;

@@ -22,7 +22,7 @@ void Aimbot() {
     }
 
     if (config.aimbot.visibility_check) {
-        if ((target.player->SpottedMask() & (1 << target.local_pawn_index)) == 0) {
+        if ((target.player->SpottedMask() & 1 << target.local_pawn_index) == 0) {
             return;
         }
     }
@@ -38,7 +38,7 @@ void Aimbot() {
 
     const glm::vec2 view_angles = local_player->ViewAngles();
     if (AnglesToFov(view_angles, target_angle) >
-        (config.aimbot.fov * DistanceScale(target.distance))) {
+        config.aimbot.fov * DistanceScale(target.distance)) {
         return;
     }
 
