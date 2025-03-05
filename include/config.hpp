@@ -9,7 +9,7 @@
 #include "toml.hpp"
 #include "types.hpp"
 
-#define VERSION "v5.1.0"
+#define VERSION "v5.1.1"
 
 constexpr std::chrono::seconds save_interval {1};
 
