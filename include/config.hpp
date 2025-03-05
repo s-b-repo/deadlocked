@@ -84,8 +84,6 @@ struct VisualsConfig {
 };
 
 struct MiscConfig {
-    std::string radar_url = "ws://localhost:6460";
-
     f32 max_flash_alpha = 0.0f;
     i32 desired_fov = 90;
 
