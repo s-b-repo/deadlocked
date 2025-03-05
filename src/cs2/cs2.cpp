@@ -72,12 +72,14 @@ bool IsValid() {
 void Setup() {
     const std::optional<i32> pid = GetPid(PROCESS_NAME);
     if (!pid) {
+        Log(LogLevel::Debug, "game not running");
         is_valid = false;
         return;
     }
 
     const std::optional<Process> new_process = OpenProcess(*pid);
     if (!new_process) {
+        Log(LogLevel::Debug, "could not open process");
         is_valid = false;
         return;
     }
