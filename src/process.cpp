@@ -5,7 +5,6 @@
 
 #include <filesystem>
 #include <fstream>
-#include <sstream>
 #include <string>
 
 #include "constants.hpp"
@@ -99,18 +98,14 @@ std::optional<u64> Process::GetModuleBaseAddress(const std::string &module_name)
         const std::string address_str = line.substr(0, index);
         u64 address = std::stoull(address_str, nullptr, 16);
         if (address == 0) {
-            std::stringstream address_zero;
-            address_zero << "address for module " << std::string(module_name)
-                         << " was 0, input string was \"" << line << "\", extracted address was "
-                         << address_str;
-            Log(LogLevel::Warning, address_zero.str());
+            Log(LogLevel::Warning, std::format(
+                                       "address for module {} was 0, in put string was \"{}\", "
+                                       "extracted address was {}",
+                                       module_name, line, address_str));
             continue;
         }
 
-        std::stringstream module_found;
-        module_found << "module " << std::string(module_name) << " found at "
-                     << std::to_string(address);
-        Log(LogLevel::Debug, module_found.str());
+        Log(LogLevel::Debug, std::format("module {} found at {}", module_name, address));
         return address;
     }
 
@@ -266,10 +261,8 @@ std::optional<u64> Process::GetSegmentFromPht(const u64 module_address, const u6
         }
     }
 
-    std::stringstream no_tag;
-    no_tag << "could not find tag " << std::to_string(tag) << " in program header table at "
-           << std::to_string(module_address);
-    Log(LogLevel::Error, no_tag.str());
+    Log(LogLevel::Error,
+        std::format("could not find tag {} in program header table at {}", tag, module_address));
     return std::nullopt;
 }
 

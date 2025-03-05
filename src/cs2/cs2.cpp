@@ -42,11 +42,9 @@ void CS2() {
         const auto frame_time = std::chrono::microseconds(10000);
         if (IsValid()) {
             if (us > frame_time) {
-                std::stringstream aimbot_too_long;
-                aimbot_too_long << "aimbot thread took " << std::to_string(us.count() / 1000)
-                                << " ms, max is " << std::to_string(frame_time.count() / 1000)
-                                << " ms";
-                Log(LogLevel::Warning, aimbot_too_long.str());
+                Log(LogLevel::Warning, std::format(
+                                           "aimbot thread took {} ms, max is {} ms",
+                                           us.count() / 1000, frame_time.count() / 1000));
             }
             std::this_thread::sleep_for(frame_time - us);
         } else {
