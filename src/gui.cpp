@@ -578,7 +578,7 @@ void Gui() {
         }
         if (config.visuals.enabled) {
             vinfo_lock.lock();
-            for (const PlayerInfo &player : enemy_info) {
+            for (const PlayerInfo &player : player_info) {
                 if (!misc_info.is_ffa && player.team == local_player.team) {
                     continue;
                 }

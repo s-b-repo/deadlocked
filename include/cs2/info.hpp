@@ -12,17 +12,14 @@ struct PlayerInfo {
     std::string weapon;
     std::vector<std::string> weapons;
     std::vector<std::pair<glm::vec3, glm::vec3>> bones;
-    u64 steam_id;
 
     i32 health;
     i32 armor;
-    f32 rotation;
 
     u8 team;
     bool has_defuser;
     bool has_helmet;
     bool has_bomb;
-    bool is_active;
 };
 
 struct EntityInfo {

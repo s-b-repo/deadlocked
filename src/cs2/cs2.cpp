@@ -616,7 +616,7 @@ std::optional<Offsets> FindOffsets() {
 
 f32 Sensitivity() { return process.Read<f32>(offsets.convar.sensitivity + 0x40); }
 
-bool IsFfa() { return process.Read<u32>(offsets.convar.ffa + 0x40) != 0; }
+bool IsFfa() { return process.Read<bool>(offsets.convar.ffa + 0x40); }
 
 bool EntityHasOwner(const u64 entity) {
     // h_pOwnerEntity is a handle, which is an int
@@ -702,6 +702,10 @@ bool FindTarget() {
 
         if (player->Equals(*local_player)) {
             target.local_pawn_index = i - 1;
+        }
+
+        if (!ffa && player->Team() == local_team) {
+            continue;
         }
 
         players.push_back(*player);
@@ -801,42 +805,35 @@ void VisualInfo() {
     vinfo_lock.lock();
     const std::optional<Player> local_player = Player::LocalPlayer();
     if (local_player->Team() != TEAM_CT && local_player->Team() != TEAM_T) {
-        all_player_info.clear();
-        enemy_info.clear();
+        player_info.clear();
         entity_info.clear();
         vinfo_lock.unlock();
         misc_info.in_game = false;
         return;
     }
     misc_info.in_game = true;
-    const u8 local_team = local_player->Team();
-    const bool ffa = IsFfa();
     const std::optional<u64> spectated_player = local_player->SpectatorTarget();
-    all_player_info.clear();
-    enemy_info.clear();
+    player_info.clear();
     for (const Player &player : players) {
+        if ((spectated_player && player.controller == spectated_player) ||
+            player.Equals(*local_player)) {
+            continue;
+        }
         PlayerInfo info = {};
         info.health = player.Health();
         info.armor = player.Armor();
         info.team = player.Team();
         info.position = player.Position();
         info.head = player.BonePosition(Bones::Head);
-        info.rotation = player.Rotation();
         info.has_defuser = player.HasDefuser();
         info.has_helmet = player.HasHelmet();
         info.has_bomb = player.HasBomb();
-        info.is_active = player.controller == local_player->controller ||
-                         player.controller == spectated_player.value_or(0);
         info.name = player.Name();
-        info.steam_id = player.SteamID();
         info.weapon = player.WeaponName();
         info.weapons = player.AllWeapons();
         info.bones = player.AllBones();
 
-        all_player_info.push_back(info);
-        if (ffa || info.team != local_team) {
-            enemy_info.push_back(info);
-        }
+        player_info.push_back(info);
     }
 
     // entities
