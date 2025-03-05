@@ -66,6 +66,8 @@ simple cs2 aimbot and esp, for linux only.
 - `--file-mem`: if process_vm_readv does not work/you get an error that it cannot get the resource offset
 - `--scale=X`: override gui scale
 - `--no-visuals`: disable visuals completely, if there are problems with the overlay
+- `--verbose` or `-v`: increase log level by one
+- `--silent`: decrease log level by one
 
 ## faq
 

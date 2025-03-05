@@ -11,3 +11,6 @@ enum class LogLevel {
 };
 
 void Log(LogLevel level, const std::string &message);
+void SetLogLevel(LogLevel level);
+LogLevel GetLogLevel();
+std::string LogLevelString(LogLevel level);

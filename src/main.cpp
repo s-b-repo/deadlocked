@@ -14,6 +14,18 @@ int main(const int argc, const char *argv[]) {
         } else if (arg == "--no-visuals") {
             Log(LogLevel::Info, "disabling visuals");
             flags.no_visuals = true;
+        } else if (arg == "--verbose" || arg == "-v") {
+            const LogLevel level = GetLogLevel();
+            if (level > LogLevel::Debug) {
+                SetLogLevel(static_cast<LogLevel>(static_cast<i32>(level) - 1));
+                Log(LogLevel::Off, "log level set to: " + LogLevelString(GetLogLevel()));
+            }
+        } else if (arg == "--silent") {
+            const LogLevel level = GetLogLevel();
+            if (level < LogLevel::Off) {
+                SetLogLevel(static_cast<LogLevel>(static_cast<i32>(level) + 1));
+                Log(LogLevel::Off, "log level set to: " + LogLevelString(GetLogLevel()));
+            }
         }
     }
     Log(LogLevel::Info, "build time: " + std::string(__DATE__) + " " + std::string(__TIME__));

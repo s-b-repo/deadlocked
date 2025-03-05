@@ -6,6 +6,8 @@ auto filter_level {LogLevel::Info};
 
 void SetLogLevel(const LogLevel level) { filter_level = level; }
 
+LogLevel GetLogLevel() { return filter_level; }
+
 std::string LogLevelString(const LogLevel level) {
     switch (level) {
         case LogLevel::Debug:

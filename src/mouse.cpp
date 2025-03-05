@@ -8,6 +8,7 @@
 #include <cerrno>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 
 #include "log.hpp"
 #include "types.hpp"
@@ -126,7 +127,9 @@ void MouseInit() {
             std::exit(1);
         }
 
-        Log(LogLevel::Info, "found mouse: " + device_name + " (" + event_name + ")");
+        std::stringstream mouse_found;
+        mouse_found << "found mouse: " << device_name << " (" << event_name << ")";
+        Log(LogLevel::Info, mouse_found.str());
         return;
     }
 
@@ -136,8 +139,9 @@ void MouseInit() {
 }
 
 void MouseMove(const glm::ivec2 &coords) {
-    Log(LogLevel::Debug,
-        "mouse move: " + std::to_string(coords.x) + "/" + std::to_string(coords.y));
+    std::stringstream mouse_move;
+    mouse_move << "mouse move: " << std::to_string(coords.x) << "/" << std::to_string(coords.y);
+    Log(LogLevel::Debug, mouse_move.str());
     input_event ev {};
 
     // x
