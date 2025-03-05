@@ -10,8 +10,7 @@
 
 #include <chrono>
 #include <cmath>
-#include <log.hpp>
-#include <numbers>
+#include <glm/ext/scalar_constants.hpp>
 #include <string>
 #include <thread>
 
@@ -20,22 +19,23 @@
 #include "cs2/cs2.hpp"
 #include "font.hpp"
 #include "globals.hpp"
+#include "log.hpp"
 #include "math.hpp"
 #include "style.hpp"
 #include "types.hpp"
 
-ImU32 HealthColor(i32 health) {
+ImU32 HealthColor(const i32 health) {
     // smooth gradient from 100 (green) over 50 (yellow) to 0 (red)
-    health = std::clamp(health, 0, 100);
+    const i32 clamped_health = glm::clamp(health, 0, 100);
 
     u8 r, g;
 
-    if (health <= 50) {
-        const f32 factor = static_cast<f32>(health) / 50.0f;
+    if (clamped_health <= 50) {
+        const f32 factor = static_cast<f32>(clamped_health) / 50.0f;
         r = 255;
         g = static_cast<u8>(255.0f * factor);
     } else {
-        const f32 factor = static_cast<f32>(health - 50) / 50.0f;
+        const f32 factor = static_cast<f32>(clamped_health - 50) / 50.0f;
         r = static_cast<u8>(255.0f * (1.0f - factor));
         g = 255;
     }
@@ -762,9 +762,9 @@ void Gui() {
             if (config.aimbot.fov_circle && misc_info.in_game) {
                 const f32 pawn_fov =
                     config.misc.fov_changer ? static_cast<f32>(config.misc.desired_fov) : 90.0f;
-                const f32 radius = tanf(config.aimbot.fov / 180.f * std::numbers::pi_v<f32> / 2.f) /
-                                   tanf(pawn_fov / 180.f * std::numbers::pi_v<f32> / 2.f) *
-                                   window_size.x / 2.0f;
+                const f32 radius = tanf(config.aimbot.fov / 179.f * glm::pi<f32>() / 2.f) /
+                                   tanf(pawn_fov / 180.f * glm::pi<f32>() / 2.f) * window_size.x /
+                                   2.0f;
                 const ImVec2 center {
                     window_size.x + window_size.z / 2.0f, window_size.y + window_size.w / 2.0f};
                 overlay_draw_list->AddCircle(

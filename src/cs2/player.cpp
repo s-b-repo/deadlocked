@@ -239,7 +239,7 @@ bool Player::IsFlashed() const {
 }
 
 void Player::NoFlash(const f32 max_alpha) const {
-    const f32 clamped_alpha = std::clamp(max_alpha, 0.0f, 255.0f);
+    const f32 clamped_alpha = glm::clamp(max_alpha, 0.0f, 255.0f);
     if (process.Read<f32>(pawn + offsets.pawn.flash_alpha) != clamped_alpha) {
         process.Write<f32>(pawn + offsets.pawn.flash_alpha, clamped_alpha);
     }
@@ -250,7 +250,7 @@ void Player::SetFov(const i32 fov) const {
     if (!camera_service) {
         return;
     }
-    const i32 clamped_fov = std::clamp(fov, 1, 179);
+    const i32 clamped_fov = glm::clamp(fov, 1, 179);
     if (process.Read<u32>(camera_service + offsets.camera_service.fov) !=
         static_cast<u32>(clamped_fov)) {
         process.Write<i32>(controller + offsets.controller.desired_fov, clamped_fov);
@@ -290,7 +290,12 @@ bool Player::HasHelmet() const {
 
 bool Player::HasBomb() const {
     const std::vector<std::string> weapons = AllWeapons();
-    return std::find(weapons.begin(), weapons.end(), "weapon_c4") != weapons.end();
+    for (const auto &weapon : weapons) {
+        if (weapon == "weapon_c4") {
+            return true;
+        }
+    }
+    return false;
 }
 
 std::optional<u64> Player::SpectatorTarget() const {
