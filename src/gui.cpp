@@ -10,7 +10,6 @@
 
 #include <chrono>
 #include <cmath>
-#include <format>
 #include <log.hpp>
 #include <numbers>
 #include <string>
@@ -117,8 +116,10 @@ void Gui() {
         }
     }
 
-    Log(LogLevel::Info, std::format("screen top left corner at: {} x {} px", minX, minY));
-    Log(LogLevel::Info, std::format("screen resolution: {} x {} px", maxX - minX, maxY - minY));
+    Log(LogLevel::Info, "screen top left corner at: " + std::to_string(minX) + " x " +
+                            std::to_string(minY) + " px");
+    Log(LogLevel::Info, "screen resolution: " + std::to_string(maxX - minX) + " x " +
+                            std::to_string(maxY - minY) + " px");
 
     IMGUI_CHECKVERSION();
     ImGuiContext *gui_ctx = ImGui::CreateContext();
@@ -814,9 +815,9 @@ void Gui() {
             std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
         const auto frame_time = std::chrono::microseconds(1000000 / config.visuals.overlay_fps);
         if (us > frame_time) {
-            Log(LogLevel::Warning, std::format(
-                                       "visuals thread took {} ms, max is {} ms", us.count() / 1000,
-                                       frame_time.count() / 1000));
+            Log(LogLevel::Debug, "visuals thread took " + std::to_string(us.count() / 1000) +
+                                     " ms, max is " + std::to_string(frame_time.count() / 1000) +
+                                     " ms");
         }
         std::this_thread::sleep_for(frame_time - us);
         // glfwPollEvents();

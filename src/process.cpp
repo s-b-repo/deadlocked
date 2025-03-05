@@ -98,14 +98,15 @@ std::optional<u64> Process::GetModuleBaseAddress(const std::string &module_name)
         const std::string address_str = line.substr(0, index);
         u64 address = std::stoull(address_str, nullptr, 16);
         if (address == 0) {
-            Log(LogLevel::Warning, std::format(
-                                       "address for module {} was 0, in put string was \"{}\", "
-                                       "extracted address was {}",
-                                       module_name, line, address_str));
+            Log(LogLevel::Warning, "address for module " + module_name +
+                                       " was 0, in put string was \"" + line +
+                                       "\", "
+                                       "extracted address was " +
+                                       address_str);
             continue;
         }
 
-        Log(LogLevel::Debug, std::format("module {} found at {}", module_name, address));
+        Log(LogLevel::Debug, "module " + module_name + " found at " + std::to_string(address));
         return address;
     }
 
@@ -261,8 +262,8 @@ std::optional<u64> Process::GetSegmentFromPht(const u64 module_address, const u6
         }
     }
 
-    Log(LogLevel::Error,
-        std::format("could not find tag {} in program header table at {}", tag, module_address));
+    Log(LogLevel::Error, "could not find tag " + std::to_string(tag) +
+                             " in program header table at " + std::to_string(module_address));
     return std::nullopt;
 }
 
