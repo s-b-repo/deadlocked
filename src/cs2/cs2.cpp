@@ -104,31 +104,37 @@ std::optional<Offsets> FindOffsets() {
     if (!client_address) {
         return std::nullopt;
     }
+    Log(LogLevel::Debug, CLIENT_LIB " at: " + HexString(*client_address));
 
     const std::optional<u64> engine_address = process.GetModuleBaseAddress(ENGINE_LIB);
     if (!engine_address) {
         return std::nullopt;
     }
+    Log(LogLevel::Debug, ENGINE_LIB " at: " + HexString(*engine_address));
 
     const std::optional<u64> tier0_address = process.GetModuleBaseAddress(TIER0_LIB);
     if (!tier0_address) {
         return std::nullopt;
     }
+    Log(LogLevel::Debug, TIER0_LIB " at: " + HexString(*tier0_address));
 
     const std::optional<u64> input_address = process.GetModuleBaseAddress(INPUT_LIB);
     if (!input_address) {
         return std::nullopt;
     }
+    Log(LogLevel::Debug, INPUT_LIB " at: " + HexString(*input_address));
 
     const std::optional<u64> sdl_address = process.GetModuleBaseAddress(SDL_LIB);
     if (!sdl_address) {
         return std::nullopt;
     }
+    Log(LogLevel::Debug, SDL_LIB " at: " + HexString(*sdl_address));
 
     const std::optional<u64> matchmaking_address = process.GetModuleBaseAddress(MATCH_LIB);
     if (!matchmaking_address) {
         return std::nullopt;
     }
+    Log(LogLevel::Debug, MATCH_LIB " at: " + HexString(*matchmaking_address));
 
     offsets.library.client = *client_address;
     offsets.library.engine = *engine_address;
@@ -145,8 +151,12 @@ std::optional<Offsets> FindOffsets() {
         return std::nullopt;
     }
     offsets.interface.resource = *resource_offset;
+    Log(LogLevel::Debug, "resource interface offset at: " + HexString(offsets.interface.resource));
     offsets.interface.entity = process.Read<u64>(offsets.interface.resource + 0x50);
+    Log(LogLevel::Debug, "entity list offset at: " + HexString(offsets.interface.entity));
     offsets.interface.player = offsets.interface.entity + 0x10;
+    Log(LogLevel::Debug,
+        "local player interface offset at: " + HexString(offsets.interface.player));
 
     const std::optional<u64> local_player = process.ScanPattern(
         {0x48, 0x83, 0x3D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x95, 0xC0, 0xC3},
@@ -157,6 +167,7 @@ std::optional<Offsets> FindOffsets() {
         return std::nullopt;
     }
     offsets.direct.local_player = process.GetRelativeAddress(*local_player, 0x03, 0x08);
+    Log(LogLevel::Debug, "local player offset at: " + HexString(offsets.direct.local_player));
 
     const std::optional<u64> cvar_address =
         process.GetInterfaceOffset(offsets.library.tier0, "VEngineCvar0");
@@ -165,6 +176,7 @@ std::optional<Offsets> FindOffsets() {
         return std::nullopt;
     }
     offsets.interface.cvar = *cvar_address;
+    Log(LogLevel::Debug, "convar offset at: " + HexString(offsets.interface.cvar));
 
     const std::optional<u64> input_system_address =
         process.GetInterfaceOffset(offsets.library.input, "InputSystemVersion0");
@@ -173,6 +185,7 @@ std::optional<Offsets> FindOffsets() {
         return std::nullopt;
     }
     offsets.interface.input = *input_system_address;
+    Log(LogLevel::Debug, "input interface offset at: " + HexString(offsets.interface.input));
 
     const std::optional<u64> view_matrix = process.ScanPattern(
         {0x48, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00, 0x4C, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00, 0x48,
@@ -202,9 +215,11 @@ std::optional<Offsets> FindOffsets() {
         return std::nullopt;
     }
     offsets.direct.view_matrix = process.GetRelativeAddress(*view_matrix + 0x07, 0x03, 0x07);
+    Log(LogLevel::Debug, "view matrix offset at: " + HexString(offsets.direct.view_matrix));
 
     offsets.direct.button_state =
         process.Read<u32>(process.GetInterfaceFunction(offsets.interface.input, 19) + 0x14);
+    Log(LogLevel::Debug, "button state offset at: " + HexString(offsets.direct.button_state));
 
     const std::optional<u64> game_types = process.ScanPattern(
         {0x48, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00, 0xC3, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00,
@@ -219,6 +234,7 @@ std::optional<Offsets> FindOffsets() {
         return std::nullopt;
     }
     offsets.direct.game_types = process.GetRelativeAddress(*game_types, 0x03, 0x07);
+    Log(LogLevel::Debug, "map name offset at: " + HexString(offsets.direct.game_types));
 
     const std::optional<u64> planted_c4 = process.ScanPattern(
         {0x00, 0x00, 0x00, 0x00, 0x8B, 0x10, 0x85, 0xD2, 0x0F, 0x8F},
@@ -230,6 +246,7 @@ std::optional<Offsets> FindOffsets() {
         // return std::nullopt;
     }
     offsets.direct.planted_c4 = process.GetRelativeAddress(*planted_c4, 0x00, 0x07);
+    Log(LogLevel::Debug, "planted c4 offset at: " + HexString(offsets.direct.planted_c4));
 
     const std::optional<u64> sdl_window_address =
         process.GetModuleExport(offsets.library.sdl, "SDL_GetKeyboardFocus");
@@ -239,6 +256,7 @@ std::optional<Offsets> FindOffsets() {
     const u64 sdl_window = process.GetRelativeAddress(*sdl_window_address, 0x02, 0x06);
     const u64 sdl_window2 = process.Read<u64>(sdl_window);
     offsets.direct.sdl_window = process.GetRelativeAddress(sdl_window2, 0x03, 0x07);
+    Log(LogLevel::Debug, "sdl window offset at: " + HexString(offsets.direct.sdl_window));
 
     const std::optional<u64> ffa_address =
         process.GetConvar(offsets.interface.cvar, "mp_teammates_are_enemies");
@@ -246,12 +264,15 @@ std::optional<Offsets> FindOffsets() {
         Log(LogLevel::Error, "could not get mp_tammates_are_enemies convar offset");
     }
     offsets.convar.ffa = *ffa_address;
+    Log(LogLevel::Debug, "ffa convar offset at: " + HexString(offsets.convar.ffa));
+
     const std::optional<u64> sensitivity_address =
         process.GetConvar(offsets.interface.cvar, "sensitivity");
     if (!sensitivity_address) {
         Log(LogLevel::Error, "could not get sensitivity convar offset");
     }
     offsets.convar.sensitivity = *sensitivity_address;
+    Log(LogLevel::Debug, "sensitivity convar offset at: " + HexString(offsets.convar.sensitivity));
 
     // dump all netvars from client lib
     const u64 base = offsets.library.client;
@@ -302,32 +323,42 @@ std::optional<Offsets> FindOffsets() {
                 continue;
             }
             offsets.controller.name = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug,
+                "player name netvar offset: " + HexString(offsets.controller.name));
         } else if (name == "m_hPawn") {
             if (!network_enable || offsets.controller.pawn != 0) {
                 continue;
             }
             offsets.controller.pawn = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug,
+                "player pawn netvar offset: " + HexString(offsets.controller.pawn));
         } else if (name == "m_steamID") {
             if (!network_enable || offsets.controller.steam_id != 0) {
                 continue;
             }
             offsets.controller.steam_id = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug,
+                "player steam id netvar offset: " + HexString(offsets.controller.steam_id));
         } else if (name == "m_iDesiredFOV") {
             if (offsets.controller.desired_fov != 0) {
                 continue;
             }
             offsets.controller.desired_fov = *reinterpret_cast<i32 *>(entry + 0x08);
-
+            Log(LogLevel::Debug,
+                "player desired fov netvar offset: " + HexString(offsets.controller.desired_fov));
         } else if (name == "m_hOwnerEntity") {
             if (!network_enable || offsets.controller.owner_entity != 0) {
                 continue;
             }
             offsets.controller.owner_entity = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug,
+                "entity owner netvar offset: " + HexString(offsets.controller.owner_entity));
         } else if (name == "m_iHealth") {
             if (!network_enable || offsets.pawn.health != 0) {
                 continue;
             }
             offsets.pawn.health = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug, "player health netvar offset: " + HexString(offsets.pawn.health));
         } else if (name == "m_ArmorValue") {
             if (!network_enable || offsets.pawn.armor != 0) {
                 continue;
@@ -338,66 +369,89 @@ std::optional<Offsets> FindOffsets() {
                 continue;
             }
             offsets.pawn.team = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug, "player team netvar offset: " + HexString(offsets.pawn.team));
         } else if (name == "m_lifeState") {
             if (!network_enable || offsets.pawn.life_state != 0) {
                 continue;
             }
             offsets.pawn.life_state = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug,
+                "player life state netvar offset: " + HexString(offsets.pawn.life_state));
         } else if (name == "m_pClippingWeapon") {
             if (offsets.pawn.weapon != 0) {
                 continue;
             }
             offsets.pawn.weapon = *reinterpret_cast<i32 *>(entry + 0x10);
+            Log(LogLevel::Debug, "player weapon netvar offset: " + HexString(offsets.pawn.weapon));
         } else if (name == "m_flFOVSensitivityAdjust") {
             if (offsets.pawn.fov_multiplier != 0) {
                 continue;
             }
             offsets.pawn.fov_multiplier = *reinterpret_cast<i32 *>(entry + 0x08);
+            Log(LogLevel::Debug,
+                "player fov multiplier netvar offset: " + HexString(offsets.pawn.fov_multiplier));
         } else if (name == "m_pGameSceneNode") {
             if (offsets.pawn.game_scene_node != 0) {
                 continue;
             }
             offsets.pawn.game_scene_node = *reinterpret_cast<i32 *>(entry + 0x10);
+            Log(LogLevel::Debug,
+                "player game scene node netvar offset: " + HexString(offsets.pawn.game_scene_node));
         } else if (name == "m_vecViewOffset") {
             if (!network_enable || offsets.pawn.eye_offset != 0) {
                 continue;
             }
             offsets.pawn.eye_offset = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug,
+                "player eye offset netvar offset: " + HexString(offsets.pawn.eye_offset));
         } else if (name == "m_aimPunchCache") {
             if (!network_enable || offsets.pawn.aim_punch_cache != 0) {
                 continue;
             }
             offsets.pawn.aim_punch_cache = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug,
+                "player aim punch netvar offset: " + HexString(offsets.pawn.aim_punch_cache));
         } else if (name == "m_iShotsFired") {
             if (!network_enable || offsets.pawn.shots_fired != 0) {
                 continue;
             }
             offsets.pawn.shots_fired = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug,
+                "player shots fired netvar offset: " + HexString(offsets.pawn.shots_fired));
         } else if (name == "v_angle") {
             if (offsets.pawn.view_angles != 0) {
                 continue;
             }
             offsets.pawn.view_angles = *reinterpret_cast<i32 *>(entry + 0x08);
+            Log(LogLevel::Debug,
+                "player view angle netvar offset: " + HexString(offsets.pawn.view_angles));
         } else if (name == "m_angEyeAngles") {
             if (offsets.pawn.eye_angles != 0) {
                 continue;
             }
             offsets.pawn.eye_angles = *reinterpret_cast<i32 *>(entry + 0x10);
+            Log(LogLevel::Debug,
+                "player eye angle netvar offset: " + HexString(offsets.pawn.eye_angles));
         } else if (name == "m_flFlashMaxAlpha") {
             if (offsets.pawn.flash_alpha != 0) {
                 continue;
             }
             offsets.pawn.flash_alpha = *reinterpret_cast<i32 *>(entry + 0x10);
+            Log(LogLevel::Debug,
+                "player flash alpha netvar offset: " + HexString(offsets.pawn.flash_alpha));
         } else if (name == "m_flFlashDuration") {
             if (offsets.pawn.flash_duration != 0) {
                 continue;
             }
             offsets.pawn.flash_duration = *reinterpret_cast<i32 *>(entry + 0x10);
+            Log(LogLevel::Debug,
+                "player flash duration netvar offset: " + HexString(offsets.pawn.flash_duration));
         } else if (name == "m_bIsScoped") {
             if (!network_enable || offsets.pawn.scoped != 0) {
                 continue;
             }
             offsets.pawn.scoped = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug, "player scoped netvar offset: " + HexString(offsets.pawn.scoped));
         } else if (name == "m_entitySpottedState") {
             if (!network_enable || offsets.pawn.spotted_state != 0) {
                 continue;
@@ -407,106 +461,148 @@ std::optional<Offsets> FindOffsets() {
                 continue;
             }
             offsets.pawn.spotted_state = offset;
+            Log(LogLevel::Debug,
+                "player spotted state netvar offset: " + HexString(offsets.pawn.spotted_state));
         } else if (name == "m_iIDEntIndex") {
             if (offsets.pawn.crosshair_entity != 0) {
                 continue;
             }
             offsets.pawn.crosshair_entity = *reinterpret_cast<i32 *>(entry + 0x10);
+            Log(LogLevel::Debug, "player crosshair entity netvar offset: " +
+                                     HexString(offsets.pawn.crosshair_entity));
         } else if (name == "m_pObserverServices") {
             if (offsets.pawn.observer_services != 0) {
                 continue;
             }
             offsets.pawn.observer_services = *reinterpret_cast<i32 *>(entry + 0x08);
+            Log(LogLevel::Debug, "player observer service netvar offset: " +
+                                     HexString(offsets.pawn.observer_services));
         } else if (name == "m_pCameraServices") {
             if (!network_enable || offsets.pawn.camera_services != 0) {
                 continue;
             }
             offsets.pawn.camera_services = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug,
+                "player camera service netvar offset: " + HexString(offsets.pawn.camera_services));
         } else if (name == "m_pItemServices") {
             if (offsets.pawn.item_services != 0) {
                 continue;
             }
             offsets.pawn.item_services = *reinterpret_cast<i32 *>(entry + 0x08);
+            Log(LogLevel::Debug,
+                "player item service netvar offset: " + HexString(offsets.pawn.item_services));
         } else if (name == "m_pWeaponServices") {
             if (offsets.pawn.weapon_services != 0) {
                 continue;
             }
             offsets.pawn.weapon_services = *reinterpret_cast<i32 *>(entry + 0x08);
+            Log(LogLevel::Debug,
+                "player weapon service netvar offset: " + HexString(offsets.pawn.weapon_services));
         } else if (name == "m_bDormant") {
             if (offsets.game_scene_node.dormant != 0) {
                 continue;
             }
             offsets.game_scene_node.dormant = *reinterpret_cast<i32 *>(entry + 0x08);
+            Log(LogLevel::Debug,
+                "player dormant netvar offset: " + HexString(offsets.game_scene_node.dormant));
         } else if (name == "m_vecAbsOrigin") {
             if (!network_enable || offsets.game_scene_node.origin != 0) {
                 continue;
             }
             offsets.game_scene_node.origin = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug,
+                "player position netvar offset: " + HexString(offsets.game_scene_node.origin));
         } else if (name == "m_modelState") {
             if (offsets.game_scene_node.model_state != 0) {
                 continue;
             }
             offsets.game_scene_node.model_state = *reinterpret_cast<i32 *>(entry + 0x08);
+            Log(LogLevel::Debug,
+                "player skeleton netvar offset: " + HexString(offsets.game_scene_node.model_state));
         } else if (name == "m_bSpotted") {
             if (offsets.spotted_state.spotted != 0) {
                 continue;
             }
             offsets.spotted_state.spotted = *reinterpret_cast<i32 *>(entry + 0x10);
+            Log(LogLevel::Debug,
+                "player spotted netvar offset: " + HexString(offsets.spotted_state.spotted));
         } else if (name == "m_bSpottedByMask") {
             if (!network_enable || offsets.spotted_state.mask != 0) {
                 continue;
             }
             offsets.spotted_state.mask = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug,
+                "player spotted mask netvar offset: " + HexString(offsets.spotted_state.mask));
         } else if (name == "m_hObserverTarget") {
             if (offsets.observer_service.target != 0) {
                 continue;
             }
             offsets.observer_service.target = *reinterpret_cast<i32 *>(entry + 0x08);
+            Log(LogLevel::Debug, "player observer target netvar offset: " +
+                                     HexString(offsets.observer_service.target));
         } else if (name == "m_iFOV") {
             if (offsets.camera_service.fov != 0) {
                 continue;
             }
             offsets.camera_service.fov = *reinterpret_cast<i32 *>(entry + 0x08);
+            Log(LogLevel::Debug,
+                "player fov netvar offset: " + HexString(offsets.camera_service.fov));
         } else if (name == "m_bHasDefuser") {
             if (offsets.item_service.has_defuser != 0) {
                 continue;
             }
             offsets.item_service.has_defuser = *reinterpret_cast<i32 *>(entry + 0x10);
+            Log(LogLevel::Debug,
+                "player defuser netvar offset: " + HexString(offsets.item_service.has_defuser));
         } else if (name == "m_bHasHelmet") {
             if (!network_enable || offsets.item_service.has_helmet != 0) {
                 continue;
             }
             offsets.item_service.has_helmet = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug,
+                "player helmet netvar offset: " + HexString(offsets.item_service.has_helmet));
         } else if (name == "m_hMyWeapons") {
             if (offsets.weapon_service.weapons != 0) {
                 continue;
             }
             offsets.weapon_service.weapons = *reinterpret_cast<i32 *>(entry + 0x08);
+            Log(LogLevel::Debug,
+                "player weapons netvar offset: " + HexString(offsets.weapon_service.weapons));
         } else if (name == "m_bC4Activated") {
             if (offsets.planted_c4.is_activated != 0) {
                 continue;
             }
             offsets.planted_c4.is_activated = *reinterpret_cast<i32 *>(entry + 0x10);
+            Log(LogLevel::Debug, "planted c4 activated netvar offset: " +
+                                     HexString(offsets.planted_c4.is_activated));
         } else if (name == "m_bBombTicking") {
             if (offsets.planted_c4.is_ticking != 0) {
                 continue;
             }
             offsets.planted_c4.is_ticking = *reinterpret_cast<i32 *>(entry + 0x10);
+            Log(LogLevel::Debug,
+                "planted c4 ticking netvar offset: " + HexString(offsets.planted_c4.is_ticking));
         } else if (name == "m_nBombSite") {
             if (!network_enable || offsets.planted_c4.bomb_site != 0) {
                 continue;
             }
             offsets.planted_c4.bomb_site = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug,
+                "planted c4 bomb site netvar offset: " + HexString(offsets.planted_c4.bomb_site));
         } else if (name == "m_flC4Blow") {
             if (offsets.planted_c4.blow_time != 0) {
                 continue;
             }
             offsets.planted_c4.blow_time = *reinterpret_cast<i32 *>(entry + 0x10);
+            Log(LogLevel::Debug,
+                "planted c4 blow time netvar offset: " + HexString(offsets.planted_c4.blow_time));
         } else if (name == "m_bBeingDefused") {
             if (!network_enable || offsets.planted_c4.being_defused != 0) {
                 continue;
             }
             offsets.planted_c4.being_defused = *reinterpret_cast<i32 *>(entry + 0x18);
+            Log(LogLevel::Debug, "planted c4 defusing netvar offset: " +
+                                     HexString(offsets.planted_c4.being_defused));
         }
 
         if (offsets.AllFound()) {
