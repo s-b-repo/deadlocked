@@ -1,7 +1,7 @@
 # deadlocked
 
 <a href="https://www.buymeacoffee.com/avitrano">
-<img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" width="130" height="30" />
+<img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" width="130" height="30" alt="buy me a coffee" />
 </a>
 
 ![downloads](https://img.shields.io/github/downloads/avitran0/deadlocked/total?color=blue)

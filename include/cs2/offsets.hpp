@@ -116,12 +116,15 @@ struct WeaponServiceOffsets {
 };
 
 struct PlantedC4Offsets {
+    u64 is_activated = 0;   // bool (m_bC4Activated)
     u64 is_ticking = 0;     // bool (m_bBombTicking)
     u64 bomb_site = 0;      // i32 (m_nBombSite)
     u64 blow_time = 0;      // f32 (m_flC4Blow)
     u64 being_defused = 0;  // bool (m_bBeingDefused)
 
-    bool AllFound() const { return is_ticking && bomb_site && blow_time && being_defused; }
+    bool AllFound() const {
+        return is_activated && is_ticking && bomb_site && blow_time && being_defused;
+    }
 };
 
 struct Offsets {

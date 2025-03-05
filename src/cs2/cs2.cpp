@@ -482,6 +482,11 @@ std::optional<Offsets> FindOffsets() {
                 continue;
             }
             offsets.weapon_service.weapons = *reinterpret_cast<i32 *>(entry + 0x08);
+        } else if (name == "m_bC4Activated") {
+            if (!network_enable || offsets.planted_c4.is_activated) {
+                continue;
+            }
+            offsets.planted_c4.is_activated = *reinterpret_cast<i32 *>(entry + 0x18);
         } else if (name == "m_bBombTicking") {
             if (offsets.planted_c4.is_ticking != 0) {
                 continue;
