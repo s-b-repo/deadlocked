@@ -805,8 +805,8 @@ void VisualInfo() {
     const u8 local_team = local_player->Team();
     const bool ffa = IsFfa();
     const std::optional<u64> spectated_player = local_player->SpectatorTarget();
-    std::vector<PlayerInfo> player_info_all;
-    std::vector<PlayerInfo> player_info_enemy;
+    all_player_info.clear();
+    enemy_info.clear();
     for (const Player &player : players) {
         PlayerInfo info = {};
         info.health = player.Health();
@@ -826,14 +826,14 @@ void VisualInfo() {
         info.weapons = player.AllWeapons();
         info.bones = player.AllBones();
 
-        player_info_all.push_back(info);
+        all_player_info.push_back(info);
         if (ffa || info.team != local_team) {
-            player_info_enemy.push_back(info);
+            enemy_info.push_back(info);
         }
     }
 
     // entities
-    std::vector<EntityInfo> entity_info_new;
+    entity_info.clear();
     for (u64 i = 64; i <= 1024; i++) {
         const std::optional<u64> entity = Player::ClientEntity(i);
         if (!entity) {
@@ -856,21 +856,7 @@ void VisualInfo() {
         }
         const auto position = process.Read<glm::vec3>(gs_node + offsets.game_scene_node.origin);
 
-        entity_info_new.push_back(EntityInfo {.name = *name, .position = position});
-    }
-
-    if (!player_info_all.empty()) {
-        all_player_info = player_info_all;
-        enemy_info = player_info_enemy;
-    } else {
-        all_player_info.clear();
-        enemy_info.clear();
-    }
-
-    if (!entity_info_new.empty()) {
-        entity_info = entity_info_new;
-    } else {
-        entity_info.clear();
+        entity_info.push_back(EntityInfo {.name = *name, .position = position});
     }
 
     view_matrix = process.Read<glm::mat4>(offsets.direct.view_matrix);

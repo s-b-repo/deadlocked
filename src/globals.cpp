@@ -12,9 +12,9 @@ std::mutex config_lock;
 Config config = LoadConfig();
 
 std::mutex vinfo_lock;
-std::vector<PlayerInfo> all_player_info;
-std::vector<PlayerInfo> enemy_info;
-std::vector<EntityInfo> entity_info;
+std::vector<PlayerInfo> all_player_info {64};
+std::vector<PlayerInfo> enemy_info {32};
+std::vector<EntityInfo> entity_info {128};
 PlayerInfo local_player;
 glm::mat4 view_matrix;
 glm::vec4 window_size;
