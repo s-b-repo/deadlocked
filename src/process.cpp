@@ -53,26 +53,17 @@ std::optional<Process> OpenProcess(const i32 pid) {
 }
 
 std::string Process::ReadString(const u64 address) {
-    std::string value;
-    value.reserve(64);
+    static std::string value(64, '\0');
+    value.clear();
     for (u64 i = address; i < address + 512; i += sizeof(u64)) {
         const u64 chunk = Read<u64>(i);
 
-        // https://graphics.stanford.edu/~seander/bithacks.html
-        if ((chunk - 0x0101010101010101ULL & ~chunk & 0x8080808080808080ULL) != 0) {
-            // at least one byte is null, process each individually
-            // Process each byte individually.
-            for (int offset = 0; offset < 8; ++offset) {
-                const u8 byte = chunk >> offset * 8 & 0xFF;
-                if (byte == 0) return value;
-                value.push_back(static_cast<char>(byte));
+        for (i32 offset = 0; offset < 8; ++offset) {
+            const u8 byte = chunk >> offset * 8 & 0xFF;
+            if (byte == 0) {
+                return value;
             }
-        } else {
-            // no null, just append the chunk
-            for (int offset = 0; offset < 8; ++offset) {
-                const u8 byte = chunk >> offset * 8 & 0xFF;
-                value.push_back(static_cast<char>(byte));
-            }
+            value.push_back(static_cast<char>(byte));
         }
     }
     return value;

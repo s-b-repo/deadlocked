@@ -32,7 +32,7 @@ target_link_libraries(deadlocked PRIVATE OpenGL)
 target_link_libraries(deadlocked PRIVATE SDL3::SDL3)
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
-    target_compile_options(deadlocked PRIVATE "-g3" "-Wall" "-Wextra" "-Wconversion"
+    target_compile_options(deadlocked PRIVATE "-O1" "-g3" "-Wall" "-Wextra" "-Wconversion"
     "-Wdouble-promotion" "-Wno-unused-parameter" "-Wno-unused-function"
     "-Wno-sign-conversion")
 endif()

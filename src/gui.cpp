@@ -555,8 +555,7 @@ void Gui() {
             config.visuals.text_color.x * 255, config.visuals.text_color.y * 255,
             config.visuals.text_color.z * 255, 255);
 
-        std::string overlay_fps =
-            "FPS: " + std::to_string(static_cast<i32>(overlay_io.Framerate) + 1);
+        std::string overlay_fps = "FPS: " + std::to_string(static_cast<i32>(overlay_io.Framerate));
         OutlineText(
             overlay_draw_list, ImVec2 {window_size.x + 4.0f, window_size.y + 4.0f}, text_color,
             overlay_fps.c_str());
@@ -813,7 +812,8 @@ void Gui() {
 
         const auto us =
             std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-        const auto frame_time = std::chrono::microseconds(1000000 / config.visuals.overlay_fps);
+        const auto frame_time =
+            std::chrono::microseconds(1000000 / (config.visuals.overlay_fps + 1));
         std::this_thread::sleep_for(frame_time - us);
         // glfwPollEvents();
     }

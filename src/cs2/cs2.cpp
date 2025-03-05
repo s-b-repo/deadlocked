@@ -626,8 +626,15 @@ bool EntityHasOwner(const u64 entity) {
 }
 
 std::optional<std::string> GetEntityType(const u64 entity) {
-    const u64 name_pointer = process.Read<u64>(process.Read<u64>(entity + 0x10) + 0x20);
-    if (name_pointer == 0) {
+    // m_pEntity
+    const u64 entity_instance = process.Read<u64>(entity + 0x10);
+    if (!entity_instance) {
+        return std::nullopt;
+    }
+
+    // m_designerName
+    const u64 name_pointer = process.Read<u64>(entity_instance + 0x20);
+    if (!name_pointer) {
         return std::nullopt;
     }
 
@@ -835,6 +842,7 @@ void VisualInfo() {
     // entities
     entity_info.clear();
     for (u64 i = 64; i <= 1024; i++) {
+        // entity is a pawn here
         const std::optional<u64> entity = Player::ClientEntity(i);
         if (!entity) {
             continue;
