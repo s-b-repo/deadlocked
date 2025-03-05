@@ -30,11 +30,9 @@ void CS2() {
         if (IsValid()) {
             config_lock.lock();
             Run();
-            misc_info.in_game = true;
             config_lock.unlock();
         } else {
             Setup();
-            misc_info.in_game = false;
         }
 
         const auto end_time = std::chrono::steady_clock::now();
@@ -618,7 +616,7 @@ std::optional<Offsets> FindOffsets() {
 
 f32 Sensitivity() { return process.Read<f32>(offsets.convar.sensitivity + 0x40); }
 
-bool IsFfa() { return process.Read<u32>(offsets.convar.ffa + 0x40) == 1; }
+bool IsFfa() { return process.Read<u32>(offsets.convar.ffa + 0x40) != 0; }
 
 bool EntityHasOwner(const u64 entity) {
     // h_pOwnerEntity is a handle, which is an int
@@ -802,13 +800,15 @@ void ClearVisualInfo() {
 void VisualInfo() {
     vinfo_lock.lock();
     const std::optional<Player> local_player = Player::LocalPlayer();
-    if (!local_player) {
+    if (local_player->Team() != TEAM_CT && local_player->Team() != TEAM_T) {
         all_player_info.clear();
         enemy_info.clear();
         entity_info.clear();
         vinfo_lock.unlock();
+        misc_info.in_game = false;
         return;
     }
+    misc_info.in_game = true;
     const u8 local_team = local_player->Team();
     const bool ffa = IsFfa();
     const std::optional<u64> spectated_player = local_player->SpectatorTarget();
