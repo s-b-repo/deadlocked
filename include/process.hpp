@@ -44,6 +44,7 @@ class Process {
     }
 
     std::string ReadString(u64 address);
+    void ReadString(u64 address, std::string &value);
     std::vector<u8> ReadBytes(u64 address, u64 count) const;
 
     std::optional<u64> GetModuleBaseAddress(const std::string &module_name) const;

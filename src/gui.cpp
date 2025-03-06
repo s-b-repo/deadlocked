@@ -776,7 +776,7 @@ void Gui() {
                 WeaponClassFromString(misc_info.held_weapon) == WeaponClass::Sniper) {
                 constexpr f32 crosshair_size = 32.0f;
                 const ImVec2 center {
-                    (window_size.x + window_size.z) / 2.0f, (window_size.y + window_size.w) / 2.0f};
+                    window_size.x + window_size.z / 2.0f, window_size.y + window_size.w / 2.0f};
                 const ImU32 color = IM_COL32(
                     config.visuals.crosshair_color.x * 255, config.visuals.crosshair_color.y * 255,
                     config.visuals.crosshair_color.z * 255, 255);

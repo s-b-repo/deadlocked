@@ -200,13 +200,13 @@ u64 Player::SpottedMask() const {
 }
 
 std::vector<std::pair<glm::vec3, glm::vec3>> Player::AllBones() const {
-    std::unordered_map<Bones, glm::vec3> bones {20};
+    static std::unordered_map<Bones, glm::vec3> bones {20};
     for (const Bones bone : all_bones) {
         const glm::vec3 position = BonePosition(bone);
         bones[bone] = position;
     }
 
-    std::vector<std::pair<glm::vec3, glm::vec3>> connections {bone_connections.size()};
+    static std::vector<std::pair<glm::vec3, glm::vec3>> connections {bone_connections.size()};
     i32 i = 0;
     for (const auto &[first, second] : bone_connections) {
         connections[i] = {bones.at(first), bones.at(second)};

@@ -55,12 +55,17 @@ std::optional<Process> OpenProcess(const i32 pid) {
         .pid = pid, .mem = open(("/proc/" + std::to_string(pid) + "/mem").c_str(), O_RDWR)};
 }
 
-#ifdef __AVX2__
-const __m256i zeros = _mm256_setzero_si256();
-#endif
 std::string Process::ReadString(const u64 address) {
     std::string value;
     value.reserve(32);
+    ReadString(address, value);
+    return value;
+}
+
+#ifdef __AVX2__
+const __m256i zeros = _mm256_setzero_si256();
+#endif
+void Process::ReadString(const u64 address, std::string &value) {
 #ifdef __AVX2__
     // 32 bytes at a time
     for (u64 i = address; i < address + 512; i += sizeof(__m256i)) {
@@ -78,7 +83,7 @@ std::string Process::ReadString(const u64 address) {
             // at least one byte is zero, append all bytes including zero
             const u32 first_zero = __builtin_ctz(mask);
             value.append(block, first_zero);
-            return value;
+            return;
         } else {
             // no null
             value.append(block, sizeof(__m256i));
@@ -89,16 +94,15 @@ std::string Process::ReadString(const u64 address) {
     for (u64 i = address; i < address + 512; i += sizeof(u64)) {
         const u64 chunk = Read<u64>(i);
 
-        for (i32 offset = 0; offset < sizeof(u64); offset++) {
+        for (u64 offset = 0; offset < sizeof(u64); offset++) {
             const u8 byte = chunk >> offset * 8 & 0xFF;
             value.push_back(static_cast<char>(byte));
             if (byte == 0) {
-                return value;
+                return;
             }
         }
     }
 #endif
-    return value;
 }
 
 std::vector<u8> Process::ReadBytes(const u64 address, const u64 count) const {

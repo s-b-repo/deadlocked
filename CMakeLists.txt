@@ -31,6 +31,7 @@ target_link_libraries(deadlocked PRIVATE glm::glm)
 target_link_libraries(deadlocked PRIVATE OpenGL)
 target_link_libraries(deadlocked PRIVATE SDL3::SDL3)
 
+# valgrind/callgrind does not work with native, but with skylake it does
 target_compile_options(deadlocked PRIVATE "-march=native")
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     target_compile_options(deadlocked PRIVATE "-O1" "-g3" "-Wall" "-Wextra" "-Wconversion"
