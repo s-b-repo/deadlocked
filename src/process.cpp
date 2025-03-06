@@ -55,6 +55,9 @@ std::optional<Process> OpenProcess(const i32 pid) {
         .pid = pid, .mem = open(("/proc/" + std::to_string(pid) + "/mem").c_str(), O_RDWR)};
 }
 
+#ifdef __AVX2__
+const __m256i zeros = _mm256_setzero_si256();
+#endif
 std::string Process::ReadString(const u64 address) {
     std::string value;
     value.reserve(32);
@@ -64,7 +67,6 @@ std::string Process::ReadString(const u64 address) {
         __m256i chunk = Read<__m256i>(i);
 
         // check if any byte is zero
-        __m256i zeros = _mm256_setzero_si256();
         __m256i cmp = _mm256_cmpeq_epi8(chunk, zeros);
         i32 mask = _mm256_movemask_epi8(cmp);
 
