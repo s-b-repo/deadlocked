@@ -63,7 +63,7 @@ std::string Process::ReadString(const u64 address) {
     value.reserve(32);
 #ifdef __AVX2__
     // 32 bytes at a time
-    for (u64 i = address; i < address + 512; i += 32) {
+    for (u64 i = address; i < address + 512; i += sizeof(__m256i)) {
         __m256i chunk = Read<__m256i>(i);
 
         // check if any byte is zero
@@ -71,7 +71,7 @@ std::string Process::ReadString(const u64 address) {
         i32 mask = _mm256_movemask_epi8(cmp);
 
         // store back into char buffer
-        alignas(32) char block[32];
+        alignas(32) char block[sizeof(__m256i)];
         _mm256_storeu_si256(reinterpret_cast<__m256i *>(block), chunk);
 
         if (mask != 0) {
@@ -81,7 +81,7 @@ std::string Process::ReadString(const u64 address) {
             return value;
         } else {
             // no null
-            value.append(block, 32);
+            value.append(block, sizeof(__m256i));
         }
     }
 #else
@@ -89,12 +89,12 @@ std::string Process::ReadString(const u64 address) {
     for (u64 i = address; i < address + 512; i += sizeof(u64)) {
         const u64 chunk = Read<u64>(i);
 
-        for (i32 offset = 0; offset < 8; ++offset) {
+        for (i32 offset = 0; offset < sizeof(u64); offset++) {
             const u8 byte = chunk >> offset * 8 & 0xFF;
+            value.push_back(static_cast<char>(byte));
             if (byte == 0) {
                 return value;
             }
-            value.push_back(static_cast<char>(byte));
         }
     }
 #endif
