@@ -21,6 +21,7 @@
 #include "globals.hpp"
 #include "log.hpp"
 #include "math.hpp"
+#include "mouse.hpp"
 #include "style.hpp"
 #include "types.hpp"
 
@@ -818,6 +819,8 @@ void Gui() {
         // glfwPollEvents();
     }
 
+    Log(LogLevel::Info, "shutting down...");
+
     config_lock.lock();
     flags.should_quit = true;
     config_lock.unlock();
@@ -831,7 +834,7 @@ void Gui() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
 
-    // todo: why are these pointers invalid?
+    // why are these pointers invalid?
     // ImGui::DestroyContext(gui_ctx);
     // ImGui::DestroyContext(overlay_ctx);
 
@@ -841,6 +844,5 @@ void Gui() {
     SDL_DestroyWindow(overlay);
     SDL_Quit();
 
-    // ignores radar thread which blocks if it cannot connect
-    std::exit(0);
+    MouseQuit();
 }

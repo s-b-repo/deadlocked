@@ -135,6 +135,12 @@ void MouseInit() {
     std::exit(1);
 }
 
+void MouseQuit() {
+    if (mouse) {
+        close(mouse);
+    }
+}
+
 void MouseMove(const glm::ivec2 &coords) {
     Log(LogLevel::Debug,
         "mouse move: " + std::to_string(coords.x) + "/" + std::to_string(coords.y));
