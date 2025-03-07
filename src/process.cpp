@@ -2,6 +2,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+
 #ifdef __AVX2__
 #include <immintrin.h>
 #endif
@@ -96,10 +97,15 @@ void Process::ReadString(const u64 address, std::string &value) {
 
         for (u64 offset = 0; offset < sizeof(u64); offset++) {
             const u8 byte = chunk >> offset * 8 & 0xFF;
-            value.push_back(static_cast<char>(byte));
             if (byte == 0) {
                 return;
             }
+            // I WANT TO FUCKING KILL MYSELF
+            // DO NOT APPEND THE LAST NULL BYTE!
+            // if the null byte is appended, it
+            // will not match any strings because
+            // of a length mismatch
+            value.push_back(static_cast<char>(byte));
         }
     }
 #endif
@@ -167,7 +173,32 @@ std::optional<u64> Process::ScanPattern(
         return std::nullopt;
     }
 
-    for (u64 i = 0; i < module.size() - length; i++) {
+#ifdef __AVX2__
+    alignas(32) u8 pattern_vec[32] = {0};
+    alignas(32) u8 mask_vec[32] = {0};
+
+    for (u64 i = 0; i < length; i++) {
+        pattern_vec[i] = pattern[i];
+        mask_vec[i] = mask[i] ? 0xFF : 0x00;
+    }
+
+    __m256i pat = _mm256_loadu_si256(reinterpret_cast<__m256i *>(&pattern_vec[0]));
+    __m256i msk_tmp = _mm256_loadu_si256(reinterpret_cast<__m256i *>(&mask_vec[0]));
+    __m256i msk = _mm256_xor_si256(msk_tmp, _mm256_set1_epi8(static_cast<char>(0xFF)));
+
+    const u64 module_end = module.size() - 64;
+    for (u64 i = 0; i < module_end; i++) {
+        __m256i candidate = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(&module[i]));
+        __m256i comparison = _mm256_cmpeq_epi8(candidate, pat);
+        __m256i combined = _mm256_or_si256(comparison, msk);
+        i32 out_mask = _mm256_movemask_epi8(combined);
+        if (out_mask == -1) {
+            return module_address + i;
+        }
+    }
+#else
+    const u64 module_end = module.size();
+    for (u64 i = 0; i < module_end - length; i++) {
         bool found = true;
         for (u64 j = 0; j < length; j++) {
             if (mask[j] && module[i + j] != pattern[j]) {
@@ -179,6 +210,7 @@ std::optional<u64> Process::ScanPattern(
             return module_address + i;
         }
     }
+#endif
 
     Log(LogLevel::Warning, "broken signature: " + std::string(pattern.begin(), pattern.end()));
     return std::nullopt;
@@ -226,25 +258,27 @@ std::optional<u64> Process::GetModuleExport(
     const u64 module_address, const std::string &export_name) {
     constexpr u64 add = 0x18;
 
-    const std::optional<u64> string_table = GetAddressFromDynamicSection(module_address, 0x05);
-    std::optional<u64> symbol_table = GetAddressFromDynamicSection(module_address, 0x06);
-    if (!string_table || !symbol_table) {
+    const std::optional<u64> string_table_opt = GetAddressFromDynamicSection(module_address, 0x05);
+    std::optional<u64> symbol_table_opt = GetAddressFromDynamicSection(module_address, 0x06);
+    if (!string_table_opt || !symbol_table_opt) {
         return std::nullopt;
     }
+    const u64 string_table = *string_table_opt;
+    u64 symbol_table = *symbol_table_opt;
 
-    *symbol_table += add;
+    symbol_table += add;
 
-    while (Read<u32>(*symbol_table) != 0) {
-        const u64 st_name = Read<u32>(*symbol_table);
-        const std::string name = ReadString(*string_table + st_name);
+    while (Read<u32>(symbol_table) != 0) {
+        const u64 st_name = Read<u32>(symbol_table);
+        const std::string name = ReadString(string_table + st_name);
         if (name == export_name) {
-            return Read<u64>(*symbol_table + 0x08) + module_address;
+            return Read<u64>(symbol_table + 0x08) + module_address;
         }
-        *symbol_table += add;
+        symbol_table += add;
     }
 
     Log(LogLevel::Warning, "could not find export " + std::string(export_name) + " in module at " +
-                               std::to_string(module_address));
+                               HexString(module_address));
     return std::nullopt;
 }
 
@@ -289,7 +323,7 @@ std::optional<u64> Process::GetSegmentFromPht(const u64 module_address, const u6
     }
 
     Log(LogLevel::Error, "could not find tag " + std::to_string(tag) +
-                             " in program header table at " + std::to_string(module_address));
+                             " in program header table at " + HexString(module_address));
     return std::nullopt;
 }
 
