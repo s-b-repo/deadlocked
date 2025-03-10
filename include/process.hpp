@@ -3,13 +3,13 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
+#include <mithril/types.hpp>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include "config.hpp"
 #include "globals.hpp"
-#include "types.hpp"
 
 class Process {
   public:

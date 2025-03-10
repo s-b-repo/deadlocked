@@ -1,12 +1,12 @@
 #include <filesystem>
 #include <fstream>
 #include <glm/glm.hpp>
+#include <mithril/logging.hpp>
 #include <mutex>
 #include <vector>
 
 #include "config.hpp"
 #include "cs2/info.hpp"
-#include "log.hpp"
 
 std::mutex config_lock;
 Config config = LoadConfig();
@@ -31,7 +31,7 @@ void SaveConfig() {
     // save config in binary format
     std::ofstream file(ConfigPath());
     if (!file.good()) {
-        Log(LogLevel::Warning, "config file invalid, cannot save");
+        logging::Log(LogLevel::Warning, "config file invalid, cannot save");
         return;
     }
 
@@ -41,7 +41,7 @@ void SaveConfig() {
 Config LoadConfig() {
     std::ifstream file(ConfigPath());
     if (!file.good()) {
-        Log(LogLevel::Warning, "config file invalid, laoding defaults");
+        logging::Log(LogLevel::Warning, "config file invalid, laoding defaults");
         return {};
     }
 
@@ -49,7 +49,7 @@ Config LoadConfig() {
         const auto data = toml::parse(file);
         return Config::from_toml(*data.as_table());
     } catch (toml::parse_error &) {
-        Log(LogLevel::Warning, "config file invalid, laoding defaults");
+        logging::Log(LogLevel::Warning, "config file invalid, laoding defaults");
         return {};
     }
 }

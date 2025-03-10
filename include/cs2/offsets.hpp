@@ -1,7 +1,6 @@
 #pragma once
 
-#include <string>
-#include "types.hpp"
+#include <mithril/types.hpp>
 
 struct LibraryOffsets {
     u64 client = 0;

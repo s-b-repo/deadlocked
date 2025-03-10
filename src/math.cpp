@@ -1,10 +1,10 @@
 #include "math.hpp"
 
-#include <glm/ext/scalar_constants.hpp>
+#include <mithril/numbers.hpp>
 
 #include "globals.hpp"
 
-f32 ToDegrees(const f32 value) { return value * 180.0f / glm::pi<f32>(); }
+f32 ToDegrees(const f32 value) { return value * 180.0f / numbers::pi<f32>(); }
 
 glm::vec2 AnglesFromVector(const glm::vec3 &forward) {
     f32 yaw = 0.0f;

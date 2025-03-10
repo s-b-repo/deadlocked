@@ -26,10 +26,12 @@ set(SDL_INSTALL_DOCS OFF CACHE BOOL "disable sdl docs" FORCE)
 
 add_subdirectory(lib/glm)
 add_subdirectory(lib/sdl)
+add_subdirectory(lib/mithril)
 
 target_link_libraries(deadlocked PRIVATE glm::glm)
 target_link_libraries(deadlocked PRIVATE OpenGL)
 target_link_libraries(deadlocked PRIVATE SDL3::SDL3)
+target_link_libraries(deadlocked PRIVATE mithril)
 
 # valgrind/callgrind does not work with native, but with skylake it does
 target_compile_options(deadlocked PRIVATE "-march=native")

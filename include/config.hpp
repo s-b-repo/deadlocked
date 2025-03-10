@@ -3,11 +3,11 @@
 #include <imgui.h>
 
 #include <chrono>
+#include <mithril/types.hpp>
 
 #include "colors.hpp"
 #include "key_code.hpp"
 #include "toml.hpp"
-#include "types.hpp"
 
 #define VERSION "v5.1.1"
 

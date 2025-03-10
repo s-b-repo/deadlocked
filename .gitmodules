@@ -10,3 +10,6 @@
 	path = lib/sdl
 	url = https://github.com/libsdl-org/sdl
     ignore = all
+[submodule "lib/mithril"]
+	path = lib/mithril
+	url = https://github.com/avitran0/mithril

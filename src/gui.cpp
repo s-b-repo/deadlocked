@@ -10,7 +10,9 @@
 
 #include <chrono>
 #include <cmath>
-#include <glm/ext/scalar_constants.hpp>
+#include <mithril/logging.hpp>
+#include <mithril/numbers.hpp>
+#include <mithril/types.hpp>
 #include <string>
 #include <thread>
 
@@ -19,11 +21,9 @@
 #include "cs2/cs2.hpp"
 #include "font.hpp"
 #include "globals.hpp"
-#include "log.hpp"
 #include "math.hpp"
 #include "mouse.hpp"
 #include "style.hpp"
-#include "types.hpp"
 
 ImU32 HealthColor(const i32 health) {
     // smooth gradient from 100 (green) over 50 (yellow) to 0 (red)
@@ -77,7 +77,7 @@ void Gui() {
     SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
 
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-        Log(LogLevel::Error, "sdl3 initialization failed, exiting");
+        logging::Log(LogLevel::Error, "sdl3 initialization failed, exiting");
         exit(1);
     }
 
@@ -117,9 +117,11 @@ void Gui() {
         }
     }
 
-    Log(LogLevel::Info, "screen top left corner at: " + std::to_string(minX) + " x " +
+    logging::Log(
+        LogLevel::Info, "screen top left corner at: " + std::to_string(minX) + " x " +
                             std::to_string(minY) + " px");
-    Log(LogLevel::Info, "screen resolution: " + std::to_string(maxX - minX) + " x " +
+    logging::Log(
+        LogLevel::Info, "screen resolution: " + std::to_string(maxX - minX) + " x " +
                             std::to_string(maxY - minY) + " px");
 
     IMGUI_CHECKVERSION();
@@ -133,15 +135,15 @@ void Gui() {
         "deadlocked", width, height,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
     if (!gui_window) {
-        Log(LogLevel::Error, "could not create gui window");
-        Log(LogLevel::Error, SDL_GetError());
+        logging::Log(LogLevel::Error, "could not create gui window");
+        logging::Log(LogLevel::Error, SDL_GetError());
         return;
     }
     SDL_SetWindowPosition(gui_window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
     SDL_GLContext gui_gl = SDL_GL_CreateContext(gui_window);
     if (!gui_gl) {
-        Log(LogLevel::Error, "failed to initialize opengl context for gui window");
-        Log(LogLevel::Error, SDL_GetError());
+        logging::Log(LogLevel::Error, "failed to initialize opengl context for gui window");
+        logging::Log(LogLevel::Error, SDL_GetError());
         return;
     }
     SDL_GL_MakeCurrent(gui_window, gui_gl);
@@ -149,8 +151,8 @@ void Gui() {
 
     SDL_Window *temp = SDL_CreateWindow("deadlocked", 1, 1, SDL_WINDOW_BORDERLESS);
     if (!temp) {
-        Log(LogLevel::Error, "could not create overlay window");
-        Log(LogLevel::Error, SDL_GetError());
+        logging::Log(LogLevel::Error, "could not create overlay window");
+        logging::Log(LogLevel::Error, SDL_GetError());
         return;
     }
     SDL_SetWindowPosition(temp, minX, minY);
@@ -170,16 +172,16 @@ void Gui() {
         SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_NOT_FOCUSABLE |
             SDL_WINDOW_OPENGL | SDL_WINDOW_TOOLTIP | SDL_WINDOW_TRANSPARENT);
     if (!overlay) {
-        Log(LogLevel::Error, "could not create overlay window");
-        Log(LogLevel::Error, SDL_GetError());
+        logging::Log(LogLevel::Error, "could not create overlay window");
+        logging::Log(LogLevel::Error, SDL_GetError());
         return;
     }
 
     // inherits position from parent window
     SDL_GLContext overlay_gl = SDL_GL_CreateContext(overlay);
     if (!overlay_gl) {
-        Log(LogLevel::Error, "failed to initialize opengl context for overlay window");
-        Log(LogLevel::Error, SDL_GetError());
+        logging::Log(LogLevel::Error, "failed to initialize opengl context for overlay window");
+        logging::Log(LogLevel::Error, SDL_GetError());
         return;
     }
     SDL_GL_MakeCurrent(overlay, overlay_gl);
@@ -194,7 +196,7 @@ void Gui() {
     } else {
         const SDL_DisplayID display = SDL_GetPrimaryDisplay();
         scale = SDL_GetDisplayContentScale(display);
-        Log(LogLevel::Info, "detected display scale: " + std::to_string(scale));
+        logging::Log(LogLevel::Info, "detected display scale: " + std::to_string(scale));
     }
 
     SDL_SetWindowSize(
@@ -762,9 +764,9 @@ void Gui() {
             if (config.aimbot.fov_circle && misc_info.in_game) {
                 const f32 pawn_fov =
                     config.misc.fov_changer ? static_cast<f32>(config.misc.desired_fov) : 90.0f;
-                const f32 radius = tanf(config.aimbot.fov / 180.0f * glm::pi<f32>() / 2.0f) /
-                                   tanf(pawn_fov / 180.0f * glm::pi<f32>() / 2.0f) * window_size.z /
-                                   2.0f;
+                const f32 radius = tanf(config.aimbot.fov / 180.0f * numbers::pi<f32>() / 2.0f) /
+                                   tanf(pawn_fov / 180.0f * numbers::pi<f32>() / 2.0f) *
+                                   window_size.z / 2.0f;
                 const ImVec2 center {
                     window_size.x + window_size.z / 2.0f, window_size.y + window_size.w / 2.0f};
                 overlay_draw_list->AddCircle(
@@ -819,7 +821,7 @@ void Gui() {
         // glfwPollEvents();
     }
 
-    Log(LogLevel::Info, "shutting down...");
+    logging::Log(LogLevel::Info, "shutting down...");
 
     config_lock.lock();
     flags.should_quit = true;

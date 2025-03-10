@@ -1,9 +1,8 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <mithril/types.hpp>
 #include <string>
-
-#include "types.hpp"
 
 struct PlayerInfo {
     glm::vec3 position;

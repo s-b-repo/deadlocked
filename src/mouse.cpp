@@ -8,9 +8,8 @@
 #include <cerrno>
 #include <filesystem>
 #include <fstream>
-
-#include "log.hpp"
-#include "types.hpp"
+#include <mithril/logging.hpp>
+#include <mithril/types.hpp>
 
 i32 mouse = 0;
 
@@ -34,7 +33,7 @@ std::vector<bool> HexToReversedBinary(const char hex_char) {
 std::vector<bool> DecodeCapabilities(const std::string &filename) {
     std::ifstream in(filename);
     if (!in.good()) {
-        Log(LogLevel::Warning, "cannot open mouse capability device file: " + filename);
+        logging::Log(LogLevel::Warning, "cannot open mouse capability device file: " + filename);
         return {};
     }
 
@@ -113,25 +112,26 @@ void MouseInit() {
 
         mouse = open(entry.path().c_str(), O_WRONLY);
         if (mouse < 0) {
-            Log(LogLevel::Error, "could not open mouse");
+            logging::Log(LogLevel::Error, "could not open mouse");
             const auto error = errno;
             if (error == EACCES) {
                 const std::string username = getlogin();
-                Log(LogLevel::Error,
+                logging::Log(
+                    LogLevel::Error,
                     "user is not in input group. please execute sudo usermod -aG input " +
                         username);
             } else {
-                Log(LogLevel::Error, "error code: " + std::to_string(error));
+                logging::Log(LogLevel::Error, "error code: " + std::to_string(error));
             }
             std::exit(1);
         }
 
-        Log(LogLevel::Info, "found mouse: " + device_name + " (" + event_name + ")");
+        logging::Log(LogLevel::Info, "found mouse: " + device_name + " (" + event_name + ")");
         return;
     }
 
     mouse = open("/dev/null", O_WRONLY);
-    Log(LogLevel::Warning, "no mouse device was found");
+    logging::Log(LogLevel::Warning, "no mouse device was found");
     std::exit(1);
 }
 
@@ -142,7 +142,8 @@ void MouseQuit() {
 }
 
 void MouseMove(const glm::ivec2 &coords) {
-    Log(LogLevel::Debug,
+    logging::Log(
+        LogLevel::Debug,
         "mouse move: " + std::to_string(coords.x) + "/" + std::to_string(coords.y));
     input_event ev {};
 
@@ -166,7 +167,7 @@ void MouseMove(const glm::ivec2 &coords) {
 }
 
 void MouseLeftPress() {
-    Log(LogLevel::Debug, "pressed left mouse button");
+    logging::Log(LogLevel::Debug, "pressed left mouse button");
     input_event ev {};
 
     // y
@@ -183,7 +184,7 @@ void MouseLeftPress() {
 }
 
 void MouseLeftRelease() {
-    Log(LogLevel::Debug, "released left mouse button");
+    logging::Log(LogLevel::Debug, "released left mouse button");
     input_event ev {};
 
     // y

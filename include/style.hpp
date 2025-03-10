@@ -2,7 +2,7 @@
 
 #include <imgui.h>
 
-#include "types.hpp"
+#include <mithril/types.hpp>
 
 void SetAccentColor(const ImVec4 &color);
 void Style();

@@ -1,9 +1,8 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <mithril/types.hpp>
 #include <optional>
-
-#include "types.hpp"
 
 enum class BombSite {
     A,

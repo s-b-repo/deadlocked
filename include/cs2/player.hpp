@@ -1,10 +1,10 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <mithril/types.hpp>
 #include <optional>
 
 #include "cs2/bones.hpp"
-#include "types.hpp"
 #include "weapon_class.hpp"
 
 class Player {

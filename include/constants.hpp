@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.hpp"
+#include <mithril/types.hpp>
 
 constexpr u64 ELF_PROGRAM_HEADER_OFFSET = 0x20;
 constexpr u64 ELF_PROGRAM_HEADER_ENTRY_SIZE = 0x36;
