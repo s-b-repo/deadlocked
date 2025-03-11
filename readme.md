@@ -18,6 +18,7 @@ simple cs2 aimbot and esp, for linux only.
   - visibility check
   - head only/whole body
   - flash check
+  - fov circle
 - esp
   - box
   - skeleton
