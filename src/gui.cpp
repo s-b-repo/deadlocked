@@ -77,7 +77,7 @@ void Gui() {
     SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
 
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-        logging::Log(LogLevel::Error, "sdl3 initialization failed, exiting");
+        logging::Error("sdl3 initialization failed, exiting");
         exit(1);
     }
 
@@ -117,12 +117,8 @@ void Gui() {
         }
     }
 
-    logging::Log(
-        LogLevel::Info, "screen top left corner at: " + std::to_string(minX) + " x " +
-                            std::to_string(minY) + " px");
-    logging::Log(
-        LogLevel::Info, "screen resolution: " + std::to_string(maxX - minX) + " x " +
-                            std::to_string(maxY - minY) + " px");
+    logging::Info("screen top left corner at: {} x {} px", minX, minY);
+    logging::Info("screen resolution: {} x {} px", maxX - minX, maxY - minY);
 
     IMGUI_CHECKVERSION();
     ImGuiContext *gui_ctx = ImGui::CreateContext();
@@ -135,15 +131,15 @@ void Gui() {
         "deadlocked", width, height,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
     if (!gui_window) {
-        logging::Log(LogLevel::Error, "could not create gui window");
-        logging::Log(LogLevel::Error, SDL_GetError());
+        logging::Error("could not create gui window");
+        logging::Error(SDL_GetError());
         return;
     }
     SDL_SetWindowPosition(gui_window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
     SDL_GLContext gui_gl = SDL_GL_CreateContext(gui_window);
     if (!gui_gl) {
-        logging::Log(LogLevel::Error, "failed to initialize opengl context for gui window");
-        logging::Log(LogLevel::Error, SDL_GetError());
+        logging::Error("failed to initialize opengl context for gui window");
+        logging::Error(SDL_GetError());
         return;
     }
     SDL_GL_MakeCurrent(gui_window, gui_gl);
@@ -151,8 +147,8 @@ void Gui() {
 
     SDL_Window *temp = SDL_CreateWindow("deadlocked", 1, 1, SDL_WINDOW_BORDERLESS);
     if (!temp) {
-        logging::Log(LogLevel::Error, "could not create overlay window");
-        logging::Log(LogLevel::Error, SDL_GetError());
+        logging::Error("could not create overlay window");
+        logging::Error(SDL_GetError());
         return;
     }
     SDL_SetWindowPosition(temp, minX, minY);
@@ -172,16 +168,16 @@ void Gui() {
         SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_BORDERLESS | SDL_WINDOW_NOT_FOCUSABLE |
             SDL_WINDOW_OPENGL | SDL_WINDOW_TOOLTIP | SDL_WINDOW_TRANSPARENT);
     if (!overlay) {
-        logging::Log(LogLevel::Error, "could not create overlay window");
-        logging::Log(LogLevel::Error, SDL_GetError());
+        logging::Error("could not create overlay window");
+        logging::Error(SDL_GetError());
         return;
     }
 
     // inherits position from parent window
     SDL_GLContext overlay_gl = SDL_GL_CreateContext(overlay);
     if (!overlay_gl) {
-        logging::Log(LogLevel::Error, "failed to initialize opengl context for overlay window");
-        logging::Log(LogLevel::Error, SDL_GetError());
+        logging::Error("failed to initialize opengl context for overlay window");
+        logging::Error(SDL_GetError());
         return;
     }
     SDL_GL_MakeCurrent(overlay, overlay_gl);
@@ -196,7 +192,7 @@ void Gui() {
     } else {
         const SDL_DisplayID display = SDL_GetPrimaryDisplay();
         scale = SDL_GetDisplayContentScale(display);
-        logging::Log(LogLevel::Info, "detected display scale: " + std::to_string(scale));
+        logging::Info("detected display scale: {}", scale);
     }
 
     SDL_SetWindowSize(
@@ -821,7 +817,7 @@ void Gui() {
         // glfwPollEvents();
     }
 
-    logging::Log(LogLevel::Info, "shutting down...");
+    logging::Info("shutting down...");
 
     config_lock.lock();
     flags.should_quit = true;

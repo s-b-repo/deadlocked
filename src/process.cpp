@@ -3,7 +3,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "mithril/hex.hpp"
+#include <mithril/hex.hpp>
 
 #ifdef __AVX2__
 #include <immintrin.h>
@@ -11,7 +11,6 @@
 
 #include <filesystem>
 #include <fstream>
-#include <mithril/hex.hpp>
 #include <mithril/logging.hpp>
 #include <string>
 
@@ -134,20 +133,16 @@ std::optional<u64> Process::GetModuleBaseAddress(const std::string &module_name)
         const std::string address_str = line.substr(0, index);
         u64 address = std::stoull(address_str, nullptr, 16);
         if (address == 0) {
-            logging::Log(
-                LogLevel::Warning, "address for module " + module_name +
-                                       " was 0, in put string was \"" + line +
-                                       "\", "
-                                       "extracted address was " +
-                                       address_str);
+            logging::Warning(
+                "address for module {} was 0, in put string was \"{}\", extracted address was ",
+                module_name, line, hex::HexString(address));
             continue;
         }
 
         return address;
     }
 
-    logging::Log(
-        LogLevel::Warning, "could not find address for module " + std::string(module_name));
+    logging::Warning("could not find address for module {}", module_name);
     return std::nullopt;
 }
 
@@ -164,7 +159,7 @@ std::vector<u8> Process::DumpModule(const u64 module_address) {
     const u64 module_size = ModuleSize(module_address);
     // should be 1 gb
     if (module_size == 0 || module_size > 1000000000) {
-        logging::Log(LogLevel::Error, "could not dump module at " + std::to_string(module_address));
+        logging::Error("could not dump module at {}", module_address);
         return {};
     }
     return ReadBytes(module_address, module_size);
@@ -217,8 +212,7 @@ std::optional<u64> Process::ScanPattern(
     }
 #endif
 
-    logging::Log(
-        LogLevel::Warning, "broken signature: " + std::string(pattern.begin(), pattern.end()));
+    logging::Warning("broken signature: {}", hex::HexStringVector(pattern));
     return std::nullopt;
 }
 
@@ -232,7 +226,7 @@ std::optional<u64> Process::GetInterfaceOffset(
     const u64 module_address, const std::string &interface_name) {
     const auto create_interface = GetModuleExport(module_address, "CreateInterface");
     if (!create_interface) {
-        logging::Log(LogLevel::Error, "could not find CreateInterface export");
+        logging::Error("could not find CreateInterface export");
         return std::nullopt;
     }
 
@@ -256,8 +250,7 @@ std::optional<u64> Process::GetInterfaceOffset(
         }
     }
 
-    logging::Log(
-        LogLevel::Warning, "could not find interface offset for " + std::string(interface_name));
+    logging::Warning("could not find interface offset for {}", interface_name);
     return std::nullopt;
 }
 
@@ -284,9 +277,8 @@ std::optional<u64> Process::GetModuleExport(
         symbol_table += add;
     }
 
-    logging::Log(
-        LogLevel::Warning, "could not find export " + std::string(export_name) + " in module at " +
-                               hex::HexString(module_address));
+    logging::Warning(
+        "could not find export {} in module at {}", export_name, hex::HexString(module_address));
     return std::nullopt;
 }
 
@@ -294,7 +286,7 @@ std::optional<u64> Process::GetAddressFromDynamicSection(const u64 module_addres
     const std::optional<u64> dynamic_section_offset =
         GetSegmentFromPht(module_address, ELF_DYNAMIC_SECTION_PHT_TYPE);
     if (!dynamic_section_offset) {
-        logging::Log(LogLevel::Error, "could not find dynamic section in loaded elf");
+        logging::Error("could not find dynamic section in loaded elf");
         return std::nullopt;
     }
 
@@ -315,8 +307,7 @@ std::optional<u64> Process::GetAddressFromDynamicSection(const u64 module_addres
         address += register_size * 2;
     }
 
-    logging::Log(
-        LogLevel::Warning, "could not find tag " + std::to_string(tag) + " in dynamic section");
+    logging::Warning("could not find tag {} in dynamic section", tag);
     return std::nullopt;
 }
 
@@ -331,9 +322,8 @@ std::optional<u64> Process::GetSegmentFromPht(const u64 module_address, const u6
         }
     }
 
-    logging::Log(
-        LogLevel::Error, "could not find tag " + std::to_string(tag) +
-                             " in program header table at " + hex::HexString(module_address));
+    logging::Error(
+        "could not find tag {} in program header table at {}", tag, hex::HexString(module_address));
     return std::nullopt;
 }
 
@@ -356,7 +346,7 @@ std::optional<u64> Process::GetConvar(const u64 convar_offset, const std::string
         }
     }
 
-    logging::Log(LogLevel::Warning, "could not find convar " + std::string(convar_name));
+    logging::Warning("could not find convar {}", convar_name);
     return std::nullopt;
 }
 

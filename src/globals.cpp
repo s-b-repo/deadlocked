@@ -31,7 +31,7 @@ void SaveConfig() {
     // save config in binary format
     std::ofstream file(ConfigPath());
     if (!file.good()) {
-        logging::Log(LogLevel::Warning, "config file invalid, cannot save");
+        logging::Warning("config file invalid, cannot save");
         return;
     }
 
@@ -41,7 +41,7 @@ void SaveConfig() {
 Config LoadConfig() {
     std::ifstream file(ConfigPath());
     if (!file.good()) {
-        logging::Log(LogLevel::Warning, "config file invalid, laoding defaults");
+        logging::Warning("config file invalid, loading defaults");
         return {};
     }
 
@@ -49,7 +49,7 @@ Config LoadConfig() {
         const auto data = toml::parse(file);
         return Config::from_toml(*data.as_table());
     } catch (toml::parse_error &) {
-        logging::Log(LogLevel::Warning, "config file invalid, laoding defaults");
+        logging::Warning("config file invalid, loading defaults");
         return {};
     }
 }
