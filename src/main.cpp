@@ -40,6 +40,7 @@ int main(const int argc, const char *argv[]) {
             if (file_name.empty()) {
                 logging::Log(LogLevel::Error, "invalid log file name");
             }
+            logging::SetLogFile(file_name);
             logging::Log(LogLevel::Info, "writing log to " + file_name);
         }
     }
