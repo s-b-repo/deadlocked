@@ -775,6 +775,11 @@ bool FindTarget() {
         target.Reset();
     }
 
+    if (AnglesToFov(view_angles, target.angle) >
+        config.aimbot.fov * DistanceScale(target.distance)) {
+        target.Reset();
+    }
+
     // update target player
     if (!IsButtonPressed(config.aimbot.hotkey) || !target.player) {
         for (const Player &player : players) {
