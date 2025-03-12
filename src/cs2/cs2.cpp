@@ -344,7 +344,7 @@ std::optional<Offsets> FindOffsets() {
             }
             offsets.controller.desired_fov = *reinterpret_cast<i32 *>(entry + 0x08);
             logging::Debug(
-                "player desired fov netvar offset: {}" +
+                "player desired fov netvar offset: {}",
                 hex::HexString(offsets.controller.desired_fov));
         } else if (name == "m_hOwnerEntity") {
             if (!network_enable || offsets.controller.owner_entity != 0) {
@@ -352,7 +352,6 @@ std::optional<Offsets> FindOffsets() {
             }
             offsets.controller.owner_entity = *reinterpret_cast<i32 *>(entry + 0x18);
             logging::Debug(
-
                 "entity owner netvar offset: {}", hex::HexString(offsets.controller.owner_entity));
         } else if (name == "m_iHealth") {
             if (!network_enable || offsets.pawn.health != 0) {
@@ -764,6 +763,7 @@ bool FindTarget() {
         }
     }
     target.aim_punch = aim_punch;
+    logging::Info("punch: {}\{}", aim_punch.x, aim_punch.y);
 
     f32 smallest_fov {360.0f};
     const glm::vec3 eye_position = local_player->EyePosition();

@@ -11,6 +11,7 @@ int main(const int argc, const char *argv[]) {
     signal(SIGABRT, stacktrace::SignalHandler);
     signal(SIGSEGV, stacktrace::SignalHandler);
 
+    logging::SetLevel(logging::Level::Debug);
     for (int i = 0; i < argc; i++) {
         const std::string arg {argv[i]};
         if (arg == "--file-mem") {
