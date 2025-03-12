@@ -763,7 +763,6 @@ bool FindTarget() {
         }
     }
     target.aim_punch = aim_punch;
-    logging::Info("punch: {}\{}", aim_punch.x, aim_punch.y);
 
     f32 smallest_fov {360.0f};
     const glm::vec3 eye_position = local_player->EyePosition();
