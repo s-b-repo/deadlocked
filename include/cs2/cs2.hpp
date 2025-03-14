@@ -14,7 +14,6 @@ struct Target {
     glm::vec2 angle {0.0f};
     f32 distance {0.0f};
     u64 local_pawn_index {0};
-    glm::vec2 aim_punch {0.0f};
 
     void Reset() {
         player = std::nullopt;
@@ -22,13 +21,13 @@ struct Target {
         angle = glm::vec2 {0.0f};
         distance = 0.0f;
         local_pawn_index = 0;
-        aim_punch = glm::vec2 {0.0f};
     }
 };
 
 extern Process process;
 extern Offsets offsets;
 extern Target target;
+extern glm::vec2 aim_punch;
 
 void CS2();
 bool IsValid();

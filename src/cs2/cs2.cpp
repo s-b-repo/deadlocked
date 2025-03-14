@@ -17,6 +17,7 @@ bool is_valid {false};
 Process process {};
 Offsets offsets {};
 Target target {};
+glm::vec2 aim_punch {};
 std::vector<Player> players {};
 
 void CS2() {
@@ -753,16 +754,16 @@ bool FindTarget() {
 
     const glm::vec2 view_angles = local_player->ViewAngles();
     const i32 shots_fired = local_player->ShotsFired();
-    glm::vec2 aim_punch {0.0f};
+    glm::vec2 punch {0.0f};
     if (weapon_class != WeaponClass::Sniper) {
-        const glm::vec2 punch = local_player->AimPunch();
-        if (length(punch) < 0.001f && shots_fired > 0) {
-            aim_punch = target.aim_punch;
+        const glm::vec2 p = local_player->AimPunch();
+        if (length(p) < 0.001f && shots_fired > 0) {
+            punch = aim_punch;
         } else {
-            aim_punch = punch;
+            punch = p;
         }
     }
-    target.aim_punch = aim_punch;
+    aim_punch = punch;
 
     f32 smallest_fov {360.0f};
     const glm::vec3 eye_position = local_player->EyePosition();

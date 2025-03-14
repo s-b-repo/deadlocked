@@ -32,8 +32,7 @@ void Aimbot() {
         target_angle = target.angle;
     } else {
         target_angle = TargetAngle(
-            local_player->EyePosition(), target.player->BonePosition(Bones::Head),
-            target.aim_punch);
+            local_player->EyePosition(), target.player->BonePosition(Bones::Head), aim_punch);
     }
 
     const glm::vec2 view_angles = local_player->ViewAngles();

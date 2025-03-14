@@ -27,14 +27,14 @@ void Rcs() {
         return;
     }
 
-    if (length(target.aim_punch) < 0.01f) {
+    if (length(aim_punch) < 0.01f) {
         return;
     }
 
     const f32 sensitivity = Sensitivity() * local_player->FovMultiplier();
 
     const glm::vec2 mouse_angle {
-        target.aim_punch.y / sensitivity * 25.0f, -target.aim_punch.x / sensitivity * 25.0f};
+        aim_punch.y / sensitivity * 25.0f, -aim_punch.x / sensitivity * 25.0f};
     const glm::vec2 delta = mouse_angle - mouse_movement;
 
     mouse_movement += round(delta);
