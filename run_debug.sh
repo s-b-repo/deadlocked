@@ -1,4 +1,4 @@
 #!/bin/bash
 
 ./build.sh Debug
-./deadlocked
+./build/deadlocked
