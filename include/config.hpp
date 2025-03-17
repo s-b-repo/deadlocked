@@ -50,6 +50,7 @@ struct TriggerbotConfig {
     bool visibility_check = true;
     bool flash_check = true;
     bool scope_check = true;
+    bool head_only = false;
 
     toml::table to_toml() const;
     static TriggerbotConfig from_toml(const toml::table &table);
