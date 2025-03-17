@@ -3,6 +3,7 @@
 
 #include "cs2/cs2.hpp"
 #include "cs2/features.hpp"
+#include "math.hpp"
 #include "mouse.hpp"
 
 std::optional<std::chrono::steady_clock::time_point> next_shot = std::nullopt;
@@ -40,6 +41,24 @@ void Triggerbot() {
     const std::optional<Player> crosshair_entity = local_player->EntityInCrosshair();
     if (!crosshair_entity) {
         return;
+    }
+
+    if (config.triggerbot.head_only) {
+        glm::vec3 enemy_head = target.player->BonePosition(Bones::Head);
+        glm::vec3 crosshair_pos = local_player->EyePosition();
+
+        glm::vec2 target_angle = TargetAngle(crosshair_pos, enemy_head, glm::vec2(0.0f));
+
+        glm::vec2 view_angles = local_player->ViewAngles();
+
+        float fov_distance = AnglesToFov(view_angles, target_angle);
+
+        float head_radius_world = 3.5f;
+        float head_radius_fov = head_radius_world / target.distance * 100.0f;
+
+        if (fov_distance > head_radius_fov) {
+            return;
+        }
     }
 
     if (!IsFfa() && crosshair_entity->Team() == local_player->Team()) {
