@@ -10,25 +10,34 @@ if [[ "$BUILD_TYPE" != "Release" && "$BUILD_TYPE" != "Debug" ]]; then
     exit 1
 fi
 
-echo "Building in $BUILD_TYPE mode..."
+echo "Building in $BUILD_TYPE mode"
 
-export CC="ccache gcc"
-export CXX="ccache g++"
-export CMAKE_GENERATOR="Ninja"
+if command -v ccache &> /dev/null; then
+    CCACHE_LAUNCHER_OPTS="-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+else
+    CCACHE_LAUNCHER_OPTS=""
+fi
+
+if command -v ninja &> /dev/null; then
+    GENERATOR_OPTS="-G Ninja"
+else
+    GENERATOR_OPTS=""
+fi
+
 export NUM_CORES=$(nproc)
-
 
 mkdir -p build
 cd build
 
-cmake -G Ninja \
+cmake $GENERATOR_OPTS \
     -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+    $CCACHE_LAUNCHER_OPTS \
     -DCMAKE_CXX_FLAGS="-march=native -O3 -pipe" \
     -DCMAKE_C_FLAGS="-march=native -O3 -pipe" \
     ..
 
 cmake --build . -j$NUM_CORES
 
-ccache --show-stats
+if command -v ccache &> /dev/null; then
+    ccache --show-stats
+fi
