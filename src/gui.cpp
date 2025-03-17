@@ -325,6 +325,8 @@ void Gui() {
 
             ImGui::Checkbox("Scope Check", &config.triggerbot.scope_check);
 
+            ImGui::Checkbox("Head Only", &config.triggerbot.head_only);
+
             ImGui::EndChild();
             ImGui::EndTabItem();
         }
