@@ -12,13 +12,13 @@ fi
 
 echo "Building in $BUILD_TYPE mode"
 
-if command -v ccache &> /dev/null; then
+if command -v ccache &>/dev/null; then
     CCACHE_LAUNCHER_OPTS="-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
 else
     CCACHE_LAUNCHER_OPTS=""
 fi
 
-if command -v ninja &> /dev/null; then
+if command -v ninja &>/dev/null; then
     GENERATOR_OPTS="-G Ninja"
 else
     GENERATOR_OPTS=""
@@ -38,6 +38,6 @@ cmake $GENERATOR_OPTS \
 
 cmake --build . -j$NUM_CORES
 
-if command -v ccache &> /dev/null; then
+if command -v ccache &>/dev/null; then
     ccache --show-stats
 fi

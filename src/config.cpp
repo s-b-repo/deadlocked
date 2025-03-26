@@ -59,7 +59,8 @@ toml::table TriggerbotConfig::to_toml() const {
         {"enabled", enabled},
         {"visibility_check", visibility_check},
         {"flash_check", flash_check},
-        {"scope_check", scope_check}};
+        {"scope_check", scope_check},
+        {"head_only", head_only}};
 }
 
 TriggerbotConfig TriggerbotConfig::from_toml(const toml::table &table) {
@@ -71,6 +72,7 @@ TriggerbotConfig TriggerbotConfig::from_toml(const toml::table &table) {
     cfg.visibility_check = table["visibility_check"].value_or(cfg.visibility_check);
     cfg.flash_check = table["flash_check"].value_or(cfg.flash_check);
     cfg.scope_check = table["scope_check"].value_or(cfg.scope_check);
+    cfg.head_only = table["head_only"].value_or(cfg.head_only);
     return cfg;
 }
 
