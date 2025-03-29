@@ -53,7 +53,7 @@ simple cs2 aimbot and esp, for linux only.
 
 ## setup
 
-- add your user to the `input` group: `sudo usermod -aG input USERNAME` (replace USERNAME with your actual username)
+- add your user to the `input` group: `sudo usermod -aG input $(whoami)`
 - restart your machine (this will **_not_** work without a restart!)
 - clone the repository: `git clone --recursive https://github.com/avitran0/deadlocked`
 - install cmake ,a c++17 compiler (gcc 7+ or clang 4+), ninja and ccache 
