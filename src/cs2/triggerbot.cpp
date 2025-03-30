@@ -9,7 +9,7 @@
 std::optional<std::chrono::steady_clock::time_point> next_shot = std::nullopt;
 
 void Triggerbot() {
-    if (!config.triggerbot.enabled || !IsButtonPressed(config.triggerbot.hotkey)) {
+    if (!config.triggerbot.enabled || !config.triggerbot.triggerActive) {
         return;
     }
 

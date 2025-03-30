@@ -222,6 +222,9 @@ void Gui() {
 
     std::thread cs2(CS2);
 
+    bool triggerToggled = false;
+    bool prevKeyState = false;
+
     bool should_close = false;
     auto save_timer = std::chrono::steady_clock::now();
     while (!should_close) {
@@ -315,16 +318,16 @@ void Gui() {
                 ImGui::EndCombo();
             }
 
+            // New option: Toggle Mode (instead of hold)
+            ImGui::Checkbox("Toggle Mode", &config.triggerbot.toggleMode);
+
             ImGui::DragIntRange2(
                 "Delay", &config.triggerbot.delay_min, &config.triggerbot.delay_max, 0.2f, 0, 1000,
                 "%d", nullptr, ImGuiSliderFlags_AlwaysClamp);
 
             ImGui::Checkbox("Visibility Check", &config.triggerbot.visibility_check);
-
             ImGui::Checkbox("Flash Check", &config.triggerbot.flash_check);
-
             ImGui::Checkbox("Scope Check", &config.triggerbot.scope_check);
-
             ImGui::Checkbox("Head Only", &config.triggerbot.head_only);
 
             ImGui::EndChild();
@@ -560,6 +563,29 @@ void Gui() {
         OutlineText(
             overlay_draw_list, ImVec2 {window_size.x + 4.0f, window_size.y + 4.0f}, text_color,
             overlay_fps.c_str());
+
+        if (config.triggerbot.enabled) {
+            bool currentKeyState = IsButtonPressed(config.triggerbot.hotkey);
+
+            if (config.triggerbot.toggleMode) {
+                // Toggle mode: change state on rising edge
+                if (currentKeyState && !prevKeyState) {
+                    triggerToggled = !triggerToggled;
+                }
+                prevKeyState = currentKeyState;
+                config.triggerbot.triggerActive = triggerToggled;
+            } else {
+                // Hold mode: active only while key is pressed
+                config.triggerbot.triggerActive = currentKeyState;
+            }
+
+            if (config.triggerbot.triggerActive) {
+                ImVec2 center = ImVec2(maxX * 0.5f, maxY * 0.5f);
+                ImVec2 trigger_pos = ImVec2(center.x + (maxX / 64), center.y - (maxY / 64));
+                overlay_draw_list->AddText(ImGui::GetFont(), ImGui::GetFontSize() * 1.1f,
+                                            trigger_pos, 0xFF0000FF, "Trigger Enabled");
+            }
+        }
 
         if (config.visuals.debug_window) {
             // frame
