@@ -32,4 +32,5 @@ struct MiscInfo {
     f32 gui_scale = -1.0f;
     bool in_game;
     bool is_ffa;
+    bool triggerbot_active;
 };

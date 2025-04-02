@@ -222,9 +222,6 @@ void Gui() {
 
     std::thread cs2(CS2);
 
-    bool triggerToggled = false;
-    bool prevKeyState = false;
-
     bool should_close = false;
     auto save_timer = std::chrono::steady_clock::now();
     while (!should_close) {
@@ -319,7 +316,7 @@ void Gui() {
             }
 
             // New option: Toggle Mode (instead of hold)
-            ImGui::Checkbox("Toggle Mode", &config.triggerbot.toggleMode);
+            ImGui::Checkbox("Toggle Mode", &config.triggerbot.toggle_mode);
 
             ImGui::DragIntRange2(
                 "Delay", &config.triggerbot.delay_min, &config.triggerbot.delay_max, 0.2f, 0, 1000,
@@ -564,29 +561,6 @@ void Gui() {
             overlay_draw_list, ImVec2 {window_size.x + 4.0f, window_size.y + 4.0f}, text_color,
             overlay_fps.c_str());
 
-        if (config.triggerbot.enabled) {
-            bool currentKeyState = IsButtonPressed(config.triggerbot.hotkey);
-
-            if (config.triggerbot.toggleMode) {
-                // Toggle mode: change state on rising edge
-                if (currentKeyState && !prevKeyState) {
-                    triggerToggled = !triggerToggled;
-                }
-                prevKeyState = currentKeyState;
-                config.triggerbot.triggerActive = triggerToggled;
-            } else {
-                // Hold mode: active only while key is pressed
-                config.triggerbot.triggerActive = currentKeyState;
-            }
-
-            if (config.triggerbot.triggerActive) {
-                ImVec2 center = ImVec2(maxX * 0.5f, maxY * 0.5f);
-                ImVec2 trigger_pos = ImVec2(center.x + (maxX / 64), center.y - (maxY / 64));
-                overlay_draw_list->AddText(ImGui::GetFont(), ImGui::GetFontSize() * 1.1f,
-                                            trigger_pos, 0xFF0000FF, "Trigger Enabled");
-            }
-        }
-
         if (config.visuals.debug_window) {
             // frame
             overlay_draw_list->AddRect(
@@ -815,6 +789,14 @@ void Gui() {
             }
 
             vinfo_lock.unlock();
+        }
+
+        if (misc_info.triggerbot_active) {
+            ImVec2 center {(maxX - minX) * 0.5f, (maxY - minY) * 0.5f};
+            ImVec2 trigger_pos {
+                center.x + static_cast<f32>(maxX - minX) / 64.0f,
+                center.y - static_cast<f32>(maxY - minY) / 64.0f};
+            OutlineText(overlay_draw_list, trigger_pos, 0xFFFFFFFF, "Trigger Enabled");
         }
 
         ImGui::End();

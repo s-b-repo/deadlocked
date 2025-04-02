@@ -7,9 +7,28 @@
 #include "mouse.hpp"
 
 std::optional<std::chrono::steady_clock::time_point> next_shot = std::nullopt;
+bool previous_key_state = false;
+bool toggled = false;
 
 void Triggerbot() {
-    if (!config.triggerbot.enabled || !config.triggerbot.triggerActive) {
+    if (!config.triggerbot.enabled) {
+        return;
+    }
+
+    const bool key_state = IsButtonPressed(config.triggerbot.hotkey);
+    if (config.triggerbot.toggle_mode) {
+        // toggle mode
+        if (key_state && !previous_key_state) {
+            toggled = !toggled;
+        }
+        previous_key_state = key_state;
+        misc_info.triggerbot_active = toggled;
+    } else {
+        // default mode, key has to be held
+        misc_info.triggerbot_active = key_state;
+    }
+
+    if (!misc_info.triggerbot_active) {
         return;
     }
 
