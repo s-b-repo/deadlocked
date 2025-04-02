@@ -792,7 +792,8 @@ void Gui() {
         }
 
         if (misc_info.triggerbot_active) {
-            ImVec2 center {(maxX - minX) * 0.5f, (maxY - minY) * 0.5f};
+            ImVec2 center {
+                static_cast<f32>(maxX - minX) * 0.5f, static_cast<f32>(maxY - minY) * 0.5f};
             ImVec2 trigger_pos {
                 center.x + static_cast<f32>(maxX - minX) / 64.0f,
                 center.y - static_cast<f32>(maxY - minY) / 64.0f};

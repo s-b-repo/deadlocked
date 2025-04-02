@@ -87,10 +87,8 @@ void Process::ReadString(const u64 address, std::string &value) {
             const u32 first_zero = __builtin_ctz(mask);
             value.append(block, first_zero);
             return;
-        } else {
-            // no null
-            value.append(block, sizeof(__m256i));
         }
+        value.append(block, sizeof(__m256i));
     }
 #else
     // 8 bytes at a time
@@ -174,24 +172,24 @@ std::optional<u64> Process::ScanPattern(
     }
 
 #ifdef __AVX2__
-    alignas(32) u8 pattern_vec[32] = {0};
-    alignas(32) u8 mask_vec[32] = {0};
+    alignas(32) u8 pattern_vec[32] {};
+    alignas(32) u8 mask_vec[32] {};
 
     for (u64 i = 0; i < length; i++) {
         pattern_vec[i] = pattern[i];
         mask_vec[i] = mask[i] ? 0xFF : 0x00;
     }
 
-    __m256i pat = _mm256_loadu_si256(reinterpret_cast<__m256i *>(&pattern_vec[0]));
-    __m256i msk_tmp = _mm256_loadu_si256(reinterpret_cast<__m256i *>(&mask_vec[0]));
-    __m256i msk = _mm256_xor_si256(msk_tmp, _mm256_set1_epi8(static_cast<char>(0xFF)));
+    const __m256i pat = _mm256_loadu_si256(reinterpret_cast<__m256i *>(&pattern_vec[0]));
+    const __m256i msk_tmp = _mm256_loadu_si256(reinterpret_cast<__m256i *>(&mask_vec[0]));
+    const __m256i msk = _mm256_xor_si256(msk_tmp, _mm256_set1_epi8(static_cast<char>(0xFF)));
 
     const u64 module_end = module.size() - 64;
     for (u64 i = 0; i < module_end; i++) {
-        __m256i candidate = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(&module[i]));
-        __m256i comparison = _mm256_cmpeq_epi8(candidate, pat);
-        __m256i combined = _mm256_or_si256(comparison, msk);
-        i32 out_mask = _mm256_movemask_epi8(combined);
+        const __m256i candidate = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(&module[i]));
+        const __m256i comparison = _mm256_cmpeq_epi8(candidate, pat);
+        const __m256i combined = _mm256_or_si256(comparison, msk);
+        const i32 out_mask = _mm256_movemask_epi8(combined);
         if (out_mask == -1) {
             return module_address + i;
         }
@@ -259,7 +257,7 @@ std::optional<u64> Process::GetModuleExport(
     constexpr u64 add = 0x18;
 
     const std::optional<u64> string_table_opt = GetAddressFromDynamicSection(module_address, 0x05);
-    std::optional<u64> symbol_table_opt = GetAddressFromDynamicSection(module_address, 0x06);
+    const std::optional<u64> symbol_table_opt = GetAddressFromDynamicSection(module_address, 0x06);
     if (!string_table_opt || !symbol_table_opt) {
         return std::nullopt;
     }

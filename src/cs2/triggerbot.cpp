@@ -63,17 +63,17 @@ void Triggerbot() {
     }
 
     if (config.triggerbot.head_only) {
-        glm::vec3 enemy_head = target.player->BonePosition(Bones::Head);
-        glm::vec3 crosshair_pos = local_player->EyePosition();
+        const glm::vec3 enemy_head = target.player->BonePosition(Bones::Head);
+        const glm::vec3 crosshair_pos = local_player->EyePosition();
 
-        glm::vec2 target_angle = TargetAngle(crosshair_pos, enemy_head, glm::vec2(0.0f));
+        const glm::vec2 target_angle = TargetAngle(crosshair_pos, enemy_head, glm::vec2(0.0f));
 
-        glm::vec2 view_angles = local_player->ViewAngles();
+        const glm::vec2 view_angles = local_player->ViewAngles();
 
-        float fov_distance = AnglesToFov(view_angles, target_angle);
+        const f32 fov_distance = AnglesToFov(view_angles, target_angle);
 
-        float head_radius_world = 3.5f;
-        float head_radius_fov = head_radius_world / target.distance * 100.0f;
+        constexpr f32 head_radius_world = 3.5f;
+        const f32 head_radius_fov = head_radius_world / target.distance * 100.0f;
 
         if (fov_distance > head_radius_fov) {
             return;
