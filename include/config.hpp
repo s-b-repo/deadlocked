@@ -51,10 +51,14 @@ struct TriggerbotConfig {
     bool flash_check = true;
     bool scope_check = true;
     bool head_only = false;
+    bool toggleMode = false;
+    
+    bool triggerActive = false;
 
     toml::table to_toml() const;
     static TriggerbotConfig from_toml(const toml::table &table);
 };
+
 
 struct VisualsConfig {
     ImVec4 text_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
