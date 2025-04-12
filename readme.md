@@ -74,7 +74,7 @@ simple cs2 aimbot and esp, for linux only.
 
 ### what desktop environments and window managers are supported?
 
-it is tested on GNOME with Mutter, and KDE with KWin.
+it is tested on GNOME with Mutter, KDE with KWin, and SwayWM.
 support for other (especially tiling) window managers is not guaranteed.
 if in doubt, use either one of the two just listed.
 
