@@ -664,7 +664,7 @@ std::optional<std::string> GetEntityType(const u64 entity) {
         return std::nullopt;
     }
 
-    const std::string entity_name = process.ReadString(name_pointer);
+    std::string entity_name = process.ReadString(name_pointer);
 
     if (entity_name.compare(0, 7, "weapon_") == 0) {
         entity_name = entity_name.erase(0, 7);
