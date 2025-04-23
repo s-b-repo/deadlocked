@@ -651,7 +651,6 @@ bool EntityHasOwner(const u64 entity) {
     return process.Read<i32>(entity + offsets.controller.owner_entity) != -1;
 }
 
-std::string entity_name;
 std::optional<std::string> GetEntityType(const u64 entity) {
     // m_pEntity
     const u64 entity_instance = process.Read<u64>(entity + 0x10);
@@ -665,8 +664,7 @@ std::optional<std::string> GetEntityType(const u64 entity) {
         return std::nullopt;
     }
 
-    entity_name.clear();
-    process.ReadString(name_pointer, entity_name);
+    const std::string entity_name = process.ReadString(name_pointer);
 
     if (entity_name.compare(0, 7, "weapon_") == 0) {
         entity_name = entity_name.erase(0, 7);
