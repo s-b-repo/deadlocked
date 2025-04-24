@@ -44,7 +44,6 @@ class Process {
     }
 
     std::string ReadString(u64 address);
-    void ReadString(u64 address, std::string &value);
     std::vector<u8> ReadBytes(u64 address, u64 count) const;
 
     std::optional<u64> GetModuleBaseAddress(const std::string &module_name) const;
@@ -60,6 +59,9 @@ class Process {
     std::optional<u64> GetSegmentFromPht(u64 module_address, u64 tag);
     std::optional<u64> GetConvar(u64 convar_offset, const std::string &convar_name);
     u64 GetInterfaceFunction(u64 interface_address, u64 index);
+
+  private:
+    void ReadString(u64 address, std::string &value);
 };
 
 std::optional<i32> GetPid(const std::string &process_name);

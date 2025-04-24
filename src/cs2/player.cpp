@@ -289,7 +289,7 @@ bool Player::HasHelmet() const {
 bool Player::HasBomb() const {
     const std::vector<std::string> weapons = AllWeapons();
     for (const auto &weapon : weapons) {
-        if (weapon == "weapon_c4") {
+        if (weapon == "c4") {
             return true;
         }
     }
