@@ -160,7 +160,9 @@ void MouseMove(const glm::ivec2 &coords) {
     ev.type = EV_SYN;
     ev.code = SYN_REPORT;
     ev.value = 0;
-    write(mouse, &ev, sizeof(ev));
+    if (write(mouse, &ev, sizeof(ev)) <= 0) {
+        logging::Warning("mouse write failed");
+    }
 }
 
 void MouseLeftPress() {
@@ -177,7 +179,9 @@ void MouseLeftPress() {
     ev.type = EV_SYN;
     ev.code = SYN_REPORT;
     ev.value = 0;
-    write(mouse, &ev, sizeof(ev));
+    if (write(mouse, &ev, sizeof(ev)) <= 0) {
+        logging::Warning("mouse write failed");
+    }
 }
 
 void MouseLeftRelease() {
@@ -194,5 +198,17 @@ void MouseLeftRelease() {
     ev.type = EV_SYN;
     ev.code = SYN_REPORT;
     ev.value = 0;
-    write(mouse, &ev, sizeof(ev));
+    if (write(mouse, &ev, sizeof(ev)) <= 0) {
+        logging::Warning("mouse write failed");
+    }
+}
+
+bool MouseValid() {
+    struct input_event ev {
+        .time = {.tv_sec = 0, .tv_usec = 0},
+        .type = EV_SYN,
+        .code = SYN_REPORT,
+        .value = 0,
+    };
+    return write(mouse, &ev, sizeof(ev)) > 0;
 }

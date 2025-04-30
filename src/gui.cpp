@@ -227,6 +227,10 @@ void Gui() {
     while (!should_close) {
         const auto start_time = std::chrono::steady_clock::now();
 
+        if (MouseValid()) {
+            MouseInit();
+        }
+
         SDL_GL_MakeCurrent(gui_window, gui_gl);
         ImGui::SetCurrentContext(gui_ctx);
 
