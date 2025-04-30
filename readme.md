@@ -5,7 +5,7 @@
 </a>
 
 ![downloads](https://img.shields.io/github/downloads/avitran0/deadlocked/total?color=blue)
-[![foss cs2/deadlock hacking](https://badgen.net/discord/members/eXjG4Ar9Sx)](https://discord.gg/eXjG4Ar9Sx)
+[![foss cs2 hacking](https://badgen.net/discord/members/eXjG4Ar9Sx)](https://discord.gg/eXjG4Ar9Sx)
 
 simple cs2 aimbot and esp, for linux only.
 
@@ -53,10 +53,12 @@ simple cs2 aimbot and esp, for linux only.
 
 ## setup
 
+if possible, do not use the precompiled releases. they might be out of date.
+
 - add your user to the `input` group: `sudo usermod -aG input $(whoami)`
 - restart your machine (this will **_not_** work without a restart!)
 - clone the repository: `git clone --recursive https://github.com/avitran0/deadlocked`
-- install cmake ,a c++17 compiler (gcc 7+ or clang 4+), ninja and ccache 
+- install cmake and a c++17 compiler (gcc 7+ or clang 4+) 
 
 ## running
 
@@ -76,7 +78,7 @@ simple cs2 aimbot and esp, for linux only.
 
 it is tested on GNOME with Mutter, KDE with KWin, and SwayWM.
 support for other (especially tiling) window managers is not guaranteed.
-if in doubt, use either one of the two just listed.
+if in doubt, use either GNOME or KDE.
 
 ### the overlay window/my screen is black
 
