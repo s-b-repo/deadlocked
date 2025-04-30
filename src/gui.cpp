@@ -227,7 +227,7 @@ void Gui() {
     while (!should_close) {
         const auto start_time = std::chrono::steady_clock::now();
 
-        if (MouseValid()) {
+        if (!MouseValid()) {
             MouseInit();
         }
 
