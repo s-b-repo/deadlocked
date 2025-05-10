@@ -6,9 +6,11 @@
 ![downloads](https://img.shields.io/github/downloads/avitran0/deadlocked/total?color=blue)
 [![foss cs2 hacking](https://badgen.net/discord/members/eXjG4Ar9Sx)](https://discord.gg/eXjG4Ar9Sx)
 
-simple cs2 aimbot and esp, for linux only.
+ abit more than simple cs2 aimbot and esp, for linux only.
 
 ## features
+
+Randomizes process name (Linux only)
 
 - aimbot
   - random vertical jitter
