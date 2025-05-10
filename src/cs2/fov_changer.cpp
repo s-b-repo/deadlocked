@@ -8,9 +8,6 @@ void FovChanger() {
         return;
     }
 
-    if (config.misc.fov_changer) {
-        local_player->SetFov(config.misc.desired_fov);
-    } else {
-        local_player->SetFov(90);
-    }
+    const i32 target_fov = config.misc.fov_changer ? config.misc.desired_fov : 90;
+    local_player->SetFov(target_fov);
 }
