@@ -44,8 +44,11 @@ Randomizes process name (Linux only)
  - fov changer only writes to memory when needed not the whole time
    
  - noflash
-   random micro delay to evade heuristics   
+   
+   random micro delay to evade heuristics
+
    small jitter for stealthy
+
    Clamp flash alpha to prevent illegal values
 
 - unsafe
