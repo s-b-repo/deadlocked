@@ -41,10 +41,15 @@ Randomizes process name (Linux only)
   - sniper crosshair
 
 -semi safe
-- fov changer only writes to memory when needed not the whole time
+ - fov changer only writes to memory when needed not the whole time
+   
+ - noflash
+   random micro delay to evade heuristics   
+   small jitter for stealthy
+   Clamp flash alpha to prevent illegal values
 
 - unsafe
-  - noflash
+  
     - max flash alpha
   
 
