@@ -1,8 +1,7 @@
-# deadlocked
+# deadshotv
 
-<a href="https://www.buymeacoffee.com/avitrano">
-<img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" width="130" height="30" alt="buy me a coffee" />
-</a>
+
+### deadlocked fork
 
 ![downloads](https://img.shields.io/github/downloads/avitran0/deadlocked/total?color=blue)
 [![foss cs2 hacking](https://badgen.net/discord/members/eXjG4Ar9Sx)](https://discord.gg/eXjG4Ar9Sx)
@@ -12,6 +11,7 @@ simple cs2 aimbot and esp, for linux only.
 ## features
 
 - aimbot
+  - random vertical jitter
   - fov
   - smoothing (with jitter)
   - aim lock
@@ -29,6 +29,7 @@ simple cs2 aimbot and esp, for linux only.
   - player tags (helmet, defuser, bomb)
   - dropped weapons
 - triggerbot
+  - random delays for stealth
   - min/max delay
   - hotkey
   - visibility check
