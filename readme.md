@@ -21,6 +21,7 @@ Randomizes process name (Linux only)
   - head only/whole body
   - flash check
   - fov circle
+
 - esp
   - box
   - skeleton
@@ -30,6 +31,7 @@ Randomizes process name (Linux only)
   - weapon name
   - player tags (helmet, defuser, bomb)
   - dropped weapons
+
 - triggerbot
   - random delays for stealth
   - min/max delay
@@ -40,10 +42,14 @@ Randomizes process name (Linux only)
 - standalone rcs
 - misc
   - sniper crosshair
+
+-semi safe
+- fov changer only writes to memory when needed not the whole time
+
 - unsafe
   - noflash
     - max flash alpha
-  - fov changer
+  
 
 > [!WARNING]
 > the features in the unsafe tab are there for a reason.
