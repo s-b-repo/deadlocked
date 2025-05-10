@@ -3,12 +3,13 @@
 #include "mouse.hpp"
 #include <chrono>
 #include <random>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
-#include <glm/gtx/norm.hpp>
-#include <glm/gtc/constants.hpp>
+#include <glm/gtx/norm.hpp>          // for glm::length2
 #include <glm/gtx/compatibility.hpp> // for glm::lerp
+#include <cmath>
 
-glm::vec2 mouse_movement {0.0f};
+glm::vec2 mouse_movement{0.0f};
 
 inline float RandomFloat(float min, float max) {
     static std::mt19937 rng(std::random_device{}());
@@ -21,63 +22,59 @@ void Rcs() {
         return;
     }
 
+    // Rate-limit to ~125Hz (~8ms between updates)
     static auto last_time = std::chrono::steady_clock::now();
-    const auto now = std::chrono::steady_clock::now();
-
-    // Ratelimit to ~125 Hz to prevent overcorrection
+    auto now = std::chrono::steady_clock::now();
     if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_time).count() < 8) {
         return;
     }
     last_time = now;
 
-    const std::optional<Player> local_player = Player::LocalPlayer();
+    auto local_player = Player::LocalPlayer();
     if (!local_player) {
         return;
     }
 
-    const WeaponClass weapon_class = local_player->GetWeaponClass();
-    if (weapon_class != WeaponClass::Smg &&
-        weapon_class != WeaponClass::Rifle &&
-        weapon_class != WeaponClass::Heavy) {
+    WeaponClass wc = local_player->GetWeaponClass();
+    if (wc != WeaponClass::Smg && wc != WeaponClass::Rifle && wc != WeaponClass::Heavy) {
         return;
     }
 
-    const i32 shots_fired = local_player->ShotsFired();
-    if (shots_fired < 1) {
-        mouse_movement = glm::vec2 {0.0f};
+    i32 shots = local_player->ShotsFired();
+    if (shots < 1) {
+        mouse_movement = glm::vec2{0.0f};
         return;
     }
 
-    if (glm::length2(aim_punch) < 0.0001f) {  // use length squared for speed
+    // Use length² check for speed and lower threshold
+    if (glm::length2(aim_punch) < 0.0001f) {
         return;
     }
 
-    const float sensitivity = Sensitivity() * local_player->FovMultiplier();
-
-    // Calculate new compensation vector
-    const glm::vec2 punch_angle {
-        aim_punch.y / sensitivity * 25.0f,
-       -aim_punch.x / sensitivity * 25.0f
+    float sens = Sensitivity() * local_player->FovMultiplier();
+    glm::vec2 punch_angle{
+        aim_punch.y / sens * 25.0f,
+       -aim_punch.x / sens * 25.0f
     };
 
-    // Difference from previous movement
+    // Compute delta from what we've already moved
     glm::vec2 delta = punch_angle - mouse_movement;
 
-    // Clamp to max pixels/frame
-    delta = glm::clamp(delta, glm::vec2{-2.0f, -2.0f}, glm::vec2{2.0f, 2.0f});
+    // Clamp per-frame so we never move >2px in any direction
+    delta = glm::clamp(delta, glm::vec2{-2.0f}, glm::vec2{2.0f});
 
-    // Add smoothing via linear interpolation
+    // Smooth out the step (50% toward full correction)
     delta = glm::lerp(glm::vec2{0.0f}, delta, 0.5f);
 
-    // Add random jitter to avoid detection patterns
+    // Add small random jitter to evade heuristics
     delta.x += RandomFloat(-0.25f, 0.25f);
     delta.y += RandomFloat(-0.25f, 0.25f);
 
-    // Track total mouse movement to allow proper reversal
+    // Track the total so we can reverse properly next frame
     mouse_movement += delta;
 
-    // Apply movement
-    MouseMove(glm::ivec2 {
+    // Finally, apply mouse move (rounded to int)
+    MouseMove(glm::ivec2{
         static_cast<i32>(std::round(delta.x)),
         static_cast<i32>(std::round(delta.y))
     });
