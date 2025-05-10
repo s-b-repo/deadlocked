@@ -54,7 +54,7 @@ Randomizes process name (Linux only)
 > they write to game memory.
 
 > [!CAUTION]
-> vacnet 3.0 seems to be better at detecting aimbot and wallhacks, so **do not** use aim lock,
+> vacnet 3.0 seems to be better at detecting aimbot and wallhacks, so **you can** use aim lock just hide it,
 > and play with a low fov to avoid bans. use visuals sparingly.
 
 ## setup
